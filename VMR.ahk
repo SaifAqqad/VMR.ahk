@@ -16,22 +16,12 @@ class VMR{
     login(){
         this.VBVMRDLL := DllCall("LoadLibrary", "str", VM_PATH . VM_DLL . ".dll")
         DllCall(VM_DLL . "\VBVMR_Login")
-        SetTimer, checkDLLparams, 10, 5
+        checkDLLparams:= ObjBindMethod(this, "__checkDLLparams")
+        SetTimer, %checkDLLparams%, 10, 2
         OnExit(ObjBindMethod(this, "logout"))
         this.getType()
-        loop % this.VM_BUSCOUNT {
-            this.bus.Push(new this.VM_BUS)
-        }
-        loop % this.VM_STRIPCOUNT {
-            this.strip.Push(new this.VM_STRIP)
-        }
-        this.VM_BUS.updateDevices()
-        this.VM_STRIP.updateDevices()
-        return
-
-        checkDLLparams:
-            this.__checkDLLparams()
-        return
+        this.__init_bus()
+        this.__init_strip()
     }
         
     logout(){
@@ -60,6 +50,20 @@ class VMR{
                 this.VM_BUSCOUNT:= 8
                 this.VM_STRIPCOUNT:= 8 
         }
+    }
+
+    __init_bus(){
+        loop % this.VM_BUSCOUNT {
+            this.bus.Push(new this.VM_BUS)
+        }
+        this.VM_BUS.updateDevices()
+    }
+
+    __init_strip(){
+        loop % this.VM_STRIPCOUNT {
+            this.strip.Push(new this.VM_STRIP)
+        }
+        this.VM_STRIP.updateDevices()
     }
     
     __checkDLLparams(){
@@ -98,15 +102,11 @@ class VMR{
                 VarSetCapacity(ptrDriver, 1000)
                 DllCall(VM_DLL . "\VBVMR_Output_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
                 ptrDriver := NumGet(ptrDriver, 0, "UInt")
-                device := new VMR.VM_BUS.OutputDevice
+                device := {}
                 device.Name := ptrName
                 device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
                 VMR.VM_BUS.devices.Push(device)
             }
-        }
-
-        class OutputDevice{
-            Name:=,Driver:=
         }
     }
 
@@ -143,17 +143,12 @@ class VMR{
                 VarSetCapacity(ptrDriver, 1000)
                 DllCall(VM_DLL . "\VBVMR_Input_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
                 ptrDriver := NumGet(ptrDriver, 0, "UInt")
-                device := new VMR.VM_STRIP.InputDevice
+                device := {}
                 device.Name := ptrName
                 device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
                 VMR.VM_STRIP.devices.Push(device)
             }
         }
-
-        class InputDevice{
-            Name:=,Driver:=
-        }
-
     }
 
     class VM_BUS_STRIP {
@@ -180,37 +175,44 @@ class VMR{
         }
 
         getGain(){
-            local CurrentGain := 0.0
+            local gain := 0.0
             this.checkparams()
-            NumPut(0.0, CurrentGain, 0, "Float")
-            DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "].Gain" , "Ptr" , &CurrentGain, "Int")
-            CurrentGain := NumGet(CurrentGain, 0, "Float")
+            NumPut(0.0, gain, 0, "Float")
+            DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "].Gain" , "Ptr" , &gain, "Int")
+            gain := NumGet(gain, 0, "Float")
             SetFormat, FloatFast, 4.1
-            return CurrentGain+0
+            return gain+0
+        }
+
+        getGainPercentage(){
+            local dB
+            this.checkparams()
+            dB := this.getGain()
+            min_s := 10**(-60/20), max_s := 10**(0/20)
+            return ((10**(dB/20))-min_s)/(max_s-min_s)*100
         }
 
         toggleMute(){
-            this.updateMute()
-            DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Mute" , "Float" , !this.mute, "Int")
+            local mute
+            this.checkparams()
+            mute := !this.getMute()
+            DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Mute" , "Float" , mute, "Int")
         }
 
         setMute(mute){
-            this.updateMute()
             return DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Mute" , "Float" , mute, "Int")
         }
 
-        updateMute(){
+        getMute(){
             local mute := 0
+            this.checkparams()
             NumPut(0, mute, 0, "Float")
             DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Mute" , "Ptr" , &mute , "Int")
-            this.mute := NumGet(mute, 0, "Float")
+            return NumGet(mute, 0, "Float")
         }
+
         checkparams(){
             DllCall(VM_DLL . "\VBVMR_IsParametersDirty")
-        }
-        getPercentage(dB){
-            min_s := 10**(-60/20), max_s := 10**(12/20)
-            return ((10**(dB/20))-min_s)/(max_s-min_s)*100
         }
     }
 }
