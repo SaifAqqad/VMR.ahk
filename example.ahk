@@ -17,3 +17,9 @@ Volume_Down::voicemeeter.bus[1].decGain()
 
 F6::voicemeeter.bus[1].setDevice("LG") ; set bus[1] to the first device with "LG" in its name
 F7::voicemeeter.strip[2].setDevice("amazonbasics", "mme")
+
+^G::
+MsgBox, % "bus[1] gain:" . voicemeeter.bus[1].getGain() . " dB"
+MsgBox, % "bus[1] gain percentage:" . voicemeeter.bus[1].getGainPercentage() . "%"
+MsgBox, % "bus[1] " . (voicemeeter.bus[1].getMute() ? "Muted" : "Unmuted")
+return
