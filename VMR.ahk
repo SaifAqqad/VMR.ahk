@@ -22,6 +22,7 @@ class VMR{
         this.getType()
         this.__init_bus()
         this.__init_strip()
+        VMR.VM_BUS_STRIP.__updateDevices()
     }
         
     logout(){
@@ -31,8 +32,7 @@ class VMR{
 
     restart(){
         DllCall(VM_DLL . "\VBVMR_SetParameterFloat","AStr","Command.Restart","Float","1.0f", "Int")
-        VMR.VM_BUS.updateDevices()
-        VMR.VM_STRIP.updateDevices()
+        VMR.VM_BUS_STRIP.__updateDevices()
     }
     
     getType(){
@@ -56,14 +56,12 @@ class VMR{
         loop % this.VM_BUSCOUNT {
             this.bus.Push(new this.VM_BUS)
         }
-        this.VM_BUS.updateDevices()
     }
 
     __init_strip(){
         loop % this.VM_STRIPCOUNT {
             this.strip.Push(new this.VM_STRIP)
         }
-        this.VM_STRIP.updateDevices()
     }
     
     __checkDLLparams(){
@@ -151,12 +149,12 @@ class VMR{
         }
 
         setDevice(device,driver:="wdm"){
-            if (!this.__isPhysical)
+            if (!this.__isPhysical())
                 return -4
             if driver not in wdm,mme,ks,asio
                 return -5
             device := this.__getDeviceObj(device,driver)
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr","Strip[" . this.BUS_STRIP_INDEX . "].Device." . device.Driver , "WStr" , device.Name , "Int") 
+            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Device." . device.Driver , "WStr" , device.Name , "Int") 
             return errLevel<0 ? errLevel : device.Name
         }    
 
@@ -168,13 +166,15 @@ class VMR{
         }
         
         __getDeviceObj(substring,driver:="wdm"){
-            local b_s_type := this.BUS_STRIP_TYPE, devices:= VMR.VM_BUS_STRIP.%b_s_type%Devices
-            for i in devices {
+            local devices_array := this.BUS_STRIP_TYPE . "Devices", devices:= VMR.VM_BUS_STRIP[devices_array]
+            MsgBox, % devices.Length()
+            for i in devices 
                 if (devices[i].Driver = driver && InStr(devices[i].Name, substring)>0)
                     return devices[i]
         }
     
         __updateDevices(){
+            MsgBox, im here
             VMR.VM_BUS_STRIP.BusDevices:= Array()
             VMR.VM_BUS_STRIP.StripDevices:= Array()
             this.checkparams()
@@ -186,7 +186,7 @@ class VMR{
                 device := {}
                 device.Name := ptrName
                 device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
-                VMR.VM_BUS_STRIP.OUTPUT_DEVICES.Push(device)
+                VMR.VM_BUS_STRIP.BusDevices.Push(device)
             }
             this.checkparams()
             loop % DllCall(VM_DLL . "\VBVMR_Input_GetDeviceNumber","Int") {
@@ -197,7 +197,7 @@ class VMR{
                 device := {}
                 device.Name := ptrName
                 device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
-                VMR.VM_STRIP.devices.Push(device)
+                VMR.VM_BUS_STRIP.StripDevices.Push(device)
             }
         }
 
