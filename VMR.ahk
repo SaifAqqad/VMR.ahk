@@ -36,7 +36,7 @@ class VMR{
     }
     
     getType(){
-        VarSetCapacity(type, 32)
+        VarSetCapacity(type, 4)
         DllCall(VM_DLL . "\VBVMR_GetVoicemeeterType","Ptr" , &type, "Int")
         this.VM_TYPE:= NumGet(type, 0, "Int")
         Switch this.VM_TYPE {
@@ -77,37 +77,6 @@ class VMR{
             this.BUS_STRIP_TYPE:="Bus"
             this.BUS_STRIP_INDEX:= VMR.VM_BUS.BUS_COUNT++ 
         }
-
-        setDevice(device,driver:="wdm"){
-            if((VMR.VM_BUS.BUS_COUNT=5 && this.BUS_STRIP_INDEX>2) || (VMR.VM_BUS.BUS_COUNT=8 && this.BUS_STRIP_INDEX>4)){
-                return -4
-            }
-            if driver not in wdm,mme,ks,asio
-                return -5
-            device := this.getDevice(device,driver)
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr","Bus[" . this.BUS_STRIP_INDEX . "].Device." . device.Driver , "WStr" , device.Name , "Int") 
-            return errLevel<0 ? errLevel : device.Name
-        }
-
-        getDevice(device,driver){
-            for i in VMR.VM_BUS.devices 
-                if (VMR.VM_BUS.devices[i].Driver = driver && InStr(VMR.VM_BUS.devices[i].Name, device)>0)
-                    return VMR.VM_BUS.devices[i]
-        }
-
-        updateDevices(){
-            VMR.VM_BUS.devices:= Array()
-            loop % DllCall(VM_DLL . "\VBVMR_Output_GetDeviceNumber","Int") {
-                VarSetCapacity(ptrName, 1000)
-                VarSetCapacity(ptrDriver, 1000)
-                DllCall(VM_DLL . "\VBVMR_Output_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
-                ptrDriver := NumGet(ptrDriver, 0, "UInt")
-                device := {}
-                device.Name := ptrName
-                device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
-                VMR.VM_BUS.devices.Push(device)
-            }
-        }
     }
 
     class VM_STRIP extends VMR.VM_BUS_STRIP{
@@ -117,41 +86,11 @@ class VMR{
             this.BUS_STRIP_TYPE:="Strip"
             this.BUS_STRIP_INDEX:= VMR.VM_STRIP.STRIP_COUNT++
         }
-
-        setDevice(device,driver:="wdm"){
-            if((VMR.VM_STRIP.STRIP_COUNT=3 && this.BUS_STRIP_INDEX>1) || (VMR.VM_STRIP.STRIP_COUNT=5 && this.BUS_STRIP_INDEX>2) || (STRIP_COUNT=8 && base.BUS_STRIP_INDEX>4)){
-                return -4
-            }
-            if driver not in wdm,mme,ks,asio
-                return -5
-            device := this.getDevice(device,driver)
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr","Strip[" . this.BUS_STRIP_INDEX . "].Device." . device.Driver , "WStr" , device.Name , "Int") 
-            return errLevel<0 ? errLevel : device.Name
-        }
-
-        getDevice(device,driver){
-            for i in VMR.VM_STRIP.devices {
-                if (VMR.VM_STRIP.devices[i].Driver = driver && InStr(VMR.VM_STRIP.devices[i].Name, device)>0)
-                    return VMR.VM_STRIP.devices[i]
-            }
-        }
-
-        updateDevices(){
-            VMR.VM_STRIP.devices:= Array()
-            loop % DllCall(VM_DLL . "\VBVMR_Input_GetDeviceNumber","Int") {
-                VarSetCapacity(ptrName, 1000)
-                VarSetCapacity(ptrDriver, 1000)
-                DllCall(VM_DLL . "\VBVMR_Input_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
-                ptrDriver := NumGet(ptrDriver, 0, "UInt")
-                device := {}
-                device.Name := ptrName
-                device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
-                VMR.VM_STRIP.devices.Push(device)
-            }
-        }
+            
     }
-
+    
     class VM_BUS_STRIP {
+        static StripDevices, BusDevices
         BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=
         
         incGain(){
@@ -211,6 +150,74 @@ class VMR{
             return NumGet(mute, 0, "Float")
         }
 
+        setDevice(device,driver:="wdm"){
+            if (!this.__isPhysical)
+                return -4
+            if driver not in wdm,mme,ks,asio
+                return -5
+            device := this.__getDeviceObj(device,driver)
+            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr","Strip[" . this.BUS_STRIP_INDEX . "].Device." . device.Driver , "WStr" , device.Name , "Int") 
+            return errLevel<0 ? errLevel : device.Name
+        }    
+
+        getDevice(){
+            VarSetCapacity(ptrDevice, 1024)
+            DllCall(VM_DLL . "\VBVMR_GetParameterStringW", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].device.name" , "Ptr" , &ptrDevice , "Int")
+            ptrDevice := StrGet(&ptrDevice,512,"UTF-16")
+            return ptrDevice
+        }
+        
+        __getDeviceObj(substring,driver:="wdm"){
+            local b_s_type := this.BUS_STRIP_TYPE, devices:= VMR.VM_BUS_STRIP.%b_s_type%Devices
+            for i in devices {
+                if (devices[i].Driver = driver && InStr(devices[i].Name, substring)>0)
+                    return devices[i]
+        }
+    
+        __updateDevices(){
+            VMR.VM_BUS_STRIP.BusDevices:= Array()
+            VMR.VM_BUS_STRIP.StripDevices:= Array()
+            this.checkparams()
+            loop % DllCall(VM_DLL . "\VBVMR_Output_GetDeviceNumber","Int") {
+                VarSetCapacity(ptrName, 1024)
+                VarSetCapacity(ptrDriver, 4)
+                DllCall(VM_DLL . "\VBVMR_Output_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
+                ptrDriver := NumGet(ptrDriver, 0, "UInt")
+                device := {}
+                device.Name := ptrName
+                device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
+                VMR.VM_BUS_STRIP.OUTPUT_DEVICES.Push(device)
+            }
+            this.checkparams()
+            loop % DllCall(VM_DLL . "\VBVMR_Input_GetDeviceNumber","Int") {
+                VarSetCapacity(ptrName, 1024)
+                VarSetCapacity(ptrDriver, 4)
+                DllCall(VM_DLL . "\VBVMR_Input_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
+                ptrDriver := NumGet(ptrDriver, 0, "UInt")
+                device := {}
+                device.Name := ptrName
+                device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
+                VMR.VM_STRIP.devices.Push(device)
+            }
+        }
+
+        __isPhysical(){
+            local VM_type
+            VarSetCapacity(VM_type, 4)
+            DllCall(VM_DLL . "\VBVMR_GetVoicemeeterType","Ptr" , &VM_type, "Int")
+            Switch NumGet(VM_type, 0, "Int") {
+                case 1: ;vm
+                    if(this.BUS_STRIP_TYPE = "Strip")
+                        return this.BUS_STRIP_INDEX < 2
+                    else
+                        return 1
+                case 2: ;vm banana
+                        return this.BUS_STRIP_INDEX < 3
+                case 3: ;vm potato
+                        return this.BUS_STRIP_INDEX < 5
+            }
+        }
+        
         checkparams(){
             DllCall(VM_DLL . "\VBVMR_IsParametersDirty")
         }
