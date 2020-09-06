@@ -23,3 +23,5 @@ MsgBox, % "bus[1] gain:" . voicemeeter.bus[1].getGain() . " dB"
 MsgBox, % "bus[1] gain percentage:" . voicemeeter.bus[1].getGainPercentage() . "%"
 MsgBox, % "bus[1] " . (voicemeeter.bus[1].getMute() ? "Muted" : "Unmuted")
 return
+
+^K::voicemeeter.bus[1].setParameter("FadeTo", "(6.0, 2000)") ;set specific parameter for a bus/strip
