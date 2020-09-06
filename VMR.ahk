@@ -69,7 +69,7 @@ class VMR{
     }
     
     class VM_BUS extends VMR.VM_BUS_STRIP{
-        static BUS_COUNT:=0, devices:= Array()
+        static BUS_COUNT:=0
         
         __New(){
             this.BUS_STRIP_TYPE:="Bus"
@@ -78,7 +78,7 @@ class VMR{
     }
 
     class VM_STRIP extends VMR.VM_BUS_STRIP{
-        static STRIP_COUNT:=0, devices:= Array()
+        static STRIP_COUNT:=0
 
         __New(){
             this.BUS_STRIP_TYPE:="Strip"
@@ -92,60 +92,43 @@ class VMR{
         BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=
         
         incGain(){
-            local gain
-            this.checkparams()
-            gain := this.getGain()
-            gain += (gain < 12 ? 1.2 : 0)
-            return DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "].Gain" , "Float" , gain , "Int")
+            local gain := this.getGain()
+            gain += gain < 12 ? 1.2 : 0
+            return this.setGain(gain)
         }
 
         decGain(){
-            local gain
-            this.checkparams()
-            gain := this.getGain()
+            local gain := this.getGain()
             gain -= gain > -60 ? 1.2 : 0
-            return DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "].Gain" , "Float" , gain , "Int")
+            return this.setGain(gain)
         }
 
         setGain(gain){
-            return DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "].Gain" , "Float" , gain , "Int")
+            this.setParameter("gain", gain)
         }
 
         getGain(){
-            local gain := 0.0
-            this.checkparams()
-            NumPut(0.0, gain, 0, "Float")
-            DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "].Gain" , "Ptr" , &gain, "Int")
-            gain := NumGet(gain, 0, "Float")
+            local gain := this.getParameter("gain")
             SetFormat, FloatFast, 4.1
             return gain+0
         }
 
         getGainPercentage(){
-            local dB
-            this.checkparams()
             dB := this.getGain()
             min_s := 10**(-60/20), max_s := 10**(0/20)
             return ((10**(dB/20))-min_s)/(max_s-min_s)*100
         }
 
         toggleMute(){
-            local mute
-            this.checkparams()
-            mute := !this.getMute()
-            DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Mute" , "Float" , mute, "Int")
+            return this.setParameter("mute",!this.getMute())
         }
 
         setMute(mute){
-            return DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Mute" , "Float" , mute, "Int")
+            return this.setParameter("mute",mute)
         }
 
         getMute(){
-            local mute := 0
-            this.checkparams()
-            NumPut(0, mute, 0, "Float")
-            DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Mute" , "Ptr" , &mute , "Int")
-            return NumGet(mute, 0, "Float")
+            return this.getParameter("mute")
         }
 
         setDevice(device,driver:="wdm"){
@@ -154,27 +137,68 @@ class VMR{
             if driver not in wdm,mme,ks,asio
                 return -5
             device := this.__getDeviceObj(device,driver)
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].Device." . device.Driver , "WStr" , device.Name , "Int") 
+            errLevel := this.setParameter("device." . device.Driver,device.Name)
             return errLevel<0 ? errLevel : device.Name
         }    
 
         getDevice(){
-            VarSetCapacity(ptrDevice, 1024)
-            DllCall(VM_DLL . "\VBVMR_GetParameterStringW", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "].device.name" , "Ptr" , &ptrDevice , "Int")
-            ptrDevice := StrGet(&ptrDevice,512,"UTF-16")
-            return ptrDevice
+            return this.getParameter("device.name")
+        }
+
+        setParameter(parameter, value){
+            local func
+            if parameter contains device,FadeTo,Label
+                func:= "__setParameterString"
+            else
+                func:= "__setParameterFloat"
+            return this[func](parameter,value)
+        }
+
+        getParameter(parameter){
+            local func
+            if parameter contains device,FadeTo,Label
+                func:= "__getParameterString"
+            else
+                func:= "__getParameterFloat"
+            return this[func](parameter)
+        }
+
+        __setParameterFloat(p_parameter, p_value){
+            this.checkparams()
+            return DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Float" , p_value, "Int")
+        }
+
+        __setParameterString(p_parameter, p_value){
+            this.checkparams()
+            return DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "WStr" , p_value , "Int")
+        }
+
+        __getParameterFloat(p_parameter){
+            local value
+            this.checkparams()
+            NumPut(0.0, &value, 0, "Float")
+            errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "]." . p_parameter , "Ptr" , &value, "Int")
+            value := NumGet(&value, 0, "Float")
+            return errLevel < 0 ? errLevel : value
+        }
+
+        __getParameterString(p_parameter){
+            local value
+            this.checkparams()
+            VarSetCapacity(value, 1024)
+            errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterStringW", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Ptr" , &value , "Int")
+            value := StrGet(&value,512,"UTF-16")
+            return errLevel < 0 ? errLevel : value
         }
         
         __getDeviceObj(substring,driver:="wdm"){
             local devices_array := this.BUS_STRIP_TYPE . "Devices", devices:= VMR.VM_BUS_STRIP[devices_array]
-            MsgBox, % devices.Length()
             for i in devices 
                 if (devices[i].Driver = driver && InStr(devices[i].Name, substring)>0)
                     return devices[i]
         }
     
         __updateDevices(){
-            MsgBox, im here
             VMR.VM_BUS_STRIP.BusDevices:= Array()
             VMR.VM_BUS_STRIP.StripDevices:= Array()
             this.checkparams()
