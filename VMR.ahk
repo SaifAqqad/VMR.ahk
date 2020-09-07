@@ -161,6 +161,7 @@ class VMR{
                 func:= "__getParameterString"
             else
                 func:= "__getParameterFloat"
+            this.checkparams()
             return this[func](parameter)
         }
 
