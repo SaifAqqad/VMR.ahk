@@ -10,7 +10,8 @@ VMR.ahk
 
 2.  create an object of the VMR class:
      ```ahk
-        voicemeeter := new VMR() ; you can optionally pass the path for voicemeeter's folder -> new VMR(path)
+        voicemeeter := new VMR() 
+        ; you can optionally pass the path for voicemeeter's folder -> new VMR("C:\path\to\voicemeeter")
      ```
 3.  call the `login()` method:
     ```ahk
@@ -18,7 +19,7 @@ VMR.ahk
     ```
 4. The `VMR` object will have two arrays, `bus` and `strip`, The length of each array is determined by your Voicemeeter version (VM, VM Banana or VM Potato).
     
-    You can use the [bus/strip methods](#bus%2Fstrip%20methods) through these arrays:
+    You can use the [bus/strip methods](#busstrip-methods) through these arrays:
     ```ahk
         voicemeeter.bus[1].setMute(True)
     ```
