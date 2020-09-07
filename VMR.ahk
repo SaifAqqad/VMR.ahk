@@ -138,8 +138,8 @@ class VMR{
             if driver not in wdm,mme,ks,asio
                 return -5
             device := this.__getDeviceObj(device,driver)
-            errLevel := this.setParameter("device." . device.Driver,device.Name)
-            return errLevel<0 ? errLevel : device.Name
+            this.setParameter("device." . device.Driver,device.Name)
+            return device.Name
         }    
 
         getDevice(){
@@ -167,12 +167,16 @@ class VMR{
 
         __setParameterFloat(p_parameter, p_value){
             this.checkparams()
-            return DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Float" , p_value, "Int")
+            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Float" , p_value, "Int")
+            if (errLevel<0)
+                Throw, Exception("VBVMR_SetParameterFloat returned " . errLevel, -1)
         }
 
         __setParameterString(p_parameter, p_value){
             this.checkparams()
-            return DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "WStr" , p_value , "Int")
+            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "WStr" , p_value , "Int")
+            if (errLevel<0)
+                Throw, Exception("VBVMR_SetParameterStringW returned " . errLevel, -1)
         }
 
         __getParameterFloat(p_parameter){
@@ -180,8 +184,10 @@ class VMR{
             this.checkparams()
             VarSetCapacity(value, 4)
             errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "]." . p_parameter , "Ptr" , &value, "Int")
+            if (errLevel<0)
+                Throw, Exception("VBVMR_GetParameterFloat returned " . errLevel, -1)
             value := NumGet(&value, 0, "Float")
-            return errLevel < 0 ? errLevel : value
+            return value
         }
 
         __getParameterString(p_parameter){
@@ -189,8 +195,10 @@ class VMR{
             this.checkparams()
             VarSetCapacity(value, 1024)
             errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterStringW", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Ptr" , &value , "Int")
+            if (errLevel<0)
+                Throw, Exception("VBVMR_GetParameterStringW returned " . errLevel, -1)
             value := StrGet(&value,512,"UTF-16")
-            return errLevel < 0 ? errLevel : value
+            return value
         }
         
         __getDeviceObj(substring,driver:="wdm"){
