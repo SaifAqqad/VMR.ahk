@@ -10,7 +10,8 @@ VMR.ahk
 
 2.  create an object of the VMR class:
      ```ahk
-        voicemeeter := new VMR() ; you can optionally pass the path for voicemeeter's folder -> new VMR(path)
+        voicemeeter := new VMR() 
+        ; you can optionally pass the path for voicemeeter's folder -> new VMR("C:\path\to\voicemeeter")
      ```
 3.  call the `login()` method:
     ```ahk
