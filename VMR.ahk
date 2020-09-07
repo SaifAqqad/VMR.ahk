@@ -178,7 +178,7 @@ class VMR{
         __getParameterFloat(p_parameter){
             local value
             this.checkparams()
-            NumPut(0.0, &value, 0, "Float")
+            VarSetCapacity(value, 4)
             errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "]." . p_parameter , "Ptr" , &value, "Int")
             value := NumGet(&value, 0, "Float")
             return errLevel < 0 ? errLevel : value
