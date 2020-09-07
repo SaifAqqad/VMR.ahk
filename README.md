@@ -138,22 +138,22 @@ VMR.ahk
     * <details><summary>incGain</summary>
 
         ## `incGain()`
-        #### Increases the bus/strip's gain by 1.2 dB
+        #### Increases the bus/strip's gain by 1.2 dB and returns the new gain value in dB
         ## Example
         ```ahk
             voicemeeter.bus[3].incGain()
-            voicemeeter.strip[2].incGain()
+            dB := voicemeeter.strip[2].incGain()
         ```
     </details>
 
     * <details><summary>decGain</summary>
 
         ## `decGain()`
-        #### Decreases the bus/strip's gain by 1.2 dB
+        #### Decreases the bus/strip's gain by 1.2 dB and returns the new gain value in dB
         ## Example
         ```ahk
             voicemeeter.bus[3].decGain()
-            voicemeeter.strip[2].decGain()
+            dB := voicemeeter.strip[2].decGain()
         ```
     </details>
 
@@ -185,10 +185,10 @@ VMR.ahk
     * <details><summary>toggleMute</summary>
 
         ## `toggleMute()`
-        #### Toggles the bus/strip's mute state
+        #### Toggles the bus/strip's mute state and returns it
         ## Example
         ```ahk
-            voicemeeter.bus[1].toggleMute()
+            mute := voicemeeter.bus[1].toggleMute()
             voicemeeter.strip[2].toggleMute()
         ```
     </details>
