@@ -50,6 +50,7 @@ class VMR{
                 this.VM_BUSCOUNT:= 8
                 this.VM_STRIPCOUNT:= 8 
         }
+        return this.VM_TYPE
     }
 
     __init_bus(){
