@@ -105,7 +105,7 @@ class VMR{
         }
 
         setGain(gain){
-            this.setParameter("gain", gain)
+            return this.setParameter("gain", gain)
         }
 
         getGain(){
@@ -121,7 +121,7 @@ class VMR{
         }
 
         toggleMute(){
-            return this.setParameter("mute",!this.getMute())
+            return this.setMute(!this.getMute())
         }
 
         setMute(mute){
@@ -170,6 +170,7 @@ class VMR{
             errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Float" , p_value, "Int")
             if (errLevel<0)
                 Throw, Exception("VBVMR_SetParameterFloat returned " . errLevel, -1)
+            return p_value
         }
 
         __setParameterString(p_parameter, p_value){
@@ -177,6 +178,7 @@ class VMR{
             errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "WStr" , p_value , "Int")
             if (errLevel<0)
                 Throw, Exception("VBVMR_SetParameterStringW returned " . errLevel, -1)
+            return p_value
         }
 
         __getParameterFloat(p_parameter){
