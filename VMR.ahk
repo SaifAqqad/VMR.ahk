@@ -300,11 +300,11 @@ class VMR{
         }
 
         save(filePath){
-            this.__setParameterFloat("Save",filePath)
+            this.__setParameterString("Save",filePath)
         }
 
         load(filePath){
-            this.__setParameterFloat("Load",filePath)
+            this.__setParameterString("Load",filePath)
         }
 
         __setParameterFloat(p_parameter, p_value){
