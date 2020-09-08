@@ -26,8 +26,8 @@ VMR.ahk
 ## VMR Object
 * <details><summary>bus/strip arrays</summary>
 
-    ## bus/strip arrays
-    #### These arrays are used to access [bus/strip methods](#busstrip-methods) to retrieve and change their parameters.
+    ## `bus`/`strip` arrays
+    #### Use these arrays to access [bus/strip methods](#busstrip-methods) to retrieve and change their parameters.
 
     ```ahk
         voicemeeter.bus[1]
@@ -57,10 +57,20 @@ VMR.ahk
 
     #### Voicemeeter Potato (v3) has 8 output buses and 8 input strips
 
-    ![](./potato.jpg)
+    ![](./potato.png)
     ###### from left to right: ` strip[1] | strip[2] | strip[3] | strip[4] | strip[5] | strip[6] | strip[7] | strip [8] | bus[1] | bus[2] | bus[3] | bus[4] | bus[5] | bus[6] | bus[7] | bus[8] ` where `strip[1-5]` are physical    (hardware) strips and `bus[1-5]` are physical buses
 
     </details>
+</details>
+
+* <details><summary>command Object</summary>
+
+    ## `command` Object
+    #### Use this object to access [command methods](#command-methods)
+    ```ahk
+        voicemeeter.command.restart()
+        voicemeeter.command.load(filePath)
+    ```
 </details>
 
 * <details><summary>login</summary>
@@ -74,15 +84,6 @@ VMR.ahk
     This method needs to be called at startup 
 </details>
 
-* <details><summary>restart</summary>
-
-    ## `restart()`
-    #### Restarts VoiceMeeter's Audio Engine and refetches devices lists 
-    ```ahk
-        voicemeeter.restart()
-    ```
-</details>
-
 * <details><summary>getType</summary>
 
     ## `getType()`
@@ -90,7 +91,7 @@ VMR.ahk
     ```ahk
        vmType := voicemeeter.getType()
     ```
-    # Remarks
+    ## Remarks
     `1` : Voicemeeter
 
     `2` : Voicemeeter Banana
@@ -197,7 +198,7 @@ VMR.ahk
     * <details><summary>setDevice</summary>
 
         ## `setDevice(name, driver)`
-        #### Sets the bus/strip's audio device
+        #### Sets the bus/strip's audio device.
         ## Parameters
         `name` : The audio device's name or any part of it
 
@@ -207,6 +208,7 @@ VMR.ahk
             voicemeeter.bus[1].setDevice("LG", "mme")
             voicemeeter.strip[2].setDevice("corsair hs70", "wdm")
         ```
+        *this method can only be used on physical buses/strips*
     </details>
 
     * <details><summary>getDevice</summary>
@@ -218,6 +220,7 @@ VMR.ahk
             device := voicemeeter.bus[1].getDevice()
             device := voicemeeter.strip[2].getDevice()
         ```
+        *this method can only be used on physical buses/strips*
     </details>
 * Generic parameter methods
     * <details><summary>setParameter</summary>
@@ -247,3 +250,64 @@ VMR.ahk
             voicemeeter.strip[2].getParameter("Pan_x")
         ```
     </details>
+## command methods
+* <details><summary>show</summary>
+
+    ## `show()`
+    #### Show Voicemeeter's window
+    ## Example
+    ```ahk
+        voicemeeter.command.show()
+    ```
+</details>
+
+* <details><summary>restart</summary>
+
+    ## `restart()`
+    #### Restart Voicemeeter's Audio Engine
+    ## Example
+    ```ahk
+        voicemeeter.command.restart()
+    ```
+</details>
+
+* <details><summary>shutdown</summary>
+
+    ## `shutdown()`
+    #### Shutdown Voicemeeter
+    ## Example
+    ```ahk
+        voicemeeter.command.shutdown()
+    ```
+</details>
+
+* <details><summary>reset</summary>
+
+    ## `reset()`
+    #### Reset All configuration
+    ## Example
+    ```ahk
+        voicemeeter.command.reset()
+    ```
+</details>
+
+* <details><summary>eject</summary>
+
+    ## `eject()`
+    #### Eject Cassette
+    ## Example
+    ```ahk
+        voicemeeter.command.eject()
+    ```
+</details>
+
+* <details><summary>save/load</summary>
+
+    ## `save(fileName)`/`load(fileName)`
+    #### Save/Load Voicemeeter's configuration to/from a file
+    ## Example
+    ```ahk
+        voicemeeter.command.save("C://config.xml")
+        voicemeeter.command.load("C://config.xml")
+    ```
+</details>
