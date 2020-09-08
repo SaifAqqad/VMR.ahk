@@ -3,15 +3,15 @@ class VMR{
     static VM_TYPE:=, VM_BUSCOUNT:=, VM_STRIPCOUNT:=
     bus:=Array(), strip:=Array()
     
-    __New(path:=""){
-        if(path && SubStr(path, 0)!="\"){
-            path.= "\"
+    __New(p_path:=""){
+        if(p_path && SubStr(p_path, 0)!="\"){
+            p_path.= "\"
         }
         if(A_Is64bitOS){
-            VM_PATH := path? path : "C:\Program Files (x86)\VB\Voicemeeter\"
+            VM_PATH := p_path? p_path : "C:\Program Files (x86)\VB\Voicemeeter\"
             VM_DLL := "VoicemeeterRemote64"
         }else{
-            VM_PATH := path? path : "C:\Program Files\VB\Voicemeeter\"
+            VM_PATH := p_path? p_path : "C:\Program Files\VB\Voicemeeter\"
             VM_DLL := "VoicemeeterRemote"
         }
         this.VBVMRDLL := DllCall("LoadLibrary", "str", VM_PATH . VM_DLL . ".dll")
@@ -89,7 +89,7 @@ class VMR{
     }
     
     __checkDLLparams(){
-        DllCall(VM_DLL . "\VBVMR_IsParameterspathty")
+        DllCall(VM_DLL . "\VBVMR_IsParametersDirty")
     }
     
     class VM_BUS extends VMR.VM_BUS_STRIP{
@@ -278,7 +278,53 @@ class VMR{
         }
         
         checkparams(){
-            DllCall(VM_DLL . "\VBVMR_IsParameterspathty")
+            DllCall(VM_DLL . "\VBVMR_IsParametersDirty")
+        }
+    }
+    class command {
+                
+        restart(){
+            this.__setParameterFloat("Restart","1.0f")
+        }
+
+        shutdown(){
+            this.__setParameterFloat("Shutdown ","1.0f")
+        }
+
+        show(){
+            this.__setParameterFloat("Show","1.0f")
+        }
+
+        eject(){
+            this.__setParameterFloat("Eject","1.0f")
+        }
+
+        reset(){
+            this.__setParameterFloat("Reset","1.0f")
+        }
+
+        save(filePath){
+            this.__setParameterFloat("Save",filePath)
+        }
+
+        load(filePath){
+            this.__setParameterFloat("Load",filePath)
+        }
+
+        __setParameterFloat(p_parameter, p_value){
+            this.checkparams()
+            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , "Command." . p_parameter , "Float" , p_value, "Int")
+            if (errLevel<0)
+                Throw, Exception("VBVMR_SetParameterFloat returned " . errLevel, -1)
+            return p_value
+        }
+
+        __setParameterString(p_parameter, p_value){
+            this.checkparams()
+            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", "Command." . p_parameter , "WStr" , p_value , "Int")
+            if (errLevel<0)
+                Throw, Exception("VBVMR_SetParameterStringW returned " . errLevel, -1)
+            return p_value
         }
     }
 }
