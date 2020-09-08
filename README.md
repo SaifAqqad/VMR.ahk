@@ -307,7 +307,9 @@ VMR.ahk
     #### Save/Load Voicemeeter's configuration to/from a file
     ## Example
     ```ahk
-        voicemeeter.command.save("C://config.xml")
-        voicemeeter.command.load("C://config.xml")
+        voicemeeter.command.save("C:\config.xml")
+        voicemeeter.command.load("C:\config.xml")
     ```
+    ## Parameters
+    `fileName` : Name of the file to save/load the configuration to/from, if the path is not specified, the file is assumed to be in the user's Documents folder
 </details>
