@@ -26,8 +26,8 @@ class VMR{
             sleep, 1000
         }
         OnExit(ObjBindMethod(this, "__logout"))
-        checkDLLparams := ObjBindMethod(this, "__checkDLLparams")
-        SetTimer, %checkDLLparams%, 10, 2
+        syncWithDLL := ObjBindMethod(this, "__syncWithDLL")
+        SetTimer, %syncWithDLL%, 10, 3
         this.getType()
         this.__init_arrays()
     }
@@ -105,9 +105,15 @@ class VMR{
         }
         this.updateDevices()
     }
-    
-    __checkDLLparams(){
+
+    __syncWithDLL(){
         DllCall(VM_DLL . "\VBVMR_IsParametersDirty")
+        loop % this.VM_BUSCOUNT {
+            this.bus[A_Index].__updateLevel()
+        }
+        loop % this.VM_STRIPCOUNT {
+            this.strip[A_Index].__updateLevel()
+        }
     }
     
     __logout(){
@@ -116,27 +122,35 @@ class VMR{
     }
 
     class VM_BUS extends VMR.VM_BUS_STRIP{
-        static BUS_COUNT:=0
+        static BUS_COUNT:=0, LEVEL_COUNT:=0
         
         __New(){
             this.BUS_STRIP_TYPE:="Bus"
             this.BUS_STRIP_INDEX:= VMR.VM_BUS.BUS_COUNT++ 
+            this.LEVEL_INDEX:=Array()
+            this.level:=Array()
+            loop 8 
+                this.LEVEL_INDEX.Push(VMR.VM_BUS.LEVEL_COUNT++)
         }
     }
 
     class VM_STRIP extends VMR.VM_BUS_STRIP{
-        static STRIP_COUNT:=0
+        static STRIP_COUNT:=0, LEVEL_COUNT:=0
 
         __New(){
             this.BUS_STRIP_TYPE:="Strip"
             this.BUS_STRIP_INDEX:= VMR.VM_STRIP.STRIP_COUNT++
+            this.LEVEL_INDEX:=Array()
+            this.level:=Array()
+            loop % this.__isPhysical() ? 2 : 8 
+                this.LEVEL_INDEX.Push(VMR.VM_STRIP.LEVEL_COUNT++)
         }
             
     }
     
     class VM_BUS_STRIP {
         static StripDevices, BusDevices
-        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=
+        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, level:=, LEVEL_INDEX:=
         
         incGain(){
             local gain := this.getGain()
@@ -254,6 +268,19 @@ class VMR{
             for i in devices 
                 if (devices[i].Driver = driver && InStr(devices[i].Name, substring)>0)
                     return devices[i]
+        }
+
+        __updateLevel(){
+            local type := this.BUS_STRIP_TYPE="Bus" ? 3 : 0
+            loop % this.LEVEL_INDEX.Length() {
+                i := this.LEVEL_INDEX[A_Index], level:=
+                VarSetCapacity(level,4)
+                errLevel := DllCall(VM_DLL . "\VBVMR_GetLevel", "Int", type, "Int", i, "Ptr", &level)
+                if(errLevel<0)
+                    Throw, Exception("VBVMR_GetLevel returned " . errLevel, -1)
+                level := NumGet(&level, 0, "Float")
+                this.level[A_Index] := Max(Ceil(20 * Log(level)), -999)
+            }
         }
 
         __isPhysical(){
