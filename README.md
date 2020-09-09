@@ -24,9 +24,9 @@ VMR.ahk
         voicemeeter.bus[1].setMute(True)
     ```
 ## VMR Object
-* <details><summary>bus/strip arrays</summary>
+* <details><summary>bus/strip Arrays</summary>
 
-    ## `bus`/`strip` arrays
+    ## `bus`/`strip` Arrays
     #### Use these arrays to access [bus/strip methods](#busstrip-methods) to retrieve and change their parameters.
 
     ```ahk
@@ -99,7 +99,19 @@ VMR.ahk
     `3` : Voicemeeter Potato
 </details>
 
-## bus/strip methods
+## `bus`/`strip` Arrays
+* <details><summary>Level Array</summary>
+
+    ## `level` Array
+    #### contains the current level (in dB) for every channel a bus/strip has.
+    ## Remarks
+    The array length depends on the type of bus/strip. Hardware (physical) strips have 2 channels (left, right), Buses and virtual strips have 8 channels.
+    ## Example
+    ```ahk
+        level := voicemeeter.bus[1].level[1]
+    ```
+</details>
+
 * Gain methods
     * <details><summary>setGain</summary>
 
@@ -250,7 +262,7 @@ VMR.ahk
             voicemeeter.strip[2].getParameter("Pan_x")
         ```
     </details>
-## command methods
+## `command` Object
 * <details><summary>show</summary>
 
     ## `show()`
