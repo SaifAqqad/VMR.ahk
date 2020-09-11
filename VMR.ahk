@@ -55,16 +55,16 @@ class VMR{
     }
 
     runVoicemeeter(){
-        Run, %VM_PATH%voicemeeter8x64.exe , %VM_PATH%, UseErrorLevel Min
+        Run, %VM_PATH%voicemeeter8x64.exe , %VM_PATH%, UseErrorLevel Hide
         if(!ErrorLevel)
             return
-        Run, %VM_PATH%voicemeeter8.exe , %VM_PATH%, UseErrorLevel Min
+        Run, %VM_PATH%voicemeeter8.exe , %VM_PATH%, UseErrorLevel Hide
         if(!ErrorLevel)
             return
-        Run, %VM_PATH%voicemeeterpro.exe , %VM_PATH%, UseErrorLevel Min
+        Run, %VM_PATH%voicemeeterpro.exe , %VM_PATH%, UseErrorLevel Hide
         if(!ErrorLevel)
             return
-        Run, %VM_PATH%voicemeeter.exe , %VM_PATH%, UseErrorLevel Min
+        Run, %VM_PATH%voicemeeter.exe , %VM_PATH%, UseErrorLevel Hide
         if(ErrorLevel)
             Throw, Exception("Could not run Voicemeeter", -1)
     }
@@ -72,7 +72,7 @@ class VMR{
     updateDevices(){
         VMR.VM_BUS_STRIP.BusDevices:= Array()
         VMR.VM_BUS_STRIP.StripDevices:= Array()
-        this.checkparams()
+        this.__syncWithDLL()
         loop % DllCall(VM_DLL . "\VBVMR_Output_GetDeviceNumber","Int") {
             VarSetCapacity(ptrName, 1024)
             VarSetCapacity(ptrDriver, 4)
@@ -83,7 +83,7 @@ class VMR{
             device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
             VMR.VM_BUS_STRIP.BusDevices.Push(device)
         }
-        this.checkparams()
+        this.__syncWithDLL()
         loop % DllCall(VM_DLL . "\VBVMR_Input_GetDeviceNumber","Int") {
             VarSetCapacity(ptrName, 1024)
             VarSetCapacity(ptrDriver, 4)
@@ -276,8 +276,10 @@ class VMR{
                 i := this.LEVEL_INDEX[A_Index], level:=
                 VarSetCapacity(level,4)
                 errLevel := DllCall(VM_DLL . "\VBVMR_GetLevel", "Int", type, "Int", i, "Ptr", &level)
-                if(errLevel<0)
+                if(errLevel<0){
+                    SetTimer,, Off
                     Throw, Exception("VBVMR_GetLevel returned " . errLevel, -1)
+                }
                 level := NumGet(&level, 0, "Float")
                 this.level[A_Index] := Max(Ceil(20 * Log(level)), -999)
             }
