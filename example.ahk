@@ -29,3 +29,13 @@ return
 ^K::voicemeeter.bus[1].setParameter("FadeTo", "(6.0, 2000)") ;set specific parameter for a bus/strip
 
 ^T::MsgBox, % voicemeeter.bus[1].level[1]
+
+!r::
+voicemeeter.recorder.armStrips(1,5,3)
+voicemeeter.recorder.record()
+return
+
+!s::
+voicemeeter.recorder.stop()
+voicemeeter.command.eject()
+return
