@@ -1,4 +1,3 @@
-global VM_PATH:=, VM_DLL:=, VM_TYPE:=, VM_BUSCOUNT:=, VM_STRIPCOUNT:=
 class VMR{
     bus:=Array(), strip:=Array()
     
@@ -7,24 +6,22 @@ class VMR{
             p_path.= "\"
         }
         if(A_Is64bitOS){
-            VM_PATH := p_path? p_path : "C:\Program Files (x86)\VB\Voicemeeter\"
-            VM_DLL := "VoicemeeterRemote64"
+            VBVMR.VM_PATH := p_path? p_path : "C:\Program Files (x86)\VB\Voicemeeter\"
+            VBVMR.VM_DLL := "VoicemeeterRemote64"
         }else{
-            VM_PATH := p_path? p_path : "C:\Program Files\VB\Voicemeeter\"
-            VM_DLL := "VoicemeeterRemote"
+            VBVMR.VM_PATH := p_path? p_path : "C:\Program Files\VB\Voicemeeter\"
+            VBVMR.VM_DLL := "VoicemeeterRemote"
         }
-        this.VBVMRDLL := DllCall("LoadLibrary", "str", VM_PATH . VM_DLL . ".dll")
+        VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.VM_PATH . VBVMR.VM_DLL . ".dll", "Ptr")
+        VBVMR.__getAddresses()
     }
     
     login(){
-        errLevel := DllCall(VM_DLL . "\VBVMR_Login")
-        if(errLevel<0)
-            Throw, Exception("VBVMR_Login returned " . errLevel, -1)
-        if(errLevel){
+        if(VBVMR.Login()){
             this.runVoicemeeter()
             sleep, 1000
         }
-        OnExit(ObjBindMethod(this, "__logout"))
+        OnExit(ObjBindMethod(VBVMR, "Logout"))
         syncWithDLL := ObjBindMethod(this, "__syncWithDLL")
         SetTimer, %syncWithDLL%, 10, 3
         this.getType()
@@ -32,38 +29,34 @@ class VMR{
     }
     
     getType(){
-        if(!VM_TYPE){
-            VarSetCapacity(type, 4)
-            errLevel := DllCall(VM_DLL . "\VBVMR_GetVoicemeeterType","Ptr" , &type, "Int")
-            if(errLevel<0)
-                Throw, Exception("VBVMR_GetVoicemeeterType returned " . errLevel, -1)
-            VM_TYPE:= NumGet(type, 0, "Int")
-            Switch VM_TYPE {
+        if(!VBVMR.VM_TYPE){
+            VBVMR.VM_TYPE:= VBVMR.GetVoicemeeterType()
+            Switch VBVMR.VM_TYPE {
                 case 1:
-                    VM_BUSCOUNT:= 2
-                    VM_STRIPCOUNT:= 3 
+                    VBVMR.VM_BUSCOUNT:= 2
+                    VBVMR.VM_STRIPCOUNT:= 3 
                 case 2:
-                    VM_BUSCOUNT:= 5
-                    VM_STRIPCOUNT:= 5 
+                    VBVMR.VM_BUSCOUNT:= 5
+                    VBVMR.VM_STRIPCOUNT:= 5 
                 case 3:
-                    VM_BUSCOUNT:= 8
-                    VM_STRIPCOUNT:= 8 
+                    VBVMR.VM_BUSCOUNT:= 8
+                    VBVMR.VM_STRIPCOUNT:= 8 
             }
         }
-        return VM_TYPE
+        return VBVMR.VM_TYPE
     }
 
     runVoicemeeter(){
-        Run, %VM_PATH%voicemeeter8x64.exe , %VM_PATH%, UseErrorLevel Hide
+        Run, % VBVMR.VM_PATH "voicemeeter8x64.exe" , % VBVMR.VM_PATH, UseErrorLevel Hide
         if(!ErrorLevel)
             return
-        Run, %VM_PATH%voicemeeter8.exe , %VM_PATH%, UseErrorLevel Hide
+        Run, % VBVMR.VM_PATH "voicemeeter8.exe" , % VBVMR.VM_PATH, UseErrorLevel Hide
         if(!ErrorLevel)
             return
-        Run, %VM_PATH%voicemeeterpro.exe , %VM_PATH%, UseErrorLevel Hide
+        Run, % VBVMR.VM_PATH "voicemeeterpro.exe" , % VBVMR.VM_PATH, UseErrorLevel Hide
         if(!ErrorLevel)
             return
-        Run, %VM_PATH%voicemeeter.exe , %VM_PATH%, UseErrorLevel Hide
+        Run, % VBVMR.VM_PATH "voicemeeter.exe" , % VBVMR.VM_PATH, UseErrorLevel Hide
         if(ErrorLevel)
             Throw, Exception("Could not run Voicemeeter", -1)
     }
@@ -72,85 +65,57 @@ class VMR{
         VMR.VM_BUS_STRIP.BusDevices:= Array()
         VMR.VM_BUS_STRIP.StripDevices:= Array()
         this.__syncWithDLL()
-        loop % DllCall(VM_DLL . "\VBVMR_Output_GetDeviceNumber","Int") {
-            VarSetCapacity(ptrName, 1024)
-            VarSetCapacity(ptrDriver, 4)
-            DllCall(VM_DLL . "\VBVMR_Output_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
-            ptrDriver := NumGet(ptrDriver, 0, "UInt")
-            device := {}
-            device.Name := ptrName
-            device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
-            VMR.VM_BUS_STRIP.BusDevices.Push(device)
-        }
+        loop % VBVMR.Output_GetDeviceNumber()
+            VMR.VM_BUS_STRIP.BusDevices.Push(VBVMR.Output_GetDeviceDesc(A_Index-1))
         this.__syncWithDLL()
-        loop % DllCall(VM_DLL . "\VBVMR_Input_GetDeviceNumber","Int") {
-            VarSetCapacity(ptrName, 1024)
-            VarSetCapacity(ptrDriver, 4)
-            DllCall(VM_DLL . "\VBVMR_Input_GetDeviceDescW", "Int", A_Index-1, "Ptr" , &ptrDriver , "Ptr", &ptrName, "Ptr", 0, "Int")
-            ptrDriver := NumGet(ptrDriver, 0, "UInt")
-            device := {}
-            device.Name := ptrName
-            device.Driver := (ptrDriver=3 ? "wdm" : (ptrDriver=4 ? "ks" : (ptrDriver=5 ? "asio" : "mme"))) 
-            VMR.VM_BUS_STRIP.StripDevices.Push(device)
-        }
+        loop % VBVMR.Input_GetDeviceNumber() 
+            VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
     __init_arrays(){
-        loop % VM_BUSCOUNT {
-            this.bus.Push(new this.VM_BUS)
+        loop % VBVMR.VM_BUSCOUNT {
+            this.bus.Push(new this.VM_BUS_STRIP("Bus"))
         }
-        loop % VM_STRIPCOUNT {
-            this.strip.Push(new this.VM_STRIP)
+        loop % VBVMR.VM_STRIPCOUNT {
+            this.strip.Push(new this.VM_BUS_STRIP("Strip"))
         }
         this.updateDevices()
     }
 
     __syncWithDLL(){
-        DllCall(VM_DLL . "\VBVMR_IsParametersDirty")
-        loop % VM_BUSCOUNT {
+        VBVMR.IsParametersDirty()
+        loop % VBVMR.VM_BUSCOUNT {
             this.bus[A_Index].__updateLevel()
         }
-        loop % VM_STRIPCOUNT {
+        loop % VBVMR.VM_STRIPCOUNT {
             this.strip[A_Index].__updateLevel()
         }
     }
-    
-    __logout(){
-        DllCall(VM_DLL . "\VBVMR_Logout")
-        DllCall("FreeLibrary", "Ptr", this.VBVMRDLL) 
-    }
 
-    class VM_BUS extends VMR.VM_BUS_STRIP{
-        static BUS_COUNT:=0, LEVEL_COUNT:=0
-        
-        __New(){
-            this.BUS_STRIP_TYPE:="Bus"
-            this.BUS_STRIP_INDEX:= VMR.VM_BUS.BUS_COUNT++ 
-            this.LEVEL_INDEX:=Array()
-            this.level:=Array()
-            loop 8 
-                this.LEVEL_INDEX.Push(VMR.VM_BUS.LEVEL_COUNT++)
-        }
-    }
-
-    class VM_STRIP extends VMR.VM_BUS_STRIP{
-        static STRIP_COUNT:=0, LEVEL_COUNT:=0
-
-        __New(){
-            this.BUS_STRIP_TYPE:="Strip"
-            this.BUS_STRIP_INDEX:= VMR.VM_STRIP.STRIP_COUNT++
-            this.LEVEL_INDEX:=Array()
-            this.level:=Array()
-            loop % this.__isPhysical() ? 2 : 8 
-                this.LEVEL_INDEX.Push(VMR.VM_STRIP.LEVEL_COUNT++)
-        }
-            
+    __Delete(){
+        DllCall("FreeLibrary", "Ptr", VBVMR.DLL)
     }
     
     class VM_BUS_STRIP {
-        static StripDevices, BusDevices
-        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, level:=, LEVEL_INDEX:=
+        static BUS_COUNT:=0, BUS_LEVEL_COUNT:=0, BusDevices:=Array(), STRIP_COUNT:=0, STRIP_LEVEL_COUNT:=0, StripDevices:=Array()
+        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, level, LEVEL_INDEX, BUS_STRIP_ID
         
+        __New(p_type){
+            this.BUS_STRIP_TYPE := p_type
+            this.level := Array()
+            this.LEVEL_INDEX := Array()
+            if (p_type="Strip") {
+                this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.STRIP_COUNT++
+                loop % this.__isPhysical() ? 2 : 8 
+                    this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.STRIP_LEVEL_COUNT++)
+            }else{
+                this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.BUS_COUNT++
+                loop 8 
+                    this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.BUS_LEVEL_COUNT++)
+            }
+            this.BUS_STRIP_ID := this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]"
+        }
+
         incGain(){
             local gain := this.getGain()
             gain += gain < 12 ? 1.2 : 0
@@ -208,84 +173,39 @@ class VMR{
         setParameter(parameter, value){
             local func
             if parameter contains device,FadeTo,Label
-                func:= "__setParameterString"
+                func:= "setParameterString"
             else
-                func:= "__setParameterFloat"
-            return this[func](parameter,value)
+                func:= "setParameterFloat"
+            return (VBVMR)[func](this.BUS_STRIP_ID, parameter, value)
         }
 
         getParameter(parameter){
             local func
             if parameter contains device,FadeTo,Label
-                func:= "__getParameterString"
+                func:= "getParameterString"
             else
-                func:= "__getParameterFloat"
-            this.checkparams()
-            return this[func](parameter)
-        }
-
-        __setParameterFloat(p_parameter, p_value){
-            this.checkparams()
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Float" , p_value, "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_SetParameterFloat returned " . errLevel, -1)
-            return p_value
-        }
-
-        __setParameterString(p_parameter, p_value){
-            this.checkparams()
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "WStr" , p_value , "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_SetParameterStringW returned " . errLevel, -1)
-            return p_value
-        }
-
-        __getParameterFloat(p_parameter){
-            local value
-            this.checkparams()
-            VarSetCapacity(value, 4)
-            errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX  . "]." . p_parameter , "Ptr" , &value, "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_GetParameterFloat returned " . errLevel, -1)
-            value := NumGet(&value, 0, "Float")
-            return value
-        }
-
-        __getParameterString(p_parameter){
-            local value
-            this.checkparams()
-            VarSetCapacity(value, 1024)
-            errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterStringW", "AStr" , this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]." . p_parameter , "Ptr" , &value , "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_GetParameterStringW returned " . errLevel, -1)
-            value := StrGet(&value,512,"UTF-16")
-            return value
+                func:= "getParameterFloat"
+            VBVMR.IsParametersDirty()
+            return (VBVMR)[func](this.BUS_STRIP_ID, parameter)
         }
         
         __getDeviceObj(substring,driver:="wdm"){
             local devices:= VMR.VM_BUS_STRIP[this.BUS_STRIP_TYPE . "Devices"]
             for i in devices 
-                if (devices[i].Driver = driver && InStr(devices[i].Name, substring)>0)
+                if (devices[i].driver = driver && InStr(devices[i].name, substring)>0)
                     return devices[i]
         }
 
         __updateLevel(){
             local type := this.BUS_STRIP_TYPE="Bus" ? 3 : 0
             loop % this.LEVEL_INDEX.Length() {
-                i := this.LEVEL_INDEX[A_Index], level:=
-                VarSetCapacity(level,4)
-                errLevel := DllCall(VM_DLL . "\VBVMR_GetLevel", "Int", type, "Int", i, "Ptr", &level)
-                if(errLevel<0){
-                    SetTimer,, Off
-                    Throw, Exception("VBVMR_GetLevel returned " . errLevel, -1)
-                }
-                level := NumGet(&level, 0, "Float")
+                level := VBVMR.GetLevel(type, this.LEVEL_INDEX[A_Index])
                 this.level[A_Index] := Max(Ceil(20 * Log(level)), -999)
             }
         }
 
         __isPhysical(){
-            Switch VM_TYPE {
+            Switch VBVMR.VM_TYPE {
                 case 1:
                     if(this.BUS_STRIP_TYPE = "Strip")
                         return this.BUS_STRIP_INDEX < 2
@@ -297,157 +217,272 @@ class VMR{
                         return this.BUS_STRIP_INDEX < 5
             }
         }
-        
-        checkparams(){
-            DllCall(VM_DLL . "\VBVMR_IsParametersDirty")
-        }
     }
+    
     class command {
                 
         restart(){
-            this.__setParameterFloat("Restart","1.0f")
+            VBVMR.SetParameterFloat("Command","Restart",1)
         }
 
         shutdown(){
-            this.__setParameterFloat("Shutdown ","1.0f")
+            VBVMR.SetParameterFloat("Command","Shutdown",1)
         }
 
         show(){
-            this.__setParameterFloat("Show","1.0f")
+            VBVMR.SetParameterFloat("Command","Show",1)
         }
 
         eject(){
-            this.__setParameterFloat("Eject","1.0f")
+            VBVMR.SetParameterFloat("Command","Eject",1)
         }
 
         reset(){
-            this.__setParameterFloat("Reset","1.0f")
+            VBVMR.SetParameterFloat("Command","Reset",1)
         }
 
         save(filePath){
-            this.__setParameterString("Save",filePath)
+            VBVMR.SetParameterFloat("Command","Save",filePath)
         }
 
         load(filePath){
-            this.__setParameterString("Load",filePath)
-        }
-
-        __setParameterFloat(p_parameter, p_value){
-            this.checkparams()
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , "Command." . p_parameter , "Float" , p_value, "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_SetParameterFloat returned " . errLevel, -1)
-            return p_value
-        }
-
-        __setParameterString(p_parameter, p_value){
-            this.checkparams()
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", "Command." . p_parameter , "WStr" , p_value , "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_SetParameterStringW returned " . errLevel, -1)
-            return p_value
+            VBVMR.SetParameterFloat("Command","Load",filePath)
         }
     }
     
     class recorder {
-        stop(){
-            this.__setParameterFloat("stop", 1)
+        stop(set:=-1){
+            if(set > -1)
+                VBVMR.SetParameterFloat("Recorder","stop", 1)
+            else
+                return VBVMR.GetParameterFloat("Recorder","stop")
         }
 
-        play(){
-            this.__setParameterFloat("play", 1)
+        play(set:=-1){
+            if(set > -1)
+                VBVMR.SetParameterFloat("Recorder","play", 1)
+            else
+                return VBVMR.GetParameterFloat("Recorder","play")
         }
 
-        setA(p_I, onOff:=1){
-            this.__setParameterFloat("A" . p_I, onOff)
+        A(p_I, set:=-1){
+            if(set > -1)
+                VBVMR.SetParameterFloat("Recorder","A" . p_I, set)
+            else
+                return VBVMR.GetParameterFloat("Recorder","A" . p_I)
         }
 
-        getA(p_I){
-            return this.__getParameterFloat("A" . p_I)
+        B(p_I, set:=-1){
+            if(set > -1)
+                VBVMR.SetParameterFloat("Recorder","B" . p_I, set)
+            else
+                return VBVMR.GetParameterFloat("Recorder","B" . p_I)
         }
-
-        setB(p_I, onOff:=1){
-            this.__setParameterFloat("B" . p_I, onOff)
-        }
-
-        getB(p_I){
-            return this.__getParameterFloat("B" . p_I)
-        }
-
-        record(){
-            this.__setParameterFloat("record", 1)
-        }
-
+        
         load(fileName){
-            this.__setParameterString("load", fileName)
+            VBVMR.SetParameterFloat("Recorder","load", fileName)
+        }
+        
+        PlayOnLoad(set:=-1){
+            if(set > -1)
+                VBVMR.SetParameterFloat("Recorder","mode.PlayOnLoad", set)
+            else
+                return VBVMR.GetParameterFloat("Recorder","mode.PlayOnLoad")
         }
 
-        armBus(bus){
-            this.__setParameterFloat("mode.recbus", 1)
-            this.setBus(bus)
+        Loop(set:=-1){
+            if(set > -1)
+                VBVMR.SetParameterFloat("Recorder","mode.Loop", set)
+            else
+                return VBVMR.GetParameterFloat("Recorder","mode.Loop")
+        }
+
+        record(set:=-1){
+            if(set > -1)
+                VBVMR.SetParameterFloat("Recorder","record", 1)
+            else
+                return VBVMR.GetParameterFloat("Recorder","record")
+        }
+
+        armBus(bus, set:=-1){
+            if(set > -1){
+                VBVMR.SetParameterFloat("Recorder","mode.recbus", 1)
+                VBVMR.SetParameterFloat("Recorder","ArmBus(" (bus-1) ")", set)
+            }else{
+                return VBVMR.GetParameterFloat("Recorder","ArmBus(" (bus-1) ")")
+            }
         }
 
         armStrips(strip*){
-            this.__setParameterFloat("mode.recbus", 0)
             loop { 
                 Try 
-                    this.setStrip(A_Index,0)
+                    this.armStrip(A_Index,0)
                 Catch
                     Break
             }
             for i in strip
-                Try this.setStrip(strip[i])
+                Try this.armStrip(strip[i],1)
         }
 
-        setBus(bus, onOff:=1){
-            this.__setParameterFloat("ArmBus(" . bus-1 . ")", onOff)
+        armStrip(strip, set:=-1){
+            if(set > -1){
+                VBVMR.SetParameterFloat("Recorder","mode.recbus", 0)
+                VBVMR.SetParameterFloat("Recorder","ArmStrip(" . (strip-1) . ")", set)
+            }else{
+                return VBVMR.GetParameterFloat("Recorder","ArmStrip(" (strip-1) ")")
+            }
         }
 
-        setStrip(strip, onOff:=1){
-            this.__setParameterFloat("ArmStrip(" . (strip-1) . ")", onOff)
+        Gain(set:="none"){
+            if(set != "none")
+                VBVMR.SetParameterFloat("Recorder","Gain", set)
+            else
+                return VBVMR.GetParameterFloat("Recorder","Gain")
         }
 
-        setPlayOnLoad(onOff){
-            this.__setParameterFloat("mode.PlayOnLoad", onOff)
+        FileType(set:="none"){
+            if(set != "none")
+                VBVMR.SetParameterFloat("Recorder","FileType", set)
+            else
+                return VBVMR.GetParameterFloat("Recorder","FileType")
         }
+    }
+}
 
-        setLoop(onOff){
-            this.__setParameterFloat("mode.Loop", onOff)
-        }
+class VBVMR {
+    static DLL, VM_PATH:=, VM_DLL:=, VM_TYPE:=, VM_BUSCOUNT:=, VM_STRIPCOUNT:=
+    static FUNC_ADDR:={ VBVMR_Login:0
+        ,VBVMR_Logout:0
+        ,VBVMR_SetParameterFloat:0
+        ,VBVMR_SetParameterStringW:0
+        ,VBVMR_GetParameterFloat:0
+        ,VBVMR_GetParameterStringW:0
+        ,VBVMR_GetVoicemeeterType:0
+        ,VBVMR_GetLevel:0
+        ,VBVMR_Output_GetDeviceNumber:0
+        ,VBVMR_Output_GetDeviceDescW:0
+        ,VBVMR_Input_GetDeviceNumber:0
+        ,VBVMR_Input_GetDeviceDescW:0
+        ,VBVMR_IsParametersDirty:0 }
+    
+    Login(){
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_Login)
+        if(errLevel<0)
+            Throw, Exception("VBVMR_Login returned " . errLevel, -1)
+        return errLevel
+    }
 
-        setFileType(p_type){
-            return this.__setParameterFloat("FileType", p_type)
-        }
+    Logout(){
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_Logout)
+        if(errLevel<0)
+            Throw, Exception("VBVMR_Logout returned " . errLevel, -1)
+        return errLevel
+    }
 
-        setGain(gain){
-            return this.__setParameterFloat("gain", gain)
-        }
+    SetParameterFloat(p_prefix, p_parameter, p_value){
+        this.IsParametersDirty()
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_SetParameterFloat, "AStr" , p_prefix . "." . p_parameter , "Float" , p_value, "Int")
+        if (errLevel<0)
+            Throw, Exception("VBVMR_SetParameterFloat returned " . errLevel, -1)
+        return p_value
+    }
 
-        __setParameterFloat(p_parameter, p_value){
-            this.checkparams()
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterFloat", "AStr" , "Recorder." . p_parameter , "Float" , p_value, "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_SetParameterFloat returned " . errLevel, -1)
-            return p_value
-        }
+    SetParameterString(p_prefix, p_parameter, p_value){
+        this.IsParametersDirty()
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_SetParameterStringW, "AStr", p_prefix . "." . p_parameter , "WStr" , p_value , "Int")
+        if (errLevel<0)
+            Throw, Exception("VBVMR_SetParameterStringW returned " . errLevel, -1)
+        return p_value
+    }
 
-        __setParameterString(p_parameter, p_value){
-            this.checkparams()
-            errLevel := DllCall(VM_DLL . "\VBVMR_SetParameterStringW", "AStr", "Recorder." . p_parameter , "WStr" , p_value , "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_SetParameterStringW returned " . errLevel, -1)
-            return p_value
-        }
+    GetParameterFloat(p_prefix, p_parameter){
+        local value
+        this.IsParametersDirty()
+        VarSetCapacity(value, 4)
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_GetParameterFloat, "AStr" , p_prefix . "." . p_parameter , "Ptr" , &value, "Int")
+        if (errLevel<0)
+            Throw, Exception("VBVMR_GetParameterFloat returned " . errLevel, -1)
+        value := NumGet(&value, 0, "Float")
+        return value
+    }
 
-        __getParameterFloat(p_parameter){
-            local value
-            this.checkparams()
-            VarSetCapacity(value, 4)
-            errLevel := DllCall(VM_DLL . "\VBVMR_GetParameterFloat", "AStr" , "Recorder." . p_parameter , "Ptr" , &value, "Int")
-            if (errLevel<0)
-                Throw, Exception("VBVMR_GetParameterFloat returned " . errLevel, -1)
-            value := NumGet(&value, 0, "Float")
-            return value
+    GetParameterString(p_prefix, p_parameter){
+        local value
+        this.IsParametersDirty()
+        VarSetCapacity(value, 1024)
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_GetParameterStringW, "AStr" , p_prefix . "." . p_parameter , "Ptr" , &value , "Int")
+        if (errLevel<0)
+            Throw, Exception("VBVMR_GetParameterStringW returned " . errLevel, -1)
+        value := StrGet(&value,512,"UTF-16")
+        return value
+    }
+
+    GetLevel(p_type, p_channel){
+        local level
+        this.IsParametersDirty()
+        VarSetCapacity(level,4)
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_GetLevel, "Int", p_type, "Int", p_channel, "Ptr", &level)
+        if(errLevel<0){
+            Throw, Exception("VBVMR_GetLevel returned " . errLevel, -1)
         }
+        level := NumGet(&level, 0, "Float")
+        return level
+    }
+
+    GetVoicemeeterType(){
+        local vtype
+        VarSetCapacity(vtype, 4)
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_GetVoicemeeterType, "Ptr", &vtype, "Int")
+        if(errLevel<0)
+            Throw, Exception("VBVMR_GetVoicemeeterType returned " . errLevel, -1)
+        vtype:= NumGet(vtype, 0, "Int")
+        return vtype
+    }
+
+    Output_GetDeviceNumber(){
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_Output_GetDeviceNumber,"Int") 
+        if(errLevel<0)
+            Throw, Exception("VBVMR_Output_GetDeviceNumber returned " . errLevel, -1)
+        else
+            return errLevel
+    }
+    
+    Output_GetDeviceDesc(p_index){
+        local name, driver, device := {}
+        VarSetCapacity(name, 1024)
+        VarSetCapacity(driver, 4)
+        DllCall(VBVMR.FUNC_ADDR.VBVMR_Output_GetDeviceDescW, "Int", p_index, "Ptr" , &driver , "Ptr", &name, "Ptr", 0, "Int")
+        driver := NumGet(driver, 0, "UInt")
+        device.name := name
+        device.driver := (driver=3 ? "wdm" : (driver=4 ? "ks" : (driver=5 ? "asio" : "mme"))) 
+        return device
+    }
+
+    Input_GetDeviceNumber(){
+        errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_Input_GetDeviceNumber,"Int") 
+        if(errLevel<0)
+            Throw, Exception("VBVMR_Input_GetDeviceNumber returned " . errLevel, -1)
+        else
+            return errLevel
+    }
+
+    Input_GetDeviceDesc(p_index){
+        local name, driver, device := {}
+        VarSetCapacity(name, 1024)
+        VarSetCapacity(driver, 4)
+        DllCall(VBVMR.FUNC_ADDR.VBVMR_Input_GetDeviceDescW, "Int", p_index, "Ptr" , &driver , "Ptr", &name, "Ptr", 0, "Int")
+        driver := NumGet(driver, 0, "UInt")
+        device.name := name
+        device.driver := (driver=3 ? "wdm" : (driver=4 ? "ks" : (driver=5 ? "asio" : "mme"))) 
+        return device
+    }
+
+    IsParametersDirty(){
+        return DllCall(VBVMR.VM_DLL . "\VBVMR_IsParametersDirty")
+    }
+
+    __getAddresses(){
+        for fName in VBVMR.FUNC_ADDR 
+            (VBVMR.FUNC_ADDR)[fName]:= DllCall("GetProcAddress", "Ptr", VBVMR.DLL, "AStr", fName, "Ptr")
     }
 }
