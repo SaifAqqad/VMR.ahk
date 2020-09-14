@@ -32,10 +32,10 @@ return
 
 !r::
 voicemeeter.recorder.armStrips(1,5,3)
-voicemeeter.recorder.record()
+voicemeeter.recorder.record(1)
 return
 
 !s::
-voicemeeter.recorder.stop()
-voicemeeter.command.eject()
+voicemeeter.recorder.stop(1)
+voicemeeter.command.eject(1)
 return
