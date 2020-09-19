@@ -19,7 +19,7 @@ VMR.ahk
     ```
 4. The `VMR` object will have two arrays, `bus` and `strip`, The length of each array is determined by your Voicemeeter version (VM, VM Banana or VM Potato).
     
-    You can use the [bus/strip methods](#busstrip-Arrays) through these arrays:
+    You can use the [bus/strip methods](#busstrip-arrays-1) through these arrays:
     ```ahk
         voicemeeter.bus[1].setMute(True)
     ```
@@ -27,7 +27,7 @@ VMR.ahk
 * <details><summary>bus/strip Arrays</summary>
 
     ## `bus`/`strip` Arrays
-    #### Use these arrays to access [bus/strip methods](#busstrip-methods) to retrieve and change their parameters.
+    #### Use these arrays to access [bus/strip methods](#busstrip-arrays-1) to retrieve and change their parameters.
 
     ```ahk
         voicemeeter.bus[1]
@@ -66,7 +66,7 @@ VMR.ahk
 * <details><summary>command Object</summary>
 
     ## `command` Object
-    #### Use this object to access [command methods](#command-Object)
+    #### Use this object to access [command methods](#command-object-1)
     ```ahk
         voicemeeter.command.restart()
         voicemeeter.command.load(filePath)
