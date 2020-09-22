@@ -423,6 +423,7 @@ class VBVMR {
         VarSetCapacity(level,4)
         errLevel := DllCall(VBVMR.FUNC_ADDR.VBVMR_GetLevel, "Int", p_type, "Int", p_channel, "Ptr", &level)
         if(errLevel<0){
+            SetTimer,, Off
             Throw, Exception("VBVMR_GetLevel returned " . errLevel, -1)
         }
         level := NumGet(&level, 0, "Float")
