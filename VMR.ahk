@@ -83,12 +83,19 @@ class VMR{
     }
 
     __syncWithDLL(){
-        VBVMR.IsParametersDirty()
-        loop % VBVMR.VM_BUSCOUNT {
-            this.bus[A_Index].__updateLevel()
-        }
-        loop % VBVMR.VM_STRIPCOUNT {
-            this.strip[A_Index].__updateLevel()
+        try {
+            VBVMR.IsParametersDirty()
+            loop % VBVMR.VM_BUSCOUNT {
+                this.bus[A_Index].__updateLevel()
+            }
+            loop % VBVMR.VM_STRIPCOUNT {
+                this.strip[A_Index].__updateLevel()
+            }
+        } catch e {
+            MsgBox, 52, VMR, Voicemeeter is down `nattempt to restart it?
+            IfMsgBox Yes
+                this.runVoicemeeter()
+            sleep, 1000
         }
     }
 
@@ -479,7 +486,11 @@ class VBVMR {
     }
 
     IsParametersDirty(){
-        return DllCall(VBVMR.VM_DLL . "\VBVMR_IsParametersDirty")
+        errLevel := DllCall(VBVMR.VM_DLL . "\VBVMR_IsParametersDirty")
+        if(errLevel<0)
+            Throw, Exception("VBVMR_IsParametersDirty returned " . errLevel, -1)
+        else
+            return errLevel 
     }
 
     __getAddresses(){
