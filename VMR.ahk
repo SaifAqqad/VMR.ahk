@@ -83,6 +83,7 @@ class VMR{
     }
 
     __syncWithDLL(){
+        static ignore_msg:=0
         try {
             VBVMR.IsParametersDirty()
             loop % VBVMR.VM_BUSCOUNT {
@@ -91,11 +92,16 @@ class VMR{
             loop % VBVMR.VM_STRIPCOUNT {
                 this.strip[A_Index].__updateLevel()
             }
+            ignore_msg:=0
         } catch e {
-            MsgBox, 52, VMR, Voicemeeter is down `nattempt to restart it?
-            IfMsgBox Yes
-                this.runVoicemeeter()
-            sleep, 1000
+            if(!ignore_msg){
+                MsgBox, 52, VMR, Voicemeeter is down `nattempt to restart it?
+                IfMsgBox Yes
+                    this.runVoicemeeter()
+                IfMsgBox, No
+                    ignore_msg:=1
+                sleep, 1000
+            }
         }
     }
 
