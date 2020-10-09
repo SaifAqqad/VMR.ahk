@@ -111,8 +111,55 @@ class VMR{
     
     class VM_BUS_STRIP {
         static BUS_COUNT:=0, BUS_LEVEL_COUNT:=0, BusDevices:=Array(), STRIP_COUNT:=0, STRIP_LEVEL_COUNT:=0, StripDevices:=Array()
-        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, level, LEVEL_INDEX, BUS_STRIP_ID
+        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, BUS_STRIP_ID, LEVEL_INDEX, level
         
+        gain{
+            set{
+                if(!this.BUS_STRIP_ID)
+                    return
+                return this.setParameter("gain", value)
+            }
+            get{
+                if(!this.BUS_STRIP_ID)
+                    return
+                SetFormat, FloatFast, 4.1
+                return this.getParameter("gain")+0
+            }
+        }
+
+        mute{
+            set{
+                if(!this.BUS_STRIP_ID)
+                    return
+                if(value = -1)
+                    value:= !this.mute
+                return this.setParameter("mute", value)
+            }
+            get{
+                if(!this.BUS_STRIP_ID)
+                    return
+                return this.getParameter("mute")
+            }
+        }
+
+        device[driver:="wdm"]{
+            set{
+                if(!this.BUS_STRIP_ID)
+                    return
+                if (!this.__isPhysical())
+                    return -4
+                if driver not in wdm,mme,ks,asio
+                    return -5
+                deviceObj := this.__getDeviceObj(value,driver)
+                return this.setParameter("device." . deviceObj.Driver,deviceObj.Name)
+            }
+            get{
+                if(!this.BUS_STRIP_ID)
+                    return
+                return this.getParameter("device.name")
+            }
+        }
+
         __New(p_type){
             this.BUS_STRIP_TYPE := p_type
             this.level := Array()
@@ -129,58 +176,10 @@ class VMR{
             this.BUS_STRIP_ID := this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]"
         }
 
-        incGain(){
-            local gain := this.getGain()
-            gain += gain < 12 ? 1.2 : 0
-            return this.setGain(gain)
-        }
-
-        decGain(){
-            local gain := this.getGain()
-            gain -= gain > -60 ? 1.2 : 0
-            return this.setGain(gain)
-        }
-
-        setGain(gain){
-            return this.setParameter("gain", gain)
-        }
-
-        getGain(){
-            local gain := this.getParameter("gain")
-            SetFormat, FloatFast, 4.1
-            return gain+0
-        }
-
         getGainPercentage(){
-            dB := this.getGain()
+            dB := this.gain
             min_s := 10**(-60/20), max_s := 10**(0/20)
             return ((10**(dB/20))-min_s)/(max_s-min_s)*100
-        }
-
-        toggleMute(){
-            return this.setMute(!this.getMute())
-        }
-
-        setMute(mute){
-            return this.setParameter("mute",mute)
-        }
-
-        getMute(){
-            return this.getParameter("mute")
-        }
-
-        setDevice(device,driver:="wdm"){
-            if (!this.__isPhysical())
-                return -4
-            if driver not in wdm,mme,ks,asio
-                return -5
-            device := this.__getDeviceObj(device,driver)
-            this.setParameter("device." . device.Driver,device.Name)
-            return device.Name
-        }    
-
-        getDevice(){
-            return this.getParameter("device.name")
         }
 
         setParameter(parameter, value){
