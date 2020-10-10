@@ -1,5 +1,5 @@
 class VMR{
-    bus:=Array(), strip:=Array()
+    bus:=Array(), strip:=Array(), recorder:=
     
     __New(p_path:=""){
         if(p_path && SubStr(p_path, 0)!="\"){
@@ -14,6 +14,7 @@ class VMR{
         }
         VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.VM_PATH . VBVMR.VM_DLL . ".dll", "Ptr")
         VBVMR.__getAddresses()
+        this.recorder:= new this.__recorder
     }
     
     login(){
@@ -262,61 +263,17 @@ class VMR{
         }
     }
     
-    class recorder {
-        stop(set:=-1){
-            if(set > -1)
-                VBVMR.SetParameterFloat("Recorder","stop", 1)
-            else
-                return VBVMR.GetParameterFloat("Recorder","stop")
-        }
-
-        play(set:=-1){
-            if(set > -1)
-                VBVMR.SetParameterFloat("Recorder","play", 1)
-            else
-                return VBVMR.GetParameterFloat("Recorder","play")
-        }
-
-        A(p_I, set:=-1){
-            if(set > -1)
-                VBVMR.SetParameterFloat("Recorder","A" . p_I, set)
-            else
-                return VBVMR.GetParameterFloat("Recorder","A" . p_I)
-        }
-
-        B(p_I, set:=-1){
-            if(set > -1)
-                VBVMR.SetParameterFloat("Recorder","B" . p_I, set)
-            else
-                return VBVMR.GetParameterFloat("Recorder","B" . p_I)
-        }
+    class __recorder {
         
-        load(fileName){
-            VBVMR.SetParameterFloat("Recorder","load", fileName)
-        }
-        
-        PlayOnLoad(set:=-1){
-            if(set > -1)
-                VBVMR.SetParameterFloat("Recorder","mode.PlayOnLoad", set)
-            else
-                return VBVMR.GetParameterFloat("Recorder","mode.PlayOnLoad")
+        __Set(p_name,p_value){
+            return VBVMR.SetParameterFloat("Recorder",p_name, p_value)
         }
 
-        Loop(set:=-1){
-            if(set > -1)
-                VBVMR.SetParameterFloat("Recorder","mode.Loop", set)
-            else
-                return VBVMR.GetParameterFloat("Recorder","mode.Loop")
+        __Get(p_name){
+            return VBVMR.GetParameterFloat("Recorder",p_name)
         }
 
-        record(set:=-1){
-            if(set > -1)
-                VBVMR.SetParameterFloat("Recorder","record", 1)
-            else
-                return VBVMR.GetParameterFloat("Recorder","record")
-        }
-
-        armBus(bus, set:=-1){
+        ArmBus(bus, set:=-1){
             if(set > -1){
                 VBVMR.SetParameterFloat("Recorder","mode.recbus", 1)
                 VBVMR.SetParameterFloat("Recorder","ArmBus(" (bus-1) ")", set)
@@ -325,7 +282,7 @@ class VMR{
             }
         }
 
-        armStrips(strip*){
+        ArmStrips(strip*){
             loop { 
                 Try 
                     this.armStrip(A_Index,0)
@@ -336,27 +293,13 @@ class VMR{
                 Try this.armStrip(strip[i],1)
         }
 
-        armStrip(strip, set:=-1){
+        ArmStrip(strip, set:=-1){
             if(set > -1){
                 VBVMR.SetParameterFloat("Recorder","mode.recbus", 0)
                 VBVMR.SetParameterFloat("Recorder","ArmStrip(" . (strip-1) . ")", set)
             }else{
                 return VBVMR.GetParameterFloat("Recorder","ArmStrip(" (strip-1) ")")
             }
-        }
-
-        Gain(set:="none"){
-            if(set != "none")
-                VBVMR.SetParameterFloat("Recorder","Gain", set)
-            else
-                return VBVMR.GetParameterFloat("Recorder","Gain")
-        }
-
-        FileType(set:="none"){
-            if(set != "none")
-                VBVMR.SetParameterFloat("Recorder","FileType", set)
-            else
-                return VBVMR.GetParameterFloat("Recorder","FileType")
         }
     }
 }
