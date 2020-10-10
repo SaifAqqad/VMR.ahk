@@ -28,7 +28,7 @@ VMR.ahk
 * <details><summary>bus/strip Arrays</summary>
 
     ## `bus`/`strip` Arrays
-    #### array of `bus`/`strip` objects
+    #### array of [`bus`/`strip` objects](#busstrip-object)
 
     ```ahk
         voicemeeter.bus[1]
@@ -76,7 +76,7 @@ VMR.ahk
 
 * <details><summary>recorder Object</summary>
 
-    ## [`recorder` Object]()
+    ## [`recorder` Object](#recorder-object-1)
     #### Use this object to control Voicemeeter's recorder
     ```ahk
         voicemeeter.recorder.record:= 1
