@@ -188,7 +188,7 @@ VMR.ahk
         ## `setParameter(parameter, value)`
         #### Sets the value of a bus/strip parameter
         ## Parameters
-        `parameter` : The name of a parameter (see [VM docs](https://download.vb-audio.com/Download_CABLEVoicemeeterRemoteAPI.pdf))
+        `parameter` : The name of a parameter (see [VM docs](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=8&zoom=auto,-108,691))
         
         `value` : The value to be set to the parameter
         ## Example
@@ -203,7 +203,7 @@ VMR.ahk
         ## `getParameter(parameter)`
         #### Returns the value of a bus/strip parameter
         ## Parameters
-        `parameter` : The name of a parameter (see [VM docs](https://download.vb-audio.com/Download_CABLEVoicemeeterRemoteAPI.pdf))
+        `parameter` : The name of a parameter (see [VM docs](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=8&zoom=auto,-108,691))
         ## Example
         ```ahk
             voicemeeter.bus[1].getParameter("mode.normal")
