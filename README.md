@@ -19,15 +19,16 @@ VMR.ahk
     ```
 4. The `VMR` object will have two arrays, `bus` and `strip`, The length of each array is determined by your Voicemeeter version (VM, VM Banana or VM Potato).
     
-    You can use the [bus/strip methods](#busstrip-arrays-1) through these arrays:
+    You can control Voicemeeter's bus/strip parameters through these arrays:
     ```ahk
-        voicemeeter.bus[1].setMute(True)
+        voicemeeter.bus[1].mute:= true
     ```
-## VMR Object
+
+## `VMR` Object
 * <details><summary>bus/strip Arrays</summary>
 
     ## `bus`/`strip` Arrays
-    #### Use these arrays to access [bus/strip methods](#busstrip-arrays-1) to retrieve and change their parameters.
+    #### array of `bus`/`strip` objects
 
     ```ahk
         voicemeeter.bus[1]
@@ -73,6 +74,16 @@ VMR.ahk
     ```
 </details>
 
+* <details><summary>recorder Object</summary>
+
+    ## [`recorder` Object]()
+    #### Use this object to control Voicemeeter's recorder
+    ```ahk
+        voicemeeter.recorder.record:= 1
+        voicemeeter.recorder.stop:= 1
+    ```
+</details>
+
 * <details><summary>login</summary>
 
     ## `login()`
@@ -91,7 +102,7 @@ VMR.ahk
     ```ahk
        vmType := voicemeeter.getType()
     ```
-    ## Remarks
+    ## Return value
     `1` : Voicemeeter
 
     `2` : Voicemeeter Banana
@@ -99,7 +110,7 @@ VMR.ahk
     `3` : Voicemeeter Potato
 </details>
 
-## `bus`/`strip` Arrays
+## `bus`/`strip` Object
 * <details><summary>Level Array</summary>
 
     ## `level` Array
@@ -112,156 +123,96 @@ VMR.ahk
     ```
 </details>
 
-* Gain methods
-    * <details><summary>setGain</summary>
+* <details><summary>Gain Property</summary>
 
-        ## `setGain(gain)`
-        #### Sets the bus/strip's gain to a specific dB value 
-        ## Parameters
-        `gain` : gain value in dB (range between -60.0 and 12.0)
-        ## Example
-        ```ahk
-            voicemeeter.bus[1].setGain(12)
-            voicemeeter.strip[2].setGain(2.4)
-        ```
-    </details>
+    ## `gain` property
+    #### Change the property value to adjust the gain
+    ```ahk
+        voicemeeter.bus[1].gain:= 8.5
+        dB:= voicemeeter.bus[1].gain ;8.5
+    ```
+    #### Increment/decrement the property value to increase/decrease the gain
+    ```ahk
+        db:= ++voicemeeter.bus[1].gain
+        voicemeeter.bus[1].gain--
+        voicemeeter.strip[4].gain += 4.5
+    ```
+</details>
 
-    * <details><summary>getGain</summary>
+* <details><summary>Mute Property</summary>
 
-        ## `getGain()`
-        #### Returns the bus/strip's current gain value in dB 
-        ## Example
-        ```ahk
-            dB := voicemeeter.bus[1].getGain()
-            dB := voicemeeter.strip[7].getGain()
-        ```
-    </details>
+    ## `mute` property
+    #### Change the property value to mute/unmute
+    ```ahk
+        voicemeeter.bus[1].mute:= 1
+        voicemeeter.strip[2].mute:= 0
+        isMuted:= voicemeeter.bus[1].mute ;1
+    ```
+    #### Toggle mute parameter by setting the value to `-1`
+    ```ahk
+        voicemeeter.bus[1].mute:= 1
+        voicemeeter.bus[1].mute:= -1
+        isMuted:= voicemeeter.bus[1].mute ;0
+    ```
+</details>
 
-    * <details><summary>getGainPercentage</summary>
+* <details><summary>Device Property</summary>
+
+    ## `device` property
+    #### Set the bus/strip's device by setting the property value to the device's name or any part of it
+    ```ahk
+        voicemeeter.bus[1].device:= "LG" ;sets bus[1] to the first device with "LG" in its name using "wdm" driver
+        voicemeeter.strip[2].device["mme"]:= "Corsair HS70" ;specify which driver to use using device[driver]
+    ```
+    #### Get the bus/strip's current device name
+    ```ahk
+        device:= voicemeeter.bus[1].device
+    ```
+</details>
+
+* <details><summary>Methods</summary>
+
+    * <details><summary>getGainPercentage method</summary>
 
         ## `getGainPercentage()`
         #### Returns the bus/strip's current gain value as a scalar percentage
         ## Example
         ```ahk
-            gain := voicemeeter.bus[1].getGainPercentage()
-            gain := voicemeeter.strip[7].getGainPercentage()
+            voicemeeter.bus[1].gain:= 0.0
+            gainPercentage := voicemeeter.bus[1].getGainPercentage() ;100.0
         ```
-    </details>
-    
-    * <details><summary>incGain</summary>
+        </details>
 
-        ## `incGain()`
-        #### Increases the bus/strip's gain by 1.2 dB and returns the new gain value in dB
-        ## Example
-        ```ahk
-            voicemeeter.bus[3].incGain()
-            dB := voicemeeter.strip[2].incGain()
-        ```
-    </details>
-
-    * <details><summary>decGain</summary>
-
-        ## `decGain()`
-        #### Decreases the bus/strip's gain by 1.2 dB and returns the new gain value in dB
-        ## Example
-        ```ahk
-            voicemeeter.bus[3].decGain()
-            dB := voicemeeter.strip[2].decGain()
-        ```
-    </details>
-
-* Mute methods
-    * <details><summary>setMute</summary>
-
-        ## `setMute(mute)`
-        #### Sets the bus/strip's mute state
-        ## Parameters
-        `mute` : boolean (`true` / `1` -> mute ; `false` / `0` -> unmute)
-        ## Example
-        ```ahk
-            voicemeeter.bus[1].setMute(1)
-            voicemeeter.strip[2].setMute(false)
-        ```
-    </details>
-
-    * <details><summary>getMute</summary>
-
-        ## `getMute()`
-        #### Returns the bus/strip's current mute state 
-        ## Example
-        ```ahk
-            mute := voicemeeter.bus[1].getMute()
-            mute := voicemeeter.strip[7].getMute()
-        ```
-    </details>
-
-    * <details><summary>toggleMute</summary>
-
-        ## `toggleMute()`
-        #### Toggles the bus/strip's mute state and returns it
-        ## Example
-        ```ahk
-            mute := voicemeeter.bus[1].toggleMute()
-            voicemeeter.strip[2].toggleMute()
-        ```
-    </details>
-
-* Device methods
-    * <details><summary>setDevice</summary>
-
-        ## `setDevice(name, driver)`
-        #### Sets the bus/strip's audio device.
-        ## Parameters
-        `name` : The audio device's name or any part of it
-
-        `driver` : The audio driver used for the device (`"wdm"`, `"mme"`, `"asio"`, `"ks"`)
-        ## Example
-        ```ahk
-            voicemeeter.bus[1].setDevice("LG", "mme")
-            voicemeeter.strip[2].setDevice("corsair hs70", "wdm")
-        ```
-        *this method can only be used on physical buses/strips*
-    </details>
-
-    * <details><summary>getDevice</summary>
-
-        ## `getDevice()`
-        #### Returns the bus/strip's current audio device
-        ## Example
-        ```ahk
-            device := voicemeeter.bus[1].getDevice()
-            device := voicemeeter.strip[2].getDevice()
-        ```
-        *this method can only be used on physical buses/strips*
-    </details>
-* Generic parameter methods
-    * <details><summary>setParameter</summary>
+    * <details><summary>setParameter method</summary>
 
         ## `setParameter(parameter, value)`
-        #### Sets the bus/strip's specified parameter to a value
+        #### Sets the value of a bus/strip parameter
         ## Parameters
-        `parameter` : The name of a parameter (see [VM docs](https://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf))
-
+        `parameter` : The name of a parameter (see [VM docs](https://download.vb-audio.com/Download_CABLEVoicemeeterRemoteAPI.pdf))
+        
         `value` : The value to be set to the parameter
         ## Example
         ```ahk
             voicemeeter.bus[1].setParameter("FadeTo", "(6.0, 2000)")
             voicemeeter.strip[2].setParameter("A1", 1)
         ```
-    </details>
+        </details>
 
-    * <details><summary>getParameter</summary>
+    * <details><summary>getParameter method</summary>
 
         ## `getParameter(parameter)`
-        #### Returns the bus/strip's specified parameter's value
+        #### Returns the value of a bus/strip parameter
         ## Parameters
-        `parameter` : The name of a parameter (see [VM docs](https://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf))
+        `parameter` : The name of a parameter (see [VM docs](https://download.vb-audio.com/Download_CABLEVoicemeeterRemoteAPI.pdf))
         ## Example
         ```ahk
             voicemeeter.bus[1].getParameter("mode.normal")
             voicemeeter.strip[2].getParameter("Pan_x")
         ```
-    </details>
+        </details>
+        
+</details>
+
 ## `command` Object
 * <details><summary>show</summary>
 
@@ -324,4 +275,58 @@ VMR.ahk
     ```
     ## Parameters
     `fileName` : Name of the file to save/load the configuration to/from, if the path is not specified, the file is assumed to be in the user's Documents folder
+</details>
+
+## `recorder` Object
+
+* <details><summary>parameters</summary>
+
+    ## Set/Get the value of a [recorder parameter](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=11&zoom=auto,-108,813)
+    ```ahk
+        voicemeeter.recorder.record:= 1
+        voicemeeter.recorder.A5:= 1
+        voicemeeter.recorder["mode.MultiTrack"]:= 0 ;use bracket syntax for parameters with '.' in their name
+    ```
+</details>
+
+* <details><summary>methods</summary>
+
+
+    * <details><summary>ArmBus method</summary>
+
+        ## `ArmBus(index, set:=-1)`
+        #### Changes the recording mode to 1 (bus) and arms/disarms the given bus
+        ```ahk
+            voicemeeter.recorder.ArmBus(3,true)
+        ```
+        #### if the `set` parameter is not passed, it will return the state of the given bus (armed/disarmed)
+        ```ahk
+            isArmed:= voicemeeter.recorder.ArmBus(2)
+        ```
+        </details>
+
+    * <details><summary>ArmStrip method</summary>
+
+        ## `ArmStrip(index, set:=-1)`
+        #### Changes the recording mode to 0 (strip) and arms/disarms the given strip
+        ```ahk
+            voicemeeter.recorder.ArmStrip(1,true)
+            voicemeeter.recorder.ArmStrip(2,false)
+        ```
+        #### if the `set` parameter is not passed, it will return the state of the given strip (armed/disarmed)
+        ```ahk
+            isArmed:= voicemeeter.recorder.ArmStrip(5)
+        ```
+        </details>
+
+    * <details><summary>ArmStrips method</summary>
+
+        ## `ArmStrips(index*)`
+        #### Arms the given strips, disarming the others
+        ```ahk
+            voicemeeter.recorder.ArmStrip(2,true) ;2->armed
+            voicemeeter.recorder.ArmStrips(1,3,5) ;2->disarmed 1,3,5->armed
+        ```
+        </details>
+
 </details>
