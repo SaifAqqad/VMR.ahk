@@ -2,6 +2,7 @@
 
 voicemeeter := new VMR()
 voicemeeter.login()
+voicemeeter.bus[1].gain_limit:=0
 
 for i, bus in voicemeeter.bus {
     bus.gain:=0 ; set gain to 0 for all busses at startup
