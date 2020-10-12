@@ -179,7 +179,10 @@ class VMR{
         }
 
         getGainPercentage(){
-            dB := this.gain
+            return this.getPercentage(this.gain)
+        }
+
+        getPercentage(dB){
             min_s := 10**(-60/20), max_s := 10**(0/20)
             return ((10**(dB/20))-min_s)/(max_s-min_s)*100
         }
