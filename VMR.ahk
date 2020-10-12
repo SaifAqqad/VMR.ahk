@@ -112,13 +112,13 @@ class VMR{
     
     class VM_BUS_STRIP {
         static BUS_COUNT:=0, BUS_LEVEL_COUNT:=0, BusDevices:=Array(), STRIP_COUNT:=0, STRIP_LEVEL_COUNT:=0, StripDevices:=Array()
-        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, BUS_STRIP_ID, LEVEL_INDEX, level
+        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, BUS_STRIP_ID, LEVEL_INDEX, level, gain_limit
         
         gain{
             set{
                 if(!this.BUS_STRIP_ID)
                     return
-                return this.setParameter("gain", value)
+                return this.setParameter("gain", max(-60.0, min(value, this.gain_limit)))
             }
             get{
                 if(!this.BUS_STRIP_ID)
@@ -165,6 +165,7 @@ class VMR{
             this.BUS_STRIP_TYPE := p_type
             this.level := Array()
             this.LEVEL_INDEX := Array()
+            this.gain_limit:= 12.0
             if (p_type="Strip") {
                 this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.STRIP_COUNT++
                 loop % this.__isPhysical() ? 2 : 8 
