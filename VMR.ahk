@@ -268,7 +268,6 @@ class VMR{
     }
     
     class __recorder {
-        
         __Set(p_name,p_value){
             return VBVMR.SetParameterFloat("Recorder",p_name, p_value)
         }
@@ -305,7 +304,91 @@ class VMR{
                 return VBVMR.GetParameterFloat("Recorder","ArmStrip(" (strip-1) ")")
             }
         }
+		samplerate() {
+			return VBVMR.GetParameterFloat("Recorder","samplerate")
+		}
+		
+		load(filePath) {
+				return VBVMR.SetParameterString("Recorder", "load", filePath)
+		}
+		play(set:=2) {
+			switch set{
+				Case 0:
+				VBVMR.SetParameterFloat("Recorder","stop", 1)
+				Case 1:
+				VBVMR.SetParameterFloat("Recorder","play", 1)
+				Case 3: ; replay from beginning
+				VBVMR.SetParameterFloat("Recorder","replay", 1)
+				Default: ; play/pause
+				If (VBVMR.GetParameterFloat("Recorder","stop"))
+					VBVMR.SetParameterFloat("Recorder","play", 1) 
+				else
+					VBVMR.SetParameterFloat("Recorder","stop", 1)
+				return
+			}
+		}
+		
+		loop(set := -1) {
+			if (set == -1)
+				return VBVMR.SetParameterFloat("Recorder","mode.Loop", !VBVMR.GetParameterFloat("Recorder","mode.Loop"))
+			VBVMR.SetParameterFloat("Recorder","mode.Loop", set)
+			return
+		}
+		
+		record(onOff := 1)
+		{
+			return VBVMR.SetParameterFloat("Recorder", "record", onOff)
+		}
+		
+		
+		output(outputBus, onOff := -1 ,type := 0) { ;  
+			if (type == 0) {
+				if (onOff == 0 || onOff == 1)
+					return VBVMR.SetParameterFloat("Recorder", outputBus, onOff)
+				else
+					return VBVMR.SetParameterFloat("Recorder", outputBus, !VBVMR.GetParameterFloat("Recorder", outputBus - 1))
+			}
+			return 0
+		}
+		
+		
+		pause()
+		{
+			return VBVMR.SetParameterFloat("Recorder","pause", 1)
+		}
+		
+		replay()
+		{
+			return VBVMR.SetParameterFloat("Recorder","replay", 1)
+			
+		}
+		debug() {
+			for index, element in VMR.VM_BUS_STRIP ; Enumeration is the recommended approach in most cases.
+			{
+				MsgBox % "Element number " . index . " is " . element
+			}
+			return
+		}
     }
+	
+	class vban
+	{
+		__Set(p_name,p_value){
+            return VBVMR.SetParameterFloat("vban",p_name, p_value)
+        }
+
+        __Get(p_name){
+            return VBVMR.GetParameterFloat("vban",p_name)
+        }
+		
+		Enable(set := -1) {
+			if ((set == 0 || set == 1) && set != VBVMR.GetParameterFloat("Vban","Enable"))
+				return VBVMR.SetParameterFloat("Vban","Enable", set)
+			else
+				return VBVMR.SetParameterFloat("Vban","Enable", !VBVMR.GetParameterFloat("Vban","Enable"))
+		}	
+	}	
+	
 }
 
 class VBVMR {
