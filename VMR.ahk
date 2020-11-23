@@ -2,18 +2,13 @@ class VMR{
     bus:=Array(), strip:=Array(), recorder:=
     
     __New(p_path:=""){
-        if(p_path && SubStr(p_path, 0)!="\"){
-            p_path.= "\"
-        }
-        if(A_Is64bitOS){
-            VBVMR.DLL_PATH := p_path? p_path : "C:\Program Files (x86)\VB\Voicemeeter\"
-            VBVMR.DLL_FILE := "VoicemeeterRemote64"
-        }else{
-            VBVMR.DLL_PATH := p_path? p_path : "C:\Program Files\VB\Voicemeeter\"
-            VBVMR.DLL_FILE := "VoicemeeterRemote"
-        }
+        VBVMR.DLL_PATH := p_path? p_path . "\"
+            : "C:\Program Files" . (A_Is64bitOS? " (x86)" : "") . "\VB\Voicemeeter\"
+        VBVMR.DLL_FILE := A_PtrSize = 8 ? "VoicemeeterRemote64.dll" : "VoicemeeterRemote.dll"
+        if(!FileExist(VBVMR.DLL_PATH . VBVMR.DLL_FILE))
+            Throw, Format("Voicemeeter is not installed in the path :`n{}", VBVMR.DLL_PATH)
         VBVMR.STR_TYPE := A_IsUnicode? "W" : "A"
-        VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.DLL_PATH . VBVMR.DLL_FILE . ".dll", "Ptr")
+        VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.DLL_PATH . VBVMR.DLL_FILE, "Ptr")
         VBVMR.__getAddresses()
         this.recorder:= new this.__recorder
     }
