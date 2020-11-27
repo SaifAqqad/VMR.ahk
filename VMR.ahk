@@ -117,8 +117,7 @@ class VMR{
             get{
                 if(!this.BUS_STRIP_ID)
                     return
-                SetFormat, FloatFast, 4.1
-                return this.getParameter("gain")+0
+                return Format("{:.1f}",this.getParameter("gain"))
             }
         }
 
@@ -173,7 +172,7 @@ class VMR{
         }
 
         getGainPercentage(){
-            return this.getPercentage(this.gain)
+            return Format("{:.2f}",this.getPercentage(this.gain))
         }
 
         getPercentage(dB){
