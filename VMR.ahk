@@ -61,11 +61,9 @@ class VMR{
     updateDevices(){
         VMR.VM_BUS_STRIP.BusDevices:= Array()
         VMR.VM_BUS_STRIP.StripDevices:= Array()
-        this.__syncWithDLL()
         loop % VBVMR.Output_GetDeviceNumber()
             VMR.VM_BUS_STRIP.BusDevices.Push(VBVMR.Output_GetDeviceDesc(A_Index-1))
-        this.__syncWithDLL()
-        loop % VBVMR.Input_GetDeviceNumber() 
+        loop % VBVMR.Input_GetDeviceNumber()
             VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
