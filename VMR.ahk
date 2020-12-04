@@ -1,5 +1,5 @@
 class VMR{
-    bus:=Array(), strip:=Array(), recorder:=
+    bus:=Array(), strip:=Array(), recorder:=, option:=
     
     __New(p_path:=""){
         VBVMR.DLL_PATH := p_path? p_path . "\"
@@ -10,7 +10,6 @@ class VMR{
         VBVMR.STR_TYPE := A_IsUnicode? "W" : "A"
         VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.DLL_PATH . VBVMR.DLL_FILE, "Ptr")
         VBVMR.__getAddresses()
-        this.recorder:= new this.__recorder
     }
     
     login(){
@@ -23,6 +22,7 @@ class VMR{
         SetTimer, %syncWithDLL%, 10, 3
         this.getType()
         this.__init_arrays()
+		this.__init_obj()
     }
     
     getType(){
@@ -31,13 +31,20 @@ class VMR{
             Switch VBVMR.VM_TYPE {
                 case 1:
                     VBVMR.BUSCOUNT:= 2
-                    VBVMR.STRIPCOUNT:= 3 
+                    VBVMR.STRIPCOUNT:= 3
+                    VBVMR.VBANINCOUNT:= 4
+                    VBVMR.VBANOUTCOUNT:= 4
                 case 2:
                     VBVMR.BUSCOUNT:= 5
-                    VBVMR.STRIPCOUNT:= 5 
+                    VBVMR.STRIPCOUNT:= 5
+  		            VBVMR.VBANINCOUNT:= 8
+		            VBVMR.VBANOUTCOUNT:= 8
                 case 3:
                     VBVMR.BUSCOUNT:= 8
-                    VBVMR.STRIPCOUNT:= 8 
+                    VBVMR.STRIPCOUNT:= 8
+    		        VBVMR.VBANINCOUNT:= 8
+    		        VBVMR.VBANOUTCOUNT:= 8
+
             }
         }
         return VBVMR.VM_TYPE
@@ -67,6 +74,13 @@ class VMR{
             VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
+	__init_obj(){
+		this.recorder:= new this.recorder_base
+		this.option:= new this.option_base
+		this.vban.init()
+		VMR.vban.stream.initiated:=1
+	}
+
     __init_arrays(){
         loop % VBVMR.BUSCOUNT {
             this.bus.Push(new this.VM_BUS_STRIP("Bus"))
@@ -81,6 +95,7 @@ class VMR{
         static ignore_msg:=0
         try {
             VBVMR.IsParametersDirty()
+            VBVMR.MacroButton_IsDirty()
             loop % VBVMR.BUSCOUNT {
                 this.bus[A_Index].__updateLevel()
             }
@@ -112,7 +127,7 @@ class VMR{
             set{
                 if(!this.BUS_STRIP_ID)
                     return
-                return this.setParameter("gain", max(-60.0, min(value, this.gain_limit)))
+                return Format("{:.1f}",this.setParameter("gain", max(-60.0, min(value, this.gain_limit)) ))
             }
             get{
                 if(!this.BUS_STRIP_ID)
@@ -229,38 +244,140 @@ class VMR{
         }
     }
     
-    class command {
-                
-        restart(){
-            VBVMR.SetParameterFloat("Command","Restart",1)
-        }
-
-        shutdown(){
-            VBVMR.SetParameterFloat("Command","Shutdown",1)
-        }
-
-        show(){
-            VBVMR.SetParameterFloat("Command","Show",1)
-        }
-
-        eject(){
-            VBVMR.SetParameterFloat("Command","Eject",1)
-        }
-
-        reset(){
-            VBVMR.SetParameterFloat("Command","Reset",1)
-        }
-
-        save(filePath){
-            VBVMR.SetParameterFloat("Command","Save",filePath)
-        }
-
-        load(filePath){
-            VBVMR.SetParameterFloat("Command","Load",filePath)
-        }
-    }
+	class command {
+		
+		state(buttonNum, newPos := -2) {
+			If(newPos == -2)
+				Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
+			else
+				Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
+		}
+		
+		stateOnly(buttonNum, newPos := -2) {
+			If(newPos == -2)
+				Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly")
+			else
+				Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly", newPos)
+		}
+		
+		trigger(buttonNum, newPos := -2) {
+			If(newPos == -2)
+				return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
+			else
+				Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
+		}
+		
+		restart(){
+			VBVMR.SetParameterFloat("Command","Restart",1)
+		}
+		
+		shutdown(){
+			VBVMR.SetParameterFloat("Command","Shutdown",1)
+		}
+		
+		show(open := 1){
+			VBVMR.SetParameterFloat("Command","Show",open)
+		}
+		
+		eject(){
+			VBVMR.SetParameterFloat("Command","Eject",1)
+		}
+		
+		reset(){
+			VBVMR.SetParameterFloat("Command","Reset",1)
+		}
+		
+		save(filePath){
+			VBVMR.SetParameterFloat("Command","Save",filePath)
+		}
+		
+		load(filePath){
+			VBVMR.SetParameterFloat("Command","Load",filePath)
+		}
+	}
     
-    class __recorder {
+	class vban {
+		static instream:=,outstream:=
+
+		enable{
+			set{
+				return VBVMR.SetParameterFloat("vban", "Enable", value)
+			}
+			get{
+				return VBVMR.GetParameterFloat("vban", "Enable")
+			}
+		}
+
+		init(){
+			VMR.vban.instream:= Array()
+			VMR.vban.outstream:= Array()
+			loop % VBVMR.VBANINCOUNT
+				VMR.vban.instream.Push(new VMR.vban.stream("in", A_Index))
+			loop % VBVMR.VBANOUTCOUNT
+				VMR.vban.outstream.Push(new VMR.vban.stream("out", A_Index))
+		}
+		
+		class stream{
+			static initiated:= 0
+			__New(p_type,p_index){
+				this.PARAM_PREFIX:= Format("vban.{}stream[{}]", p_type, p_index)
+			}
+			__Set(p_name,p_value){
+                if(VMR.vban.stream.initiated) {
+                    if p_name contains name, ip
+                        return VBVMR.SetParameterString(this.PARAM_PREFIX, p_name, p_value)
+                    return VBVMR.SetParameterFloat(this.PARAM_PREFIX, p_name, p_value)
+                }
+                
+            }
+            __Get(p_name){
+                if(VMR.vban.stream.initiated){
+                    if p_name contains name, ip
+                        return VBVMR.GetParameterString(this.PARAM_PREFIX, p_name)
+                    return VBVMR.GetParameterFloat(this.PARAM_PREFIX, p_name)
+                }
+            }		
+		}
+	}
+
+	class macroButton { ; this uses the additional functions at the end of this file for macro buttons. It probably should be a class by itself.
+		
+		setStatus(nuLogicalButton, fValue, bitMode){
+			return VBVMR.MacroButton_SetStatus(nuLogicalButton, fValue, bitMode)
+		}
+		
+		getStatus(nuLogicalButton, bitMode){
+			return VBVMR.MacroButton_GetStatus(nuLogicalButton, bitMode)
+		}
+		
+	}
+	
+	class option_base {
+		
+		__Set(p_name, p_value){
+			return VBVMR.SetParameterFloat("Option", p_name, p_value)
+		}
+		
+		__Get(p_name){
+			return VBVMR.GetParameterFloat("Option", p_name)
+		}
+		
+		delay(busNum, p_delay := -1) {
+			; in keeping with the 1 indexed class...
+			busNum := busNum - 1
+			If(p_delay == -1) {
+				; get the value
+				return VBVMR.GetParameterFloat("Option", "delay[" . busNum . "]")
+			}
+			else {
+				; set it to a new value
+				return VBVMR.SetParameterFloat("Option", "delay[" . busNum . "]", p_delay)
+			}
+			
+		}
+	}
+
+    class recorder_base {
         
         __Set(p_name,p_value){
             return VBVMR.SetParameterFloat("Recorder",p_name, p_value)
@@ -302,7 +419,7 @@ class VMR{
 }
 
 class VBVMR {
-    static DLL, DLL_PATH:=, DLL_FILE:=, VM_TYPE:=, BUSCOUNT:=, STRIPCOUNT:=, STR_TYPE:=
+    static DLL, DLL_PATH:=, DLL_FILE:=, VM_TYPE:=, BUSCOUNT:=, STRIPCOUNT:=, STR_TYPE:=, VBANINCOUNT:=, VBANOUTCOUNT:=
     static FUNC_ADDR:={ Login:0
         ,Logout:0
         ,SetParameterFloat:0
@@ -319,8 +436,11 @@ class VBVMR {
         ,Input_GetDeviceNumber:0
         ,Input_GetDeviceDescW:0
         ,Input_GetDeviceDescA:0
-        ,IsParametersDirty:0 }
-    
+        ,IsParametersDirty:0
+	    ,MacroButton_IsDirty:0
+	    ,MacroButton_GetStatus:0
+	    ,MacroButton_SetStatus:0}
+        
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
         if(errLevel<0)
@@ -444,6 +564,33 @@ class VBVMR {
         errLevel := DllCall(VBVMR.FUNC_ADDR.IsParametersDirty)
         if(errLevel<0)
             Throw, Format("`nVBVMR_IsParametersDirty returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+        else
+            return errLevel 
+    }
+
+    MacroButton_GetStatus(nuLogicalButton, bitMode := 0){
+        local pValue
+        this.IsMacroButtonsDirty()
+        VarSetCapacity(pValue, 4)
+        errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_GetStatus, "Int" , nuLogicalButton , "Ptr", &pValue, "Int", bitMode, "Int")
+        if (errLevel<0)
+            Throw, Exception("VBVMR_MacroButton_GetStatus returned " . errLevel . "`n DLLCALL returned " . ErrorLevel, -1)
+        pValue := NumGet(&pValue, 0, "Float")
+        return [pValue, bitMode]
+    }
+    
+    MacroButton_SetStatus(nuLogicalButton, fValue := 0, bitMode := 1){
+        this.IsMacroButtonsDirty()
+        errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_SetStatus, "Int" ,  nuLogicalButton , "Float" , fValue, "Int", bitMode, "Int")
+        if (errLevel<0)
+            Throw, Exception("VBVMR_MacroButton_SetStatus returned " . errLevel, -1)
+        return [fValue, bitMode]
+    }
+    
+    MacroButton_IsDirty(){
+        errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_IsDirty)
+        if(errLevel<0)
+            Throw, Exception("VBVMR_MacroButton_IsParametersDirty returned " . errLevel, -1)
         else
             return errLevel 
     }
