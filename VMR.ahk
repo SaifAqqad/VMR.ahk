@@ -37,13 +37,14 @@ class VMR{
                 case 2:
                     VBVMR.BUSCOUNT:= 5
                     VBVMR.STRIPCOUNT:= 5
-  		    VBVMR.VBANINCOUNT:= 8
-		    VBVMR.VBANOUTCOUNT:= 8
+  		            VBVMR.VBANINCOUNT:= 8
+		            VBVMR.VBANOUTCOUNT:= 8
                 case 3:
                     VBVMR.BUSCOUNT:= 8
                     VBVMR.STRIPCOUNT:= 8
-    		    VBVMR.VBANINCOUNT:= 8
-    		    VBVMR.VBANOUTCOUNT:= 8
+    		        VBVMR.VBANINCOUNT:= 8
+    		        VBVMR.VBANOUTCOUNT:= 8
+
             }
         }
         return VBVMR.VM_TYPE
@@ -436,10 +437,10 @@ class VBVMR {
         ,Input_GetDeviceDescW:0
         ,Input_GetDeviceDescA:0
         ,IsParametersDirty:0
-	,MacroButton_IsDirty:0
-	,MacroButton_GetStatus:0
-	,MacroButton_SetStatus:0}
-    
+	    ,MacroButton_IsDirty:0
+	    ,MacroButton_GetStatus:0
+	    ,MacroButton_SetStatus:0}
+        
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
         if(errLevel<0)
