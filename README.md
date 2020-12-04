@@ -119,8 +119,15 @@ VMR.ahk
     The array length depends on the type of bus/strip. Hardware (physical) strips have 2 channels (left, right), Buses and virtual strips have 8 channels.
     ## Example
     ```ahk
-        level := voicemeeter.bus[1].level[1]
+        level := voicemeeter.bus[1].level[1] ; gets the level of the front left channel.
     ```
+    
+    You can use \* with max to get the highest level input to a channel.
+    ```ahk
+        maxLevel := Max(voicemeeter.bus[1].level*)
+    ```
+    
+    
 </details>
 
 * <details><summary>Gain Property</summary>
@@ -216,12 +223,13 @@ VMR.ahk
 ## `command` Object
 * <details><summary>show</summary>
 
-    ## `show()`
+    ## `show(open)`
     #### Show Voicemeeter's window
     ## Example
     ```ahk
         voicemeeter.command.show()
     ```
+    `open` is not required. If passed zero, Voicemeeter will close its open window.
 </details>
 
 * <details><summary>restart</summary>
@@ -277,6 +285,40 @@ VMR.ahk
     `fileName` : Name of the file to save/load the configuration to/from, if the path is not specified, the file is assumed to be in the user's Documents folder
 </details>
 
+* <details><summary>`Button` Object</summary>
+  
+  * <details><summary>state</summary>
+  
+    ## `button[i].state(onOff)`
+    #### Change the actual state of the button
+    ## Example
+    ```ahk
+        voicemeeter.command.button[3].state(1) ; sets the state to pressed, runs the macro code
+    ```
+  </details>
+  
+  * <details><summary>stateOnly</summary>
+
+    ## `button[i].stateOnly(onOff)`
+    #### Change the visual state of the button
+    ## Example
+     ```ahk
+        voicemeeter.command.button[3].stateonly(0); releases the key but does not run the release code programmed into the macrobutton.
+    ```
+  </details>
+  
+  * <details><summary>trigger</summary>
+
+    ## `button[i].trigger(onOff)`
+    #### Change the state of the volume
+    ## Example
+    ```ahk
+        voicemeeter.command.button[3].trigger(1) ; enables the trigger. This means the macro can run at a specific volume. 
+    ```
+  </details>
+  
+</details>
+
 ## `recorder` Object
 
 * <details><summary>parameters</summary>
@@ -329,4 +371,47 @@ VMR.ahk
         ```
         </details>
 
+</details>
+
+## `VBAN` Object
+
+* <details><summary>parameters</summary>
+
+    ## Set/Get the value of a [vban parameter](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=17&zoom=auto,-108,813)
+    ```ahk
+        voicemeeter.vban.instream[2].on := 0 ; turns off instream 2
+        voicemeeter.vban.outstream[3].name:= "Music" ; set outstream3 name to Music 
+        voicemeeter.vban.enable:= 1 ; enable vban 
+    ```
+</details>
+
+* <details><summary>Stream Objects</summary>
+
+
+    ## `instream`/`outstream` Objects
+    #### Interfaces with vban streams. Use `vban.instream[i]` and `vban.outstream[i].
+        ```ahk
+            voicemeeter.vban.instream[0].ip := 127.0.0.1
+            voicemeeter.vban.outstream[6].channel := 2
+        ```
+    #### if the `set` parameter is not passed, it will return the state of the given stream parameter
+        ```ahk
+            streamOn:= voicemeeter.vban.instream[0].on
+        ```
+
+</details>
+
+## `Macro Buttons` Object
+
+* <details><summary>Methods</summary>
+
+    ## `SetStatus(nuLogicalButton, onOff, bitmode)`
+    ### Set/Get the value of a [macro button](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=8&zoom=auto,-108,813)
+    
+    ## ()
+    ```ahk
+        voicemeeter.macroButton.setStatus(1,1,3) ; sets macro button 1 to have trigger on
+        voicemeeter.macroButton.setStatus(2,1,1) ; set macrobutton 2 to on.
+    ```
+    
 </details>
