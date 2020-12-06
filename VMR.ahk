@@ -37,14 +37,13 @@ class VMR{
                 case 2:
                     VBVMR.BUSCOUNT:= 5
                     VBVMR.STRIPCOUNT:= 5
-  		            VBVMR.VBANINCOUNT:= 8
-		            VBVMR.VBANOUTCOUNT:= 8
+                    VBVMR.VBANINCOUNT:= 8
+                    VBVMR.VBANOUTCOUNT:= 8
                 case 3:
                     VBVMR.BUSCOUNT:= 8
                     VBVMR.STRIPCOUNT:= 8
-    		        VBVMR.VBANINCOUNT:= 8
-    		        VBVMR.VBANOUTCOUNT:= 8
-
+                    VBVMR.VBANINCOUNT:= 8
+                    VBVMR.VBANOUTCOUNT:= 8
             }
         }
         return VBVMR.VM_TYPE
@@ -133,6 +132,19 @@ class VMR{
                 if(!this.BUS_STRIP_ID)
                     return
                 return Format("{:.1f}",this.getParameter("gain"))
+            }
+        }
+
+        limit{
+            set{
+                if(!this.BUS_STRIP_ID)
+                    return
+                return Format("{:.1f}",this.setParameter("limit", max(-40.0, min(value, 12)) ))
+            }
+            get{
+                if(!this.BUS_STRIP_ID)
+                    return
+                return Format("{:.1f}",this.getParameter("limit"))
             }
         }
 
@@ -268,32 +280,36 @@ class VMR{
 		}
 		
 		restart(){
-			VBVMR.SetParameterFloat("Command","Restart",1)
+			return VBVMR.SetParameterFloat("Command","Restart",1)
 		}
 		
 		shutdown(){
-			VBVMR.SetParameterFloat("Command","Shutdown",1)
+			return VBVMR.SetParameterFloat("Command","Shutdown",1)
 		}
 		
 		show(open := 1){
-			VBVMR.SetParameterFloat("Command","Show",open)
+			return VBVMR.SetParameterFloat("Command","Show",open)
 		}
 		
 		eject(){
-			VBVMR.SetParameterFloat("Command","Eject",1)
+			return VBVMR.SetParameterFloat("Command","Eject",1)
 		}
 		
 		reset(){
-			VBVMR.SetParameterFloat("Command","Reset",1)
+			return VBVMR.SetParameterFloat("Command","Reset",1)
 		}
 		
 		save(filePath){
-			VBVMR.SetParameterFloat("Command","Save",filePath)
+			return VBVMR.SetParameterString("Command","Save",filePath)
 		}
 		
 		load(filePath){
-			VBVMR.SetParameterFloat("Command","Load",filePath)
+			return VBVMR.SetParameterString("Command","Load",filePath)
 		}
+
+        showVBANChat(show := 1) {
+            return VBVMR.SetParameterFloat("Command","dialogshow.VBANCHAT",show)
+        }
 	}
     
 	class vban {
@@ -340,13 +356,13 @@ class VMR{
 		}
 	}
 
-	class macroButton { ; this uses the additional functions at the end of this file for macro buttons. It probably should be a class by itself.
+	class macroButton {
 		
-		setStatus(nuLogicalButton, fValue, bitMode){
+		setStatus(nuLogicalButton, fValue, bitMode := 1){
 			return VBVMR.MacroButton_SetStatus(nuLogicalButton, fValue, bitMode)
 		}
 		
-		getStatus(nuLogicalButton, bitMode){
+		getStatus(nuLogicalButton, bitMode := 1){
 			return VBVMR.MacroButton_GetStatus(nuLogicalButton, bitMode)
 		}
 		
@@ -440,7 +456,7 @@ class VBVMR {
 	    ,MacroButton_IsDirty:0
 	    ,MacroButton_GetStatus:0
 	    ,MacroButton_SetStatus:0}
-        
+    
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
         if(errLevel<0)
