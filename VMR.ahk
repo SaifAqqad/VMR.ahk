@@ -22,8 +22,9 @@ class VMR{
         SetTimer, %syncWithDLL%, 10, 3
         this.getType()
         this.__init_arrays()
-		this.__init_obj()
+        this.__init_obj()
     }
+    
     
     getType(){
         if(!VBVMR.VM_TYPE){
@@ -73,12 +74,12 @@ class VMR{
             VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
-	__init_obj(){
-		this.recorder:= new this.recorder_base
-		this.option:= new this.option_base
-		this.vban.init()
-		VMR.vban.stream.initiated:=1
-	}
+    __init_obj(){
+        this.recorder:= new this.recorder_base
+        this.option:= new this.option_base
+        this.vban.init()
+        VMR.vban.stream.initiated:=1
+    }
 
     __init_arrays(){
         loop % VBVMR.BUSCOUNT {
@@ -256,89 +257,89 @@ class VMR{
         }
     }
     
-	class command {
-		
-		state(buttonNum, newPos := -2) {
-			If(newPos == -2)
-				Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
-			else
-				Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
-		}
-		
-		stateOnly(buttonNum, newPos := -2) {
-			If(newPos == -2)
-				Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly")
-			else
-				Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly", newPos)
-		}
-		
-		trigger(buttonNum, newPos := -2) {
-			If(newPos == -2)
-				return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
-			else
-				Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
-		}
-		
-		restart(){
-			return VBVMR.SetParameterFloat("Command","Restart",1)
-		}
-		
-		shutdown(){
-			return VBVMR.SetParameterFloat("Command","Shutdown",1)
-		}
-		
-		show(open := 1){
-			return VBVMR.SetParameterFloat("Command","Show",open)
-		}
-		
-		eject(){
-			return VBVMR.SetParameterFloat("Command","Eject",1)
-		}
-		
-		reset(){
-			return VBVMR.SetParameterFloat("Command","Reset",1)
-		}
-		
-		save(filePath){
-			return VBVMR.SetParameterString("Command","Save",filePath)
-		}
-		
-		load(filePath){
-			return VBVMR.SetParameterString("Command","Load",filePath)
-		}
+    class command {
+        
+        state(buttonNum, newPos := -2) {
+            If(newPos == -2)
+                Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
+            else
+                Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
+        }
+
+        stateOnly(buttonNum, newPos := -2) {
+            If(newPos == -2)
+                Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly")
+            else
+                Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly", newPos)
+        }
+
+        trigger(buttonNum, newPos := -2) {
+            If(newPos == -2)
+                return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
+            else
+                Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
+        }
+
+        restart(){
+            return VBVMR.SetParameterFloat("Command","Restart",1)
+        }
+
+        shutdown(){
+            return VBVMR.SetParameterFloat("Command","Shutdown",1)
+        }
+
+        show(open := 1){
+            return VBVMR.SetParameterFloat("Command","Show",open)
+        }
+
+        eject(){
+            return VBVMR.SetParameterFloat("Command","Eject",1)
+        }
+
+        reset(){
+            return VBVMR.SetParameterFloat("Command","Reset",1)
+        }
+
+        save(filePath){
+            return VBVMR.SetParameterString("Command","Save",filePath)
+        }
+
+        load(filePath){
+            return VBVMR.SetParameterString("Command","Load",filePath)
+        }
 
         showVBANChat(show := 1) {
             return VBVMR.SetParameterFloat("Command","dialogshow.VBANCHAT",show)
         }
-	}
+        }
     
-	class vban {
-		static instream:=,outstream:=
+    class vban {
+        static instream:=,outstream:=
 
-		enable{
-			set{
-				return VBVMR.SetParameterFloat("vban", "Enable", value)
-			}
-			get{
-				return VBVMR.GetParameterFloat("vban", "Enable")
-			}
-		}
+        enable{
+            set{
+                return VBVMR.SetParameterFloat("vban", "Enable", value)
+            }
+            get{
+                return VBVMR.GetParameterFloat("vban", "Enable")
+            }
+        }
 
-		init(){
-			VMR.vban.instream:= Array()
-			VMR.vban.outstream:= Array()
-			loop % VBVMR.VBANINCOUNT
-				VMR.vban.instream.Push(new VMR.vban.stream("in", A_Index))
-			loop % VBVMR.VBANOUTCOUNT
-				VMR.vban.outstream.Push(new VMR.vban.stream("out", A_Index))
-		}
-		
-		class stream{
-			static initiated:= 0
-			__New(p_type,p_index){
-				this.PARAM_PREFIX:= Format("vban.{}stream[{}]", p_type, p_index)
-			}
-			__Set(p_name,p_value){
+        init(){
+            VMR.vban.instream:= Array()
+            VMR.vban.outstream:= Array()
+            loop % VBVMR.VBANINCOUNT
+                VMR.vban.instream.Push(new VMR.vban.stream("in", A_Index))
+            loop % VBVMR.VBANOUTCOUNT
+                VMR.vban.outstream.Push(new VMR.vban.stream("out", A_Index))
+        }
+        
+        class stream{
+            static initiated:= 0
+            __New(p_type,p_index){
+                this.PARAM_PREFIX:= Format("vban.{}stream[{}]", p_type, p_index)
+            }
+            __Set(p_name,p_value){
                 if(VMR.vban.stream.initiated) {
                     if p_name contains name, ip
                         return VBVMR.SetParameterString(this.PARAM_PREFIX, p_name, p_value)
@@ -353,45 +354,45 @@ class VMR{
                     return VBVMR.GetParameterFloat(this.PARAM_PREFIX, p_name)
                 }
             }		
-		}
-	}
+        }
+    }
 
-	class macroButton {
-		
-		setStatus(nuLogicalButton, fValue, bitMode := 1){
-			return VBVMR.MacroButton_SetStatus(nuLogicalButton, fValue, bitMode)
-		}
-		
-		getStatus(nuLogicalButton, bitMode := 1){
-			return VBVMR.MacroButton_GetStatus(nuLogicalButton, bitMode)
-		}
-		
-	}
-	
-	class option_base {
-		
-		__Set(p_name, p_value){
-			return VBVMR.SetParameterFloat("Option", p_name, p_value)
-		}
-		
-		__Get(p_name){
-			return VBVMR.GetParameterFloat("Option", p_name)
-		}
-		
-		delay(busNum, p_delay := -1) {
-			; in keeping with the 1 indexed class...
-			busNum := busNum - 1
-			If(p_delay == -1) {
-				; get the value
-				return VBVMR.GetParameterFloat("Option", "delay[" . busNum . "]")
-			}
-			else {
-				; set it to a new value
-				return VBVMR.SetParameterFloat("Option", "delay[" . busNum . "]", p_delay)
-			}
-			
-		}
-	}
+    class macroButton {
+        
+        setStatus(nuLogicalButton, fValue, bitMode := 1){
+            return VBVMR.MacroButton_SetStatus(nuLogicalButton, fValue, bitMode)
+        }
+        
+        getStatus(nuLogicalButton, bitMode := 1){
+            return VBVMR.MacroButton_GetStatus(nuLogicalButton, bitMode)
+        }
+        
+    }
+    
+    class option_base {
+        
+        __Set(p_name, p_value){
+            return VBVMR.SetParameterFloat("Option", p_name, p_value)
+        }
+        
+        __Get(p_name){
+            return VBVMR.GetParameterFloat("Option", p_name)
+        }
+        
+        delay(busNum, p_delay := -1) {
+            ; in keeping with the 1 indexed class...
+            busNum := busNum - 1
+            If(p_delay == -1) {
+                ; get the value
+                return VBVMR.GetParameterFloat("Option", "delay[" . busNum . "]")
+            }
+            else {
+                ; set it to a new value
+                return VBVMR.SetParameterFloat("Option", "delay[" . busNum . "]", p_delay)
+            }
+            
+        }
+    }
 
     class recorder_base {
         
@@ -453,9 +454,9 @@ class VBVMR {
         ,Input_GetDeviceDescW:0
         ,Input_GetDeviceDescA:0
         ,IsParametersDirty:0
-	    ,MacroButton_IsDirty:0
-	    ,MacroButton_GetStatus:0
-	    ,MacroButton_SetStatus:0}
+        ,MacroButton_IsDirty:0
+        ,MacroButton_GetStatus:0
+        ,MacroButton_SetStatus:0}
     
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
