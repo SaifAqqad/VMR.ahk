@@ -66,8 +66,8 @@ VMR.ahk
 
 * <details><summary>command Object</summary>
 
-    ## `command` Object
-    #### Use this object to access [command methods](#command-object-1)
+    ## [`command` Object](#command-object-1)
+    #### Use this object to access command methods
     ```ahk
         voicemeeter.command.restart()
         voicemeeter.command.load(filePath)
@@ -285,7 +285,7 @@ VMR.ahk
     `fileName` : Name of the file to save/load the configuration to/from, if the path is not specified, the file is assumed to be in the user's Documents folder
 </details>
 
-* <details><summary>`Button` Object</summary>
+* <details><summary>Button Object</summary>
   
   * <details><summary>state</summary>
   
@@ -295,17 +295,16 @@ VMR.ahk
     ```ahk
         voicemeeter.command.button[3].state(1) ; sets the state to pressed, runs the macro code
     ```
-  </details>
-  
+
   * <details><summary>stateOnly</summary>
 
     ## `button[i].stateOnly(onOff)`
     #### Change the visual state of the button
     ## Example
      ```ahk
-        voicemeeter.command.button[3].stateonly(0); releases the key but does not run the release code programmed into the macrobutton.
+        voicemeeter.command.button[3].stateonly(0)
+        ; releases the key but does not run the release code programmed into the macrobutton.
     ```
-  </details>
   
   * <details><summary>trigger</summary>
 
@@ -389,29 +388,39 @@ VMR.ahk
 
 
     ## `instream`/`outstream` Objects
-    #### Interfaces with vban streams. Use `vban.instream[i]` and `vban.outstream[i].
-        ```ahk
-            voicemeeter.vban.instream[0].ip := 127.0.0.1
-            voicemeeter.vban.outstream[6].channel := 2
-        ```
-    #### if the `set` parameter is not passed, it will return the state of the given stream parameter
-        ```ahk
-            streamOn:= voicemeeter.vban.instream[0].on
-        ```
+    #### Interfaces with vban streams. Use `vban.instream[i]` and `vban.outstream[i]`.
+    ```ahk
+        voicemeeter.vban.instream[1].ip := "127.0.0.1"
+        voicemeeter.vban.outstream[6].channel := 2
+    ```
+    #### Retrieve the state of a stream parameter
+    ```ahk
+        streamOn:= voicemeeter.vban.instream[0].on
+    ```
 
 </details>
 
 ## `Macro Buttons` Object
 
-* <details><summary>Methods</summary>
+* <details><summary>setStatus</summary>
 
-    ## `SetStatus(nuLogicalButton, onOff, bitmode)`
-    ### Set/Get the value of a [macro button](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=8&zoom=auto,-108,813)
-    
-    ## ()
+    ## `setStatus(nuLogicalButton, onOff, bitmode)`
+    #### Set the status of a [macro button](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=8&zoom=auto,-108,813)
+   
     ```ahk
         voicemeeter.macroButton.setStatus(1,1,3) ; sets macro button 1 to have trigger on
         voicemeeter.macroButton.setStatus(2,1,1) ; set macrobutton 2 to on.
     ```
     
+</details>
+
+* <details><summary>getStatus</summary>
+
+    ## `getStatus(nuLogicalButton, bitmode)`
+    #### Get the status of a [macro button](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=8&zoom=auto,-108,813)
+   
+    ```ahk
+        buttonStatus:= voicemeeter.macroButton.getStatus(1,3)
+    ```
+
 </details>
