@@ -1,5 +1,6 @@
 class VMR{
     bus:=Array(), strip:=Array(), recorder:=, option:=, patch:=, fx:=
+
     
     __New(p_path:=""){
         VBVMR.DLL_PATH := p_path? p_path . "\"
@@ -278,7 +279,7 @@ class VMR{
             }
         }
     }
-
+    
     class fx_base {
 
         reverb(onOff := "") {
@@ -543,7 +544,7 @@ class VBVMR {
         ,MacroButton_IsDirty:0
         ,MacroButton_GetStatus:0
         ,MacroButton_SetStatus:0}
-    
+
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
         if(errLevel<0)
@@ -679,7 +680,6 @@ class VBVMR {
         if (errLevel<0)
             Throw, Exception("VBVMR_MacroButton_GetStatus returned " . errLevel . "`n DLLCALL returned " . ErrorLevel, -1)
         pValue := NumGet(&pValue, 0, "Int")
-        
         return [pValue, bitMode]
     }
     
