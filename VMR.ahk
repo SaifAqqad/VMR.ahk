@@ -1,5 +1,5 @@
 class VMR{
-    bus:=Array(), strip:=Array(), recorder:=, option:=
+    bus:=Array(), strip:=Array(), recorder:=, option:=, patch:=, fx:=
     
     __New(p_path:=""){
         VBVMR.DLL_PATH := p_path? p_path . "\"
@@ -50,17 +50,35 @@ class VMR{
         return VBVMR.VM_TYPE
     }
 
-    runVoicemeeter(){
-        Run, % VBVMR.DLL_PATH "voicemeeter8x64.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
-        if(!ErrorLevel)
-            return
-        Run, % VBVMR.DLL_PATH "voicemeeter8.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
-        if(!ErrorLevel)
-            return
-        Run, % VBVMR.DLL_PATH "voicemeeterpro.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
-        if(!ErrorLevel)
-            return
-        Run, % VBVMR.DLL_PATH "voicemeeter.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+    runVoicemeeter(type := ""){
+        switch (type) {
+            case 1:
+                Run, % VBVMR.DLL_PATH "voicemeeter.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+            case 2:
+                Run, % VBVMR.DLL_PATH "voicemeeterpro.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+            case 3:
+                Run, % VBVMR.DLL_PATH "voicemeeter8x64.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+                Run, % VBVMR.DLL_PATH "voicemeeter8.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+            default:
+                Run, % VBVMR.DLL_PATH "voicemeeter8x64.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+                Run, % VBVMR.DLL_PATH "voicemeeter8.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+                Run, % VBVMR.DLL_PATH "voicemeeterpro.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+                Run, % VBVMR.DLL_PATH "voicemeeter.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+        }
         if(ErrorLevel)
             Throw, "Could not run Voicemeeter"
     }
@@ -80,6 +98,8 @@ class VMR{
         if(this.gettype() >= 2)
             this.patch:= new this.patch_base
         this.vban.init()
+        if(this.gettype() >= 3)
+            this.fx := new this.fx_base
         VMR.vban.stream.initiated:=1
     }
 
@@ -107,9 +127,9 @@ class VMR{
             ignore_msg:=0
         } catch e {
             if(!ignore_msg){
-                MsgBox, 52, VMR, Voicemeeter is down `nattempt to restart it?
+                MsgBox, 52, VMR, Voicemeeter is down `nAttempt to restart it?
                 IfMsgBox Yes
-                    this.runVoicemeeter()
+                    this.runVoicemeeter(VBVMR.VM_TYPE)
                 IfMsgBox, No
                     ignore_msg:=1
                 sleep, 1000
@@ -259,62 +279,38 @@ class VMR{
         }
     }
 
-    class fx {
+    class fx_base {
 
-        reverb(onOff := -1) {
-            if(VM.getType() == 3) {
-            if(onOff == 0 || onOff == 1)
-                return VBVMR.SetParameterFloat("Fx.Reverb","on", onOff)
-            return VBVMR.getParameterFloat("FX.Reverb","on")
+        reverb(onOff := "") {
+            switch (onOff) {
+                case -1: ;invert state
+                    onOff := !VBVMR.GetParameterFloat("Fx.Reverb", "on")
+                    return VBVMR.SetParameterFloat("Fx.Reverb","on", onOff)
+                case 0:
+                    Return VBVMR.SetParameterFloat("Fx.Reverb","on", onOff)
+                case 1:
+                    Return VBVMR.SetParameterFloat("Fx.Reverb","on", onOff)
+                default: ; getparam
+                    Return VBVMR.GetParameterFloat("Fx.Reverb", "on")
             }
-            else
-                return -1
         }
 
-        delay(onOff := -1) {
-            if(VM.getType() == 3) {
-            if(onOff == 0 || onOff == 1)
-                return VBVMR.SetParameterFloat("Fx.delay","on", onOff)
-            return VBVMR.getParameterFloat("FX.delay","on")
+        delay(onOff := "") {
+            switch (onOff) {
+                case -1: ;invert state
+                    onOff := !VBVMR.GetParameterFloat("Fx.delay", "on")
+                    return VBVMR.SetParameterFloat("Fx.delay","on", onOff)
+                case 0:
+                    Return VBVMR.SetParameterFloat("Fx.delay","on", onOff)
+                case 1:
+                    Return VBVMR.SetParameterFloat("Fx.delay","on", onOff)
+                default: ; getparam
+                    Return VBVMR.GetParameterFloat("Fx.delay", "on")
             }
-            else
-                return -1
         }
     }
 
-    class patch_base {
-
-        __Set(p_name, p_value){
-            return VBVMR.SetParameterFloat("Patch", p_name, p_value)
-        }
-        
-        __Get(p_name){
-            return VBVMR.GetParameterFloat("Patch", p_name)
-        }
-    }
-    
     class command {
-        
-        state(buttonNum, newPos := -2) {
-            If(newPos == -2)
-                Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
-            else
-                Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
-        }
-
-        stateOnly(buttonNum, newPos := -2) {
-            If(newPos == -2)
-                Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly")
-            else
-                Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateonly", newPos)
-        }
-
-        trigger(buttonNum, newPos := -2) {
-            If(newPos == -2)
-                return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
-            else
-                Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
-        }
 
         restart(){
             return VBVMR.SetParameterFloat("Command","Restart",1)
@@ -347,8 +343,51 @@ class VMR{
         showVBANChat(show := 1) {
             return VBVMR.SetParameterFloat("Command","dialogshow.VBANCHAT",show)
         }
+
+        state(buttonNum, newPos := "") {
+            switch (newPos){
+                case -1: ;invert state
+                    newPos := !VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
+                    return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
+                case 0:
+                    Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
+                case 1:
+                    Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
+                default: ; getparam
+                    Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
+            }
+        }
+
+        stateOnly(buttonNum, newPos := "") {
+            switch (newPos){
+                case -1: ;invert state
+                    newPos := !VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly")
+                    return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly", newPos)
+                case 0:
+                    Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly", newPos)
+                case 1:
+                    Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly", newPos)
+                default: ; getparam
+                    Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly")
+            }
+        }
+
+        trigger(buttonNum, newPos := "") {
+            switch (newPos){
+                case -1: ;invert state
+                    newPos := !VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
+                    return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
+                case 0:
+                    Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
+                case 1:
+                    Return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
+                default: ; getparam
+                    Return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
+
+            }
+        }
     }
-    
+
     class vban {
         static instream:=,outstream:=
 
@@ -404,7 +443,18 @@ class VMR{
         }
         
     }
-    
+
+    class patch_base {
+
+        __Set(p_name, p_value){
+            return VBVMR.SetParameterFloat("Patch", p_name, p_value)
+        }
+        
+        __Get(p_name){
+            return VBVMR.GetParameterFloat("Patch", p_name)
+        }
+    }
+
     class option_base {
         
         __Set(p_name, p_value){
@@ -628,7 +678,8 @@ class VBVMR {
         errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_GetStatus, "Int" , nuLogicalButton , "Ptr", &pValue, "Int", bitMode, "Int")
         if (errLevel<0)
             Throw, Exception("VBVMR_MacroButton_GetStatus returned " . errLevel . "`n DLLCALL returned " . ErrorLevel, -1)
-        pValue := NumGet(&pValue, 0, "Float")
+        pValue := NumGet(&pValue, 0, "Int")
+        
         return [pValue, bitMode]
     }
     
