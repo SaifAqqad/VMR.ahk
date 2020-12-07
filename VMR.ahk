@@ -465,16 +465,16 @@ class VMR{
             return VBVMR.GetParameterFloat("Option", p_name)
         }
         
-        delay(busNum, p_delay := -1) {
+        delay(busNum, p_delay := "") {
             ; in keeping with the 1 indexed class...
             busNum := busNum - 1
-            If(p_delay == -1) {
+            If(p_delay == "") {
                 ; get the value
                 return VBVMR.GetParameterFloat("Option", "delay[" . busNum . "]")
             }
             else {
                 ; set it to a new value
-                return VBVMR.SetParameterFloat("Option", "delay[" . busNum . "]", p_delay)
+                return VBVMR.SetParameterFloat("Option", "delay[" . busNum . "]", Min(Max(p_delay,0),500))
             }
             
         }
