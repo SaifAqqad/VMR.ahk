@@ -77,6 +77,8 @@ class VMR{
     __init_obj(){
         this.recorder:= new this.recorder_base
         this.option:= new this.option_base
+        if(this.gettype() >= 2)
+            this.patch:= new this.patch_base
         this.vban.init()
         VMR.vban.stream.initiated:=1
     }
@@ -256,6 +258,40 @@ class VMR{
             }
         }
     }
+
+    class fx {
+
+        reverb(onOff := -1) {
+            if(VM.getType() == 3) {
+            if(onOff == 0 || onOff == 1)
+                return VBVMR.SetParameterFloat("Fx.Reverb","on", onOff)
+            return VBVMR.getParameterFloat("FX.Reverb","on")
+            }
+            else
+                return -1
+        }
+
+        delay(onOff := -1) {
+            if(VM.getType() == 3) {
+            if(onOff == 0 || onOff == 1)
+                return VBVMR.SetParameterFloat("Fx.delay","on", onOff)
+            return VBVMR.getParameterFloat("FX.delay","on")
+            }
+            else
+                return -1
+        }
+    }
+
+    class patch_base {
+
+        __Set(p_name, p_value){
+            return VBVMR.SetParameterFloat("Patch", p_name, p_value)
+        }
+        
+        __Get(p_name){
+            return VBVMR.GetParameterFloat("Patch", p_name)
+        }
+    }
     
     class command {
         
@@ -311,7 +347,7 @@ class VMR{
         showVBANChat(show := 1) {
             return VBVMR.SetParameterFloat("Command","dialogshow.VBANCHAT",show)
         }
-        }
+    }
     
     class vban {
         static instream:=,outstream:=
