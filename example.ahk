@@ -27,7 +27,7 @@ return
 
 ^Y::voicemeeter.command.show()
 
-^K::voicemeeter.bus[1].setParameter("FadeTo", "(6.0, 2000)") ;set specific parameter for a bus/strip
+^K::voicemeeter.bus[1].FadeTo:="(-18.0, 2000)" ;set any parameter for a bus/strip
 
 ^T::MsgBox, % "Bus[1] Level: " . Max(voicemeeter.bus[1].level*) 
 
