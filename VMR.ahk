@@ -147,73 +147,33 @@ class VMR{
         static BUS_COUNT:=0, BUS_LEVEL_COUNT:=0, BusDevices:=Array(), STRIP_COUNT:=0, STRIP_LEVEL_COUNT:=0, StripDevices:=Array(), initiated
         BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, BUS_STRIP_ID, LEVEL_INDEX, level, gain_limit
         
-        gain{
-            set{
-                if(!this.BUS_STRIP_ID)
-                    return
-                return Format("{:.1f}",this.setParameter("gain", max(-60.0, min(value, this.gain_limit)) ))
-            }
-            get{
-                if(!this.BUS_STRIP_ID)
-                    return
-                return Format("{:.1f}",this.getParameter("gain"))
-            }
-        }
-
-        limit{
-            set{
-                if(!this.BUS_STRIP_ID)
-                    return
-                return Format("{:.1f}",this.setParameter("limit", max(-40.0, min(value, 12)) ))
-            }
-            get{
-                if(!this.BUS_STRIP_ID)
-                    return
-                return Format("{:.1f}",this.getParameter("limit"))
-            }
-        }
-
-        mute{
-            set{
-                if(!this.BUS_STRIP_ID)
-                    return
-                if(value = -1)
-                    value:= !this.mute
-                return this.setParameter("mute", value)
-            }
-            get{
-                if(!this.BUS_STRIP_ID)
-                    return
-                return this.getParameter("mute")
-            }
-        }
-
-        device[driver:="wdm"]{
-            set{
-                if(!this.BUS_STRIP_ID)
-                    return
-                if (!this.__isPhysical())
-                    return -4
-                if driver not in wdm,mme,ks,asio
-                    return -5
-                deviceObj := this.__getDeviceObj(value,driver)
-                return this.setParameter("device." . deviceObj.Driver,deviceObj.Name)
-            }
-            get{
-                if(!this.BUS_STRIP_ID)
-                    return
-                return this.getParameter("device.name")
-            }
-        }
-        
-        __Set(p_name, p_value){
+        __Set(p_name, p_value, p_sec_value:=""){
             if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+                switch p_name {
+                    case "gain":
+                        return Format("{:.1f}",this.setParameter(p_name, max(-60.0, min(p_value, this.gain_limit))))
+                    case "limit":
+                        return Format("{:.1f}",this.setParameter(p_name, max(-40.0, min(p_value, 12.0))))
+                    case "device":
+                        driver:= p_sec_value? p_value : "wdm"
+                        name:= p_sec_value? p_sec_value : p_value
+                        return this.__setDevice(name,driver)
+                    case "mute":
+                        if(p_value = -1)
+                            p_value:= !this.mute
+                }
                 return this.setParameter(p_name,p_value)
             }
         }
 
         __Get(p_name){
             if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+                switch p_name {
+                    case "gain","limit":
+                        return Format("{:.1f}",this.getParameter(p_name))
+                    case "device":
+                        return this.getParameter("device.name")
+                }
                 return this.getParameter(p_name)
             }
         }
@@ -261,6 +221,15 @@ class VMR{
                 func:= "getParameterFloat"
             VBVMR.IsParametersDirty()
             return (VBVMR)[func](this.BUS_STRIP_ID, parameter)
+        }
+
+        __setDevice(name,driver){
+            if (!this.__isPhysical())
+                return -4
+            if driver not in wdm,mme,ks,asio
+                return -5
+            deviceObj := this.__getDeviceObj(name,driver)
+            return this.setParameter("device." . deviceObj.Driver,deviceObj.Name)
         }
         
         __getDeviceObj(substring,driver:="wdm"){
