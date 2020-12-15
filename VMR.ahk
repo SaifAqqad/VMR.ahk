@@ -112,6 +112,7 @@ class VMR{
             this.strip.Push(new this.VM_BUS_STRIP("Strip"))
         }
         this.updateDevices()
+        VMR.VM_BUS_STRIP.initiated:=1
     }
 
     __syncWithDLL(){
@@ -143,7 +144,7 @@ class VMR{
     }
     
     class VM_BUS_STRIP {
-        static BUS_COUNT:=0, BUS_LEVEL_COUNT:=0, BusDevices:=Array(), STRIP_COUNT:=0, STRIP_LEVEL_COUNT:=0, StripDevices:=Array()
+        static BUS_COUNT:=0, BUS_LEVEL_COUNT:=0, BusDevices:=Array(), STRIP_COUNT:=0, STRIP_LEVEL_COUNT:=0, StripDevices:=Array(), initiated
         BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, BUS_STRIP_ID, LEVEL_INDEX, level, gain_limit
         
         gain{
@@ -202,6 +203,18 @@ class VMR{
                 if(!this.BUS_STRIP_ID)
                     return
                 return this.getParameter("device.name")
+            }
+        }
+        
+        __Set(p_name, p_value){
+            if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+                return this.setParameter(p_name,p_value)
+            }
+        }
+
+        __Get(p_name){
+            if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+                return this.getParameter(p_name)
             }
         }
 
