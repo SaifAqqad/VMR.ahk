@@ -1,5 +1,6 @@
 class VMR{
     bus:=Array(), strip:=Array(), recorder:=, option:=, patch:=, fx:=
+    , on_levels_update_callback:=, on_parameters_update_callback:=, on_macrobuttons_update_callback:=
 
     
     __New(p_path:=""){
@@ -20,7 +21,7 @@ class VMR{
         }
         OnExit(ObjBindMethod(VBVMR, "Logout"))
         syncWithDLL := ObjBindMethod(this, "__syncWithDLL")
-        SetTimer, %syncWithDLL%, 10, 3
+        SetTimer, %syncWithDLL%, 10, 1
         this.getType()
         this.__init_arrays()
         this.__init_obj()
@@ -113,18 +114,40 @@ class VMR{
     __syncWithDLL(){
         static ignore_msg:=0
         try {
-            VBVMR.IsParametersDirty()
-            VBVMR.MacroButton_IsDirty()
+            ;sync vmr parameters
+            isParametersDirty:= VBVMR.IsParametersDirty()
+            
+            ;sync macro buttons states
+            isMacroButtonsDirty:= VBVMR.MacroButton_IsDirty()
+
+            ;sync bus/strip level arrays
             loop % VBVMR.BUSCOUNT {
                 this.bus[A_Index].__updateLevel()
             }
             loop % VBVMR.STRIPCOUNT {
                 this.strip[A_Index].__updateLevel()
             }
+
+            ;sync successful
             ignore_msg:=0
+
+            ;level callback
+            if(IsFunc(this.on_levels_update_callback)){
+                this.on_levels_update_callback.Call()
+            }
+
+            ;parameter callback
+            if(isParametersDirty && IsFunc(this.on_parameters_update_callback)){
+                this.on_parameters_update_callback.Call()
+            }
+
+            ;macrobutton callback
+            if(isMacroButtonsDirty && IsFunc(this.on_macrobuttons_update_callback)){
+                this.on_macrobuttons_update_callback.Call()
+            }
         } catch e {
             if(!ignore_msg){
-                MsgBox, 52, VMR, Voicemeeter is down `nAttempt to restart it?
+                MsgBox, 52, VMR.ahk, An error occurred during synchronization: %e%`nAttempt to restart VoiceMeeter?
                 IfMsgBox Yes
                     this.runVoicemeeter(VBVMR.VM_TYPE)
                 IfMsgBox, No
@@ -235,10 +258,10 @@ class VMR{
         }
 
         __updateLevel(){
-            local type := this.BUS_STRIP_TYPE="Bus" ? 3 : 0
+            local type := this.BUS_STRIP_TYPE="Bus" ? 3 : 1
             loop % this.LEVEL_INDEX.Length() {
                 level := VBVMR.GetLevel(type, this.LEVEL_INDEX[A_Index])
-                this.level[A_Index] := Max(Ceil(20 * Log(level)), -999)
+                this.level[A_Index] := Max(Round(20 * Log(level)), -999)
             }
         }
 
