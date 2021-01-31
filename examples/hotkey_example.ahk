@@ -1,4 +1,4 @@
-#Include, VMR.ahk
+#Include, ..\VMR.ahk
 
 voicemeeter := new VMR()
 voicemeeter.login()
@@ -11,10 +11,10 @@ for i, bus in voicemeeter.bus {
 Volume_Up::voicemeeter.bus[1].gain++ ;bind volume up key to increase bus[1] gain
 Volume_Down::voicemeeter.bus[1].gain--
 
-^M::voicemeeter.bus[1].mute:= -1 ; bind ctrl+M to toggle mute bus[1]
+^M::voicemeeter.bus[1].mute-- ; bind ctrl+M to toggle mute bus[1]
 
-^Volume_Up::ToolTip, % ++voicemeeter.strip[5].gain
-^Volume_Down::ToolTip, % --voicemeeter.strip[5].gain
+^Volume_Up::ToolTip, % voicemeeter.strip[5].gain+=5
+^Volume_Down::ToolTip, % voicemeeter.strip[5].gain-=5
 
 F6::voicemeeter.bus[1].device:= "LG" ; set bus[1] to the first device with "LG" in its name using wdm driver
 F7::voicemeeter.strip[2].device["mme"]:= "amazonbasics"
@@ -29,7 +29,7 @@ return
 
 ^K::voicemeeter.bus[1].FadeTo:="(-18.0, 2000)" ;set any parameter for a bus/strip
 
-^T::MsgBox, % "Bus[1] Level: " . Max(voicemeeter.bus[1].level*) 
+^T::MsgBox, % "Bus[1] Level: " . voicemeeter.bus[1].level[1]
 
 !r::
 voicemeeter.recorder.ArmStrip(4,1)
