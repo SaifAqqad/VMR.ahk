@@ -57,7 +57,7 @@ class VMR{
             Run, % VBVMR.DLL_PATH . this.__getTypeExecutable(p_type) , % VBVMR.DLL_PATH, UseErrorLevel Hide
         }else{
             loop 3 {
-                Run, % VBVMR.DLL_PATH . this.__getTypeExecutable(A_Index) , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                Run, % VBVMR.DLL_PATH . this.__getTypeExecutable(4-A_Index) , % VBVMR.DLL_PATH, UseErrorLevel Hide
                 if(!ErrorLevel)
                     return
             }
