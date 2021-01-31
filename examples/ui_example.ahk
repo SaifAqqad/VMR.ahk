@@ -1,13 +1,14 @@
 #Include, ..\VMR.ahk
+SetBatchLines, 20ms
 
-Global vm, GUI_hwnd
+Global vm, GUI_hwnd, is_win_pos_changing:=0
 
 vm := new VMR()
 vm.login()
 showUI()
 vm.on_update_levels_callback:= Func("syncLevel") ; register level callback func
 vm.on_update_parameters_callback:= Func("syncParameters") ; register params callback func
-
+OnMessage(0x46, Func("onPosChanging"))
 
 showUI(){
     Global
@@ -20,7 +21,7 @@ showUI(){
         
         ;bus level
         yPos+= 30
-        Gui, Add, Progress, x%xPos% y%yPos% w20 h200 Range-72-24 c0x70C399 Background0x2C3D4D vertical Hwndbus_%A_Index%_level
+        Gui, Add, Progress, x%xPos% y%yPos% w20 h200 Range-72-20 c0x70C399 Background0x2C3D4D vertical Hwndbus_%A_Index%_level
         
         ;bus gain
         yPos+= 220
@@ -55,6 +56,8 @@ syncParameters(){
 }
 
 syncLevel(){
+    if(is_win_pos_changing) ;dont update levels if the window is changing position
+        return
     Critical, On ;dont interrupt while updating levels
     Loop % vm.bus.Length() {
         GuiControl,, % bus_%A_Index%_level, % Max(vm.bus[A_Index].level*)
@@ -64,4 +67,13 @@ syncLevel(){
 
 vmGuiClose(){
     ExitApp
+}
+
+onPosChanging(){
+    is_win_pos_changing:=1
+    SetTimer, onPosChanged, -100
+}
+
+onPosChanged(){
+    is_win_pos_changing:=0
 }
