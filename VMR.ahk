@@ -1,6 +1,6 @@
 class VMR{
     bus:=Array(), strip:=Array(), recorder:=, option:=, patch:=, fx:=
-    , on_levels_update_callback:=, on_parameters_update_callback:=, on_macrobuttons_update_callback:=
+    , on_update_levels_callback:=, on_update_parameters_callback:=, on_update_macrobuttons_callback:=
 
     
     __New(p_path:=""){
@@ -21,7 +21,7 @@ class VMR{
         }
         OnExit(ObjBindMethod(VBVMR, "Logout"))
         syncWithDLL := ObjBindMethod(this, "__syncWithDLL")
-        SetTimer, %syncWithDLL%, 10, 1
+        SetTimer, %syncWithDLL%, 20, 1
         this.getType()
         this.__init_arrays()
         this.__init_obj()
@@ -54,19 +54,13 @@ class VMR{
 
     runVoicemeeter(p_type := ""){
         if(p_type){
-            p_type:= this.__getTypeExecutable(p_type)
-            Run, % VBVMR.DLL_PATH . p_type , % VBVMR.DLL_PATH, UseErrorLevel Hide
+            Run, % VBVMR.DLL_PATH . this.__getTypeExecutable(p_type) , % VBVMR.DLL_PATH, UseErrorLevel Hide
         }else{
-            Run, % VBVMR.DLL_PATH "voicemeeter8x64.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
-            if(!ErrorLevel)
-                return
-            Run, % VBVMR.DLL_PATH "voicemeeter8.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
-            if(!ErrorLevel)
-                return
-            Run, % VBVMR.DLL_PATH "voicemeeterpro.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
-            if(!ErrorLevel)
-                return
-            Run, % VBVMR.DLL_PATH "voicemeeter.exe" , % VBVMR.DLL_PATH, UseErrorLevel Hide
+            loop 3 {
+                Run, % VBVMR.DLL_PATH . this.__getTypeExecutable(A_Index) , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                if(!ErrorLevel)
+                    return
+            }
         }
         if(ErrorLevel)
             Throw, "Could not run Voicemeeter"
@@ -132,18 +126,18 @@ class VMR{
             ignore_msg:=0
 
             ;level callback
-            if(IsFunc(this.on_levels_update_callback)){
-                this.on_levels_update_callback.Call()
+            if(IsFunc(this.on_update_levels_callback)){
+                this.on_update_levels_callback.Call()
             }
 
             ;parameter callback
-            if(isParametersDirty && IsFunc(this.on_parameters_update_callback)){
-                this.on_parameters_update_callback.Call()
+            if(isParametersDirty && IsFunc(this.on_update_parameters_callback)){
+                this.on_update_parameters_callback.Call()
             }
 
             ;macrobutton callback
-            if(isMacroButtonsDirty && IsFunc(this.on_macrobuttons_update_callback)){
-                this.on_macrobuttons_update_callback.Call()
+            if(isMacroButtonsDirty && IsFunc(this.on_update_macrobuttons_callback)){
+                this.on_update_macrobuttons_callback.Call()
             }
         } catch e {
             if(!ignore_msg){
