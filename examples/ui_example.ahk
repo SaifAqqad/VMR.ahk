@@ -58,11 +58,9 @@ syncParameters(){
 syncLevel(){
     if(is_win_pos_changing) ;dont update levels if the window is changing position
         return
-    Critical, On ;dont interrupt while updating levels
     Loop % vm.bus.Length() {
         GuiControl,, % bus_%A_Index%_level, % Max(vm.bus[A_Index].level*)
     }
-    Critical, Off
 }
 
 vmGuiClose(){
