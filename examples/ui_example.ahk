@@ -14,7 +14,7 @@ showUI(){
     Global
     Gui, vm:New, +HwndGUI_hwnd, VoiceMeeter Remote UI
     xPos:=10
-    Loop % vm.bus.Length() {
+    Loop % vm.bus.Length() { ; add UI controls for each bus
         ;bus title
         yPos:=0, funcObj:=""
         Gui, Add, Text, x%xPos% y%yPos% w100, Bus[%A_Index%]
@@ -42,12 +42,14 @@ showUI(){
     Gui, Show, H350,VoiceMeeter Remote UI
 }
 
+; update vm bus parameters when they change on the AHK UI
 updateParam(param, index){
     GuiControlGet, val,,% bus_%index%_%param%
     vm.bus[index][param]:= val
-    SetTimer, syncParameters, -1000 ; make sure params are in sync
+    SetTimer, syncParameters, -500 ; make sure params are in sync
 }
 
+; sync AHK UI controls with vm bus parameters
 syncParameters(){
     Loop % vm.bus.Length() {
         GuiControl,, % bus_%A_Index%_gain, % vm.bus[A_Index].gain
@@ -55,11 +57,12 @@ syncParameters(){
     }
 }
 
+; sync level meters with vm bus levels
 syncLevel(){
-    if(is_win_pos_changing) ;dont update levels if the window is changing position
+    if(is_win_pos_changing) ;dont update levels if the window is changing its position
         return
     Loop % vm.bus.Length() {
-        GuiControl,, % bus_%A_Index%_level, % Max(vm.bus[A_Index].level*)
+        GuiControl,, % bus_%A_Index%_level, % Max(vm.bus[A_Index].level*) ; get peak level for the bus
     }
 }
 
@@ -69,7 +72,7 @@ vmGuiClose(){
 
 onPosChanging(){
     is_win_pos_changing:=1
-    SetTimer, onPosChanged, -100
+    SetTimer, onPosChanged, -50
 }
 
 onPosChanged(){
