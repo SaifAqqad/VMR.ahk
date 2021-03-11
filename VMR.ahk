@@ -17,7 +17,7 @@ class VMR{
     login(){
         if(VBVMR.Login()){
             this.runVoicemeeter()
-            sleep, 1000
+            sleep, 2000
         }
         OnExit(ObjBindMethod(VBVMR, "Logout"))
         syncWithDLL := ObjBindMethod(this, "__syncWithDLL")
@@ -78,10 +78,10 @@ class VMR{
     __init_obj(){
         this.recorder:= new this.recorder_base
         this.option:= new this.option_base
-        if(this.gettype() >= 2)
+        if(this.getType() >= 2)
             this.patch:= new this.patch_base
         this.vban.init()
-        if(this.gettype() >= 3)
+        if(this.getType() >= 3)
             this.fx := new this.fx_base
         VMR.vban.stream.initiated:=1
     }
