@@ -457,11 +457,17 @@ class VMR{
     class recorder_base {
         
         __Set(p_name,p_value){
-            return VBVMR.SetParameterFloat("Recorder",p_name, p_value)
+            local type:= "Float"
+            if p_name contains goto,load
+                type:= "String"
+            return (VBVMR)["SetParameter" type]("Recorder", p_name, p_value)
         }
 
         __Get(p_name){
-            return VBVMR.GetParameterFloat("Recorder",p_name)
+            local type:= "Float"
+            if p_name contains goto,load
+                type:= "String"
+            return (VBVMR)["GetParameter" type]("Recorder", p_name)
         }
 
         ArmBus(bus, set:=-1){
