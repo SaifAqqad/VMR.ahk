@@ -218,7 +218,7 @@ class VMR{
 
         setParameter(parameter, value){
             local func
-            if parameter contains device,FadeTo,Label
+            if parameter contains device,FadeTo,Label,FadeBy,AppGain,AppMute
                 func:= "setParameterString"
             else
                 func:= "setParameterFloat"
@@ -227,7 +227,7 @@ class VMR{
 
         getParameter(parameter){
             local func
-            if parameter contains device,FadeTo,Label
+            if parameter contains device,FadeTo,Label,FadeBy,AppGain,AppMute
                 func:= "getParameterString"
             else
                 func:= "getParameterFloat"
