@@ -1,6 +1,6 @@
 class VMR{
     bus:=Array(), strip:=Array(), recorder, option, patch, fx
-    , onUpdateLevels, onUpdateParameters, onUpdateMacrobuttons
+    , onUpdateLevels, onUpdateParameters, onUpdateMacrobuttons, onMidiMessage
     
     __New(p_path:=""){
         VBVMR.DLL_PATH := p_path? p_path . "\"
@@ -139,6 +139,9 @@ class VMR{
                 this.onUpdateMacrobuttons.Call()
             }
 
+            ;midi callback
+            if(IsFunc(this.onMidiMessage) && midiMessages:= VBVMR.GetMidiMessage()){
+                this.onMidiMessage.Call(midiMessages)
             }
         } catch e {
             if(!ignore_msg){
@@ -523,7 +526,8 @@ class VBVMR {
         ,IsParametersDirty:0
         ,MacroButton_IsDirty:0
         ,MacroButton_GetStatus:0
-        ,MacroButton_SetStatus:0}
+        ,MacroButton_SetStatus:0
+        ,GetMidiMessage:0}
 
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
@@ -677,6 +681,18 @@ class VBVMR {
             Throw, Exception("VBVMR_MacroButton_IsParametersDirty returned " . errLevel, -1)
         else
             return errLevel 
+    }
+
+    GetMidiMessage(){
+        local nBytes:= 1024, dBuffer:="", tempArr:= Array()
+        VarSetCapacity(dBuffer, nBytes)
+        errLevel := DllCall(VBVMR.FUNC_ADDR.GetMidiMessage, "Ptr", &dBuffer, "Int", nBytes)
+        if errLevel between -1 and -2
+            Throw, Exception("VBVMR_GetMidiMessage returned " . errLevel, -1)
+        loop %errLevel% {
+            tempArr[A_Index]:= Format("0x{:X}",NumGet(&dBuffer, A_Index - 1, "UChar"))
+        }
+        return tempArr.Length()? tempArr : ""
     }
 
     __getAddresses(){
