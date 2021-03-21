@@ -1,7 +1,6 @@
 class VMR{
-    bus:=Array(), strip:=Array(), recorder:=, option:=, patch:=, fx:=
-    , on_update_levels_callback:=, on_update_parameters_callback:=, on_update_macrobuttons_callback:=
-
+    bus:=Array(), strip:=Array(), recorder, option, patch, fx
+    , onUpdateLevels, onUpdateParameters, onUpdateMacrobuttons
     
     __New(p_path:=""){
         VBVMR.DLL_PATH := p_path? p_path . "\"
@@ -126,18 +125,20 @@ class VMR{
             ignore_msg:=0
 
             ;level callback
-            if(IsFunc(this.on_update_levels_callback)){
-                this.on_update_levels_callback.Call()
+            if(IsFunc(this.onUpdateLevels)){
+                this.onUpdateLevels.Call()
             }
 
             ;parameter callback
-            if(isParametersDirty && IsFunc(this.on_update_parameters_callback)){
-                this.on_update_parameters_callback.Call()
+            if(isParametersDirty && IsFunc(this.onUpdateParameters)){
+                this.onUpdateParameters.Call()
             }
 
             ;macrobutton callback
-            if(isMacroButtonsDirty && IsFunc(this.on_update_macrobuttons_callback)){
-                this.on_update_macrobuttons_callback.Call()
+            if(isMacroButtonsDirty && IsFunc(this.onUpdateMacrobuttons)){
+                this.onUpdateMacrobuttons.Call()
+            }
+
             }
         } catch e {
             if(!ignore_msg){

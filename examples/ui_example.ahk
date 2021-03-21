@@ -6,8 +6,8 @@ Global vm, GUI_hwnd, is_win_pos_changing:=0
 vm := new VMR()
 vm.login()
 showUI()
-vm.on_update_levels_callback:= Func("syncLevel") ; register level callback func
-vm.on_update_parameters_callback:= Func("syncParameters") ; register params callback func
+vm.onUpdateLevels:= Func("syncLevel") ; register level callback func
+vm.onUpdateParameters:= Func("syncParameters") ; register params callback func
 OnMessage(0x46, Func("onPosChanging"))
 
 showUI(){
