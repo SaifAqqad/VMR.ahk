@@ -74,6 +74,13 @@ class VMR{
             VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
+    exec(script){
+        Try errLn:= VBVMR.SetParameters(script)
+        if(errLn != 0)
+            Throw, "exec:`nScript error at line " . errLn
+        return errLn
+    }
+
     __init_obj(){
         this.recorder:= new this.recorder_base
         this.option:= new this.option_base
@@ -527,7 +534,9 @@ class VBVMR {
         ,MacroButton_IsDirty:0
         ,MacroButton_GetStatus:0
         ,MacroButton_SetStatus:0
-        ,GetMidiMessage:0}
+        ,GetMidiMessage:0
+        ,SetParameters:0
+        ,SetParametersW:0}
 
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
@@ -693,6 +702,14 @@ class VBVMR {
             tempArr[A_Index]:= Format("0x{:X}",NumGet(&dBuffer, A_Index - 1, "UChar"))
         }
         return tempArr.Length()? tempArr : ""
+    }
+
+    SetParameters(script){
+        this.IsParametersDirty()
+        errLevel := DllCall(VBVMR.FUNC_ADDR["SetParameters" . VBVMR.STR_TYPE], VBVMR.STR_TYPE . "Str" , script , "Int")
+        if (errLevel<0)
+            Throw, Format("`nVBVMR_SetParameters returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+        return errLevel
     }
 
     __getAddresses(){
