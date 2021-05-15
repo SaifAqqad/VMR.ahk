@@ -24,6 +24,7 @@ class VMR{
         this.getType()
         this.__init_arrays()
         this.__init_obj()
+        return this
     }
     
     
