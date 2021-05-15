@@ -3,19 +3,19 @@
 
 global voicemeeter := (new VMR).login()
 AhkScript()
-VoiceMeeterScript()
+;VoiceMeeterScript()
 sleep 100 ; delay exit to allow the script to execute
 ExitApp
 
 AhkScript(){
     ; this is an AHK script
     ; indexes are one-based
-    voicemeeter.strip[1].A1 = 1
-    voicemeeter.strip[1].B1 = 0
-    voicemeeter.bus[2].gain = -6.0
-    voicemeeter.strip[3].gain = 12.0
-    voicemeeter.recorder.A1 = 1
-    voicemeeter.vban.outstream[4].name = "stream example"
+    voicemeeter.strip[1].A1 := 1
+    voicemeeter.strip[1].B1 := 0
+    voicemeeter.bus[2].gain := -6.0
+    voicemeeter.strip[3].gain := 12.0
+    voicemeeter.recorder.A1 := 1
+    voicemeeter.vban.outstream[4].name := "stream example"
 }
 
 ; OR
