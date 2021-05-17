@@ -3,16 +3,15 @@ class VMR{
     , onUpdateLevels, onUpdateParameters, onUpdateMacrobuttons, onMidiMessage
     
     __New(p_path:=""){
-        VBVMR.DLL_PATH := p_path? p_path . "\"
-            : "C:\Program Files" . (A_Is64bitOS? " (x86)" : "") . "\VB\Voicemeeter\"
+        VBVMR.DLL_PATH :=  p_path? p_path : this.__getDLLPath()
         VBVMR.DLL_FILE := A_PtrSize = 8 ? "VoicemeeterRemote64.dll" : "VoicemeeterRemote.dll"
-        if(!FileExist(VBVMR.DLL_PATH . VBVMR.DLL_FILE))
+        if(!FileExist(VBVMR.DLL_PATH . "\" . VBVMR.DLL_FILE))
             Throw, Format("Voicemeeter is not installed in the path :`n{}", VBVMR.DLL_PATH)
         VBVMR.STR_TYPE := A_IsUnicode? "W" : "A"
-        VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.DLL_PATH . VBVMR.DLL_FILE, "Ptr")
+        VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.DLL_PATH . "\" . VBVMR.DLL_FILE, "Ptr")
         VBVMR.__getAddresses()
     }
-    
+
     login(){
         if(VBVMR.Login()){
             this.runVoicemeeter()
@@ -82,6 +81,14 @@ class VMR{
         return errLn
     }
 
+    __getDLLPath(){
+        vmkey := "VB:Voicemeeter {17359A74-1236-5467}"
+        key := "HKLM\Software{}\Microsoft\Windows\CurrentVersion\Uninstall\{}"
+        RegRead, value, % Format(key, A_Is64bitOS?"\WOW6432Node":"", vmkey), UninstallString
+        SplitPath, value,, dir
+        return dir
+    }
+    
     __init_obj(){
         this.recorder:= new this.recorder_base
         this.option:= new this.option_base

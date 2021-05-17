@@ -3,8 +3,7 @@ SetBatchLines, 20ms
 
 Global vm, GUI_hwnd, is_win_pos_changing:=0
 
-vm := new VMR()
-vm.login()
+vm := new VMR().login()
 showUI()
 vm.onUpdateLevels:= Func("syncLevel") ; register level callback func
 vm.onUpdateParameters:= Func("syncParameters") ; register params callback func
