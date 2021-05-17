@@ -5,19 +5,50 @@
 
 global vm, tester:= Yunit.Use(YunitStdout)
 
-tester.Test(initTest)
+tester.Test(VBVMR_Test)
 tester.Test(VMR_Test)
 sleep 2000
 ExitApp
 
-class initTest {
-    initilizeAndLogin(){
-        vm:= (new VMR).login()
-        Yunit.Assert(vm, "VMR initilization/login failed")
+class VBVMR_Test {
+    __New(){
+        vm := (new VMR(A_Args[1])).login()
+        VBVMR.SetParameterString("command","Save", A_ScriptDir "\temp.xml")
+    }
+
+    Begin(){
+        VBVMR.SetParameterFloat("command","reset",1)
+        Sleep, 1000
+    }
+
+    SetParameterFloat(){
+        VBVMR.SetParameterFloat("Bus[1]","gain",val)
+    }
+
+    GetParameterFloat(){
+        VBVMR.GetParameterFloat("Strip[1]","A1")
+    }
+
+    SetParameterString(){
+        VBVMR.SetParameterFloat("Strip[1]","label", val)
+    }
+
+    __Delete(){
+        VBVMR.SetParameterString("command","Load", A_ScriptDir "\temp.xml")
+        Sleep, 1000
     }
 }
 
 class VMR_Test {
+    __New(){
+        vm.command.save(A_ScriptDir "\temp.xml")
+    }
+
+    __Delete(){
+        vm.command.load(A_ScriptDir "\temp.xml")
+        Sleep, 1000
+    }
+
     Begin(){
         vm.command.reset()
         Sleep, 1000
@@ -28,6 +59,15 @@ class VMR_Test {
     }
     
     class Bus_Strip_Tests{
+        __New(){
+            vm.command.save(A_ScriptDir "\temp.xml")
+        }
+    
+        __Delete(){
+            vm.command.load(A_ScriptDir "\temp.xml")
+            Sleep, 1000
+        }
+        
         BusGain(){ ; test edge-case param
             vm.bus[1].gain:= 3.7
             Sleep, 200
@@ -50,12 +90,6 @@ class VMR_Test {
             vm.bus[1].mute:= 1
             Sleep, 200
             Yunit.Assert(1.0 = vm.bus[1].mute, "Setting/Getting float bus/strip params failed: mute = " vm.bus[1].mute)
-        }
-
-        BusFadeTo(){ ; test string params
-            vm.bus[1].FadeTo:= "(9.4, 100)"
-            Sleep, 300
-            Yunit.Assert(9.4 = vm.bus[1].gain, "Setting/Getting string bus/strip params failed: FadeTo = " vm.bus[1].gain)
         }
 
         StripLabel(){ ; test string params
