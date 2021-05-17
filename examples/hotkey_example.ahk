@@ -1,7 +1,6 @@
 #Include, ..\VMR.ahk
 
-voicemeeter := new VMR()
-voicemeeter.login()
+voicemeeter := new VMR().login()
 voicemeeter.bus[1].gain_limit:=0
 
 for i, bus in voicemeeter.bus {

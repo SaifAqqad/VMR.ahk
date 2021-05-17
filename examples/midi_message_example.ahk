@@ -1,8 +1,7 @@
 #Include, ..\VMR.ahk
 #Persistent
 
-global voicemeeter := new VMR()
-voicemeeter.login()
+global voicemeeter := new VMR().login()
 voicemeeter.onMidiMessage:= Func("writeMidi")
 return
 
