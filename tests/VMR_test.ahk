@@ -13,6 +13,7 @@ ExitApp
 class VBVMR_Test {
     __New(){
         vm := (new VMR(A_Args[1])).login()
+        FileAppend, % "VBVMR_Login: " VBVMR.FUNC_ADDR.Login "`n", *
         VBVMR.SetParameterString("command","Save", A_ScriptDir "\temp.xml")
     }
 
