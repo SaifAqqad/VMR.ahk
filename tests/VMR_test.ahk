@@ -1,5 +1,5 @@
 #Persistent
-#Include ..\VMR.ahk
+#Include %A_ScriptDir%\..\VMR.ahk
 #Include <Yunit\Yunit>
 #Include <Yunit\Stdout>
 

@@ -1,4 +1,4 @@
-#Include, ..\VMR.ahk
+#Include, %A_ScriptDir%\..\VMR.ahk
 
 voicemeeter := new VMR().login()
 voicemeeter.bus[1].gain_limit:=0
