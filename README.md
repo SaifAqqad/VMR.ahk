@@ -9,7 +9,7 @@ VMR.ahk
 To use `VMR.ahk` in your script, follow these steps:
 1.  Include it using `#Include VMR.ahk` or copy it to a [library folder](https://www.autohotkey.com/docs/Functions.htm#lib) and use `#Include <VMR>`
 
-2.  create an object of the VMR class and login like so:
+2.  Create an instance of the VMR class and log in to the API:
     ```ahk
         voicemeeter:= new VMR().login()
     ```
