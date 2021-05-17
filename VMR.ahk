@@ -153,10 +153,12 @@ class VMR{
             }
         } catch e {
             if(!ignore_msg){
-                MsgBox, 52, VMR.ahk, An error occurred during synchronization: %e%`nAttempt to restart VoiceMeeter?
+                MsgBox, 52, VMR.ahk, An error occurred during synchronization: %e%`nAttempt to restart VoiceMeeter?, 10
                 IfMsgBox Yes
                     this.runVoicemeeter(VBVMR.VM_TYPE)
                 IfMsgBox, No
+                    ignore_msg:=1
+                IfMsgBox, Timeout
                     ignore_msg:=1
                 sleep, 1000
             }
