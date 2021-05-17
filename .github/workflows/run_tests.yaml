@@ -22,7 +22,7 @@ jobs:
           scoop install utils/autohotkey;
           echo "Running AHK"
           cd .\tests\
-          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe '.\tests\VMR_test.ahk' | more";
+          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe '.\VMR_test.ahk' | more";
           If ($err -Match "fail"){
             throw "Some tests failed: `n$err"
           }else{
