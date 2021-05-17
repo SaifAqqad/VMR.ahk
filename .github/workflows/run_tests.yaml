@@ -1,0 +1,29 @@
+name: run_tests
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  VMR_test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: submodules-init
+        uses: snickerbockers/submodules-init@v4
+      - name: Run VMR_test
+        id: run_VMR_test
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy RemoteSigned -scope CurrentUser -Force;
+          Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+          scoop bucket add utils https://github.com/SaifAqqad/utils.git;
+          choco install voicemeeter-banana.install
+          scoop install utils/autohotkey;
+          echo "Running AHK"
+          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe '.\tests\VMR_test.ahk' | more";
+          If ($err -Match "fail"){
+            throw "Some tests failed: `n$err"
+          }else{
+            echo "All tests succeeded: `n$err"
+          }
