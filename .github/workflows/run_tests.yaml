@@ -15,16 +15,32 @@ jobs:
         id: run_VMR_test
         shell: pwsh
         run: |
+          echo "Installing scoop"
           Set-ExecutionPolicy RemoteSigned -scope CurrentUser -Force;
           Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
           scoop bucket add utils https://github.com/SaifAqqad/utils.git;
-          choco install voicemeeter-banana.install
-          scoop install utils/autohotkey;
+
+          echo "Installing Autohotkey"
+          scoop install utils/autohotkey sudo;
+
+          echo "Installing Voicemeeter"
+          scoop install utils/voicemeeter_banana
+          
+          echo "Running voicemeeter"
+          voicemeeterpro.ps1
+          Start-Sleep -Seconds 6
+
           echo "Running AHK"
           cd .\tests\
-          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe '.\tests\VMR_test.ahk' | more";
-          If ($err -Match "fail"){
-            throw "Some tests failed: `n$err"
-          }else{
-            echo "All tests succeeded: `n$err"
-          }
+          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe /ErrorStdOut /f '.\VBVMR_test.ahk' '$(scoop prefix voicemeeter_banana)'";
+          Wait-Process -Name "AutoHotkeyU64" -Timeout 30;
+          if (!(Test-Path "VBVMR_test.xml")) {throw 'VBVMR test failed';}
+          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe /ErrorStdOut /f '.\VMR_test.ahk' '$(scoop prefix voicemeeter_banana)'";
+          Wait-Process -Name "AutoHotkeyU64" -Timeout 30;
+          if (!(Test-Path "VMR_test.xml")) {throw 'VMR test failed';}
+      - uses: dorny/test-reporter@v1
+        name: Test Report
+        with:
+          name: 'Tests'
+          path: './tests/*_test.xml'
+          reporter: 'java-junit'
