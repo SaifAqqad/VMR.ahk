@@ -28,6 +28,7 @@ jobs:
 
           echo "Installing Voicemeeter"
           sudo .\VoicemeeterSetup.exe -i -h
+          ls "$(${env:ProgramFiles(x86)})\VB\Voicemeeter"
 
           echo "Running AHK"
           cd .\tests\
