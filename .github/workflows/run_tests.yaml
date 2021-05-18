@@ -38,9 +38,9 @@ jobs:
           $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe /ErrorStdOut /f '.\VMR_test.ahk' '$(scoop prefix voicemeeter_banana)'";
           Wait-Process -Name "AutoHotkeyU64" -Timeout 30;
           if (!(Test-Path "VMR_test.xml")) {throw 'VMR test failed';}
-    - uses: dorny/test-reporter@v1
-      name: Test Report
-      with:
-        name: 'Tests'
-        path: './tests/*_test.xml'
-        reporter: 'java-junit'
+      - uses: dorny/test-reporter@v1
+        name: Test Report
+        with:
+          name: 'Tests'
+          path: './tests/*_test.xml'
+          reporter: 'java-junit'
