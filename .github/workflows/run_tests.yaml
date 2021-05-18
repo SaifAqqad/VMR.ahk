@@ -23,19 +23,18 @@ jobs:
           echo "Installing Autohotkey"
           scoop install utils/autohotkey sudo;
 
-          echo "Downloading Voicemeeter"
-          Invoke-WebRequest -Uri "https://download.vb-audio.com/Download_CABLE/VoicemeeterSetup.exe" -OutFile "VoicemeeterSetup.exe"
-
           echo "Installing Voicemeeter"
-          sudo .\VoicemeeterSetup.exe -i -h
-          ls "$(${env:ProgramFiles(x86)})\VB\Voicemeeter"
+          scoop install utils/voicemeeter_banana
+          
+          echo "Running voicemeeter"
+          voicemeeterpro.ps1
 
           echo "Running AHK"
           cd .\tests\
-          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe /ErrorStdOut /f '.\VBVMR_test.ahk' '$(${env:ProgramFiles(x86)})\VB\Voicemeeter'";
+          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe /ErrorStdOut /f '.\VBVMR_test.ahk' '$(scoop prefix voicemeeter_banana)'";
           Wait-Process -Name "AutoHotkeyU64" -Timeout 30;
           if (!(Test-Path "VBVMR_test.xml")) {throw 'VBVMR test failed';}
-          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe /ErrorStdOut /f '.\VMR_test.ahk' '$(${env:ProgramFiles(x86)})\VB\Voicemeeter'";
+          $err = Invoke-Expression "$(scoop prefix autohotkey)\AutoHotkeyU64.exe /ErrorStdOut /f '.\VMR_test.ahk' '$(scoop prefix voicemeeter_banana)'";
           Wait-Process -Name "AutoHotkeyU64" -Timeout 30;
           if (!(Test-Path "VMR_test.xml")) {throw 'VMR test failed';}
       - name: Publish Test Report
