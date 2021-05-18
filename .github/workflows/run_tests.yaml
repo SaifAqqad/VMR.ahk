@@ -28,6 +28,7 @@ jobs:
           
           echo "Running voicemeeter"
           voicemeeterpro.ps1
+          Start-Sleep -Seconds 6
 
           echo "Running AHK"
           cd .\tests\
