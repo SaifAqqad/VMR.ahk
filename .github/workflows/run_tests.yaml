@@ -1,6 +1,9 @@
-name: run_tests
+name: Tests
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
   workflow_dispatch:
@@ -41,6 +44,6 @@ jobs:
       - uses: dorny/test-reporter@v1
         name: Test Report
         with:
-          name: 'Tests'
+          name: 'Tests results'
           path: './tests/*_test.xml'
           reporter: 'java-junit'
