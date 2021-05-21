@@ -74,6 +74,14 @@ class VMR{
             VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
+    getBusDevices(){
+        return VMR.VM_BUS_STRIP.BusDevices
+    }
+
+    getStripDevices(){
+        return VMR.VM_BUS_STRIP.StripDevices
+    }
+
     exec(script){
         Try errLn:= VBVMR.SetParameters(script)
         if(errLn != 0)
