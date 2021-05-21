@@ -196,6 +196,8 @@ class VMR{
                     case "limit":
                         return Format("{:.1f}",this.setParameter(p_name, max(-40.0, min(p_value, 12.0))))
                     case "device":
+                        if(IsObject(p_value))
+                            return this.__setDevice(p_value)
                         driver:= p_sec_value? p_value : "wdm"
                         name:= p_sec_value? p_sec_value : p_value
                         return this.__setDevice(name,driver)
@@ -264,13 +266,13 @@ class VMR{
             return (VBVMR)[func](this.BUS_STRIP_ID, parameter)
         }
 
-        __setDevice(name,driver){
+        __setDevice(name,driver:="wdm"){
             if (!this.__isPhysical())
                 return -4
             if driver not in wdm,mme,ks,asio
                 return -5
-            deviceObj := this.__getDeviceObj(name,driver)
-            return this.setParameter("device." . deviceObj.Driver,deviceObj.Name)
+            deviceObj := IsObject(name)? name : this.__getDeviceObj(name,driver)
+            return this.setParameter("device." . deviceObj.driver,deviceObj.name)
         }
         
         __getDeviceObj(substring,driver:="wdm"){
