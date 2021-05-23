@@ -198,9 +198,11 @@ class VMR{
                     case "device":
                         if(IsObject(p_value))
                             return this.__setDevice(p_value)
+                        if(!p_value)
+                            return this.__setDevice({name:"",driver:"wdm"})
                         driver:= p_sec_value? p_value : "wdm"
                         name:= p_sec_value? p_sec_value : p_value
-                        return this.__setDevice(name,driver)
+                        return this.__setDevice(this.__getDeviceObj(name,driver))
                     case "mute":
                         if(p_value = -1)
                             p_value:= !this.mute
@@ -266,20 +268,20 @@ class VMR{
             return (VBVMR)[func](this.BUS_STRIP_ID, parameter)
         }
 
-        __setDevice(name,driver:="wdm"){
+        __setDevice(device){
             if (!this.__isPhysical())
                 return -4
-            if driver not in wdm,mme,ks,asio
+            if device.driver not in wdm,mme,ks,asio
                 return -5
-            deviceObj := IsObject(name)? name : this.__getDeviceObj(name,driver)
-            return this.setParameter("device." . deviceObj.driver,deviceObj.name)
+            return this.setParameter("device." . device.driver,device.name)
         }
         
-        __getDeviceObj(substring,driver:="wdm"){
+        __getDeviceObj(substring,driver){
             local devices:= VMR.VM_BUS_STRIP[this.BUS_STRIP_TYPE . "Devices"]
             for i in devices 
-                if (devices[i].driver = driver && InStr(devices[i].name, substring)>0)
+                if (devices[i].driver = driver && devices[i].name == substring)
                     return devices[i]
+            return {name:"",driver:"wdm"}
         }
 
         __updateLevel(){
