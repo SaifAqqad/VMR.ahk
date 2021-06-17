@@ -21,10 +21,10 @@ jobs:
           echo "Installing scoop"
           Set-ExecutionPolicy RemoteSigned -scope CurrentUser -Force;
           Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
-          scoop bucket add utils https://github.com/SaifAqqad/utils.git;
+          scoop bucket add extras;
 
           echo "Installing Autohotkey"
-          scoop install utils/autohotkey sudo;
+          scoop install extras/autohotkey sudo;
 
           echo "Installing Voicemeeter"
           scoop install utils/voicemeeter_banana
