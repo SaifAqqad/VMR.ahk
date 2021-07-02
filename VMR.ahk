@@ -1,6 +1,6 @@
 class VMR{
-    bus:=Array(), strip:=Array(), recorder, option, patch, fx
-    , onUpdateLevels, onUpdateParameters, onUpdateMacrobuttons, onMidiMessage
+    bus:="", strip:="", recorder:="", option:="", patch:="", fx:=""
+    onUpdateLevels:="", onUpdateParameters:="", onUpdateMacrobuttons:="", onMidiMessage:=""
     
     __New(p_path:=""){
         VBVMR.DLL_PATH :=  p_path? p_path : this.__getDLLPath()
@@ -98,17 +98,20 @@ class VMR{
     }
     
     __init_obj(){
-        this.recorder:= new this.recorder_base
         this.option:= new this.option_base
-        if(this.getType() >= 2)
-            this.patch:= new this.patch_base
         this.vban.init()
+        this.vban.stream.initiated:=1
+        if(this.getType() >= 2){
+            this.patch:= new this.patch_base
+            this.recorder:= new this.recorder_base
+        }
         if(this.getType() >= 3)
             this.fx := new this.fx_base
-        VMR.vban.stream.initiated:=1
     }
 
     __init_arrays(){
+        this.bus:= Array()
+        this.strip:= Array()
         loop % VBVMR.BUSCOUNT {
             this.bus.Push(new this.VM_BUS_STRIP("Bus"))
         }
