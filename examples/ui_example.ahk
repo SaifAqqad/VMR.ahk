@@ -35,16 +35,33 @@ showUI(){
         funcObj:= Func("updateParam").bind("mute", A_Index)
         GuiControl +g, % bus_%A_Index%_mute, % FuncObj
         
+        ;bus device
+        if(vm.bus[A_Index].__isPhysical()){ ; make sure the bus is a physical one (eg. 1-3 in banana)
+            yPos+= 30
+            Gui, Add, DropDownList, x%xPos% y%yPos% Hwndbus_%A_Index%_device
+            funcObj:= Func("updateParam").bind("device", A_Index)
+            GuiControl +g, % bus_%A_Index%_device, % FuncObj
+            refreshDevices(A_Index)
+        }
+
         xPos+=150
     }
     syncParameters() ; get initial values for gui controls
-    Gui, Show, H350,VoiceMeeter Remote UI
+    Gui, Show, H350, VoiceMeeter Remote UI
 }
 
 ; update vm bus parameters when they change on the AHK UI
 updateParam(param, index){
     GuiControlGet, val,,% bus_%index%_%param%
-    vm.bus[index][param]:= val
+    if(param == "device"){
+        RegExMatch(val, "iO)(?<driver>\w+): (?<name>.+)", match)
+        if(match)
+            vm.bus[index].device[match.driver]:= match.name
+        else
+            vm.bus[index].device:= ""
+    }else{
+        vm.bus[index][param]:= val
+    }
     SetTimer, syncParameters, -500 ; make sure params are in sync
 }
 
@@ -53,6 +70,8 @@ syncParameters(){
     Loop % vm.bus.Length() {
         GuiControl,, % bus_%A_Index%_gain, % vm.bus[A_Index].gain
         GuiControl,, % bus_%A_Index%_mute, % Format("{:i}", vm.bus[A_Index].mute) ; convert 0.0/1.0 to 0/1
+        if(vm.bus[A_Index].__isPhysical())
+            refreshDevices(A_Index)
     }
 }
 
@@ -63,6 +82,17 @@ syncLevel(){
     Loop % vm.bus.Length() {
         GuiControl,, % bus_%A_Index%_level, % Max(vm.bus[A_Index].level*) ; get peak level for the bus
     }
+}
+
+; clears the bus's drop-down and reinserts the devices
+refreshDevices(index){
+    elems:="| |" ; extra empty element for removing the device
+    preSelected:= vm.bus[index].device ; get the pre-selected device
+    for i, device in vm.getBusDevices() {
+        elems.= Format("{:U}: {}", device.driver, device.name)
+        elems.= device.name == preSelected? "||" : "|" 
+    }
+    GuiControl,, % bus_%index%_device, % elems
 }
 
 vmGuiClose(){
