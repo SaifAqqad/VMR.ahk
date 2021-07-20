@@ -6,7 +6,9 @@
 global vm, tester:= Yunit.Use(YunitJUnit)
 
 tester.Test(VMR_Test)
+FileDelete, VMR_test.xml
 FileMove, junit.xml, VMR_test.xml
+FileDelete, temp.xml
 sleep 2000
 ExitApp
 
@@ -54,9 +56,9 @@ class VMR_Test {
         }
 
         BusLimit(){ ; tests generic params
-            vm.bus[1].limit:= 5.4
+            vm.strip[1].limit:= 5.4
             Sleep, 200
-            Yunit.Assert(5.4 = vm.bus[1].limit, "Setting/Getting float bus/strip params failed: limit = " vm.bus[1].limit)
+            Yunit.Assert(5.4 = vm.strip[1].limit, "Setting/Getting float bus/strip params failed: limit = " vm.strip[1].limit)
         }
         
         BusMute(){ ; test edge-case param
@@ -72,10 +74,10 @@ class VMR_Test {
         }
 
         StripColor(){ ;test 2-d params
-            vm.Strip[1].color_x:= -0.2
-            vm.Strip[1].color_y:= 0.3
+            vm.Strip[1].Color_x:= -0.2
+            vm.Strip[1].Color_y:= 0.3
             Sleep, 200
-            Yunit.Assert(-0.2 = vm.bus[1].color_x && 0.3 = vm.Strip[1].color_y, "Setting/Getting string bus/strip params failed: color_x,color_y = " vm.Strip[1].color_x "," vm.Strip[1].color_y)
+            Yunit.Assert(-0.2 = vm.Strip[1].Color_x && 0.3 = vm.Strip[1].Color_y, "Setting/Getting string bus/strip params failed: color_x,color_y = " vm.Strip[1].color_x "," vm.Strip[1].color_y)
         }
     }
 }
