@@ -6,7 +6,7 @@ class VMR{
         VBVMR.DLL_PATH :=  p_path? p_path : this.__getDLLPath()
         VBVMR.DLL_FILE := A_PtrSize = 8 ? "VoicemeeterRemote64.dll" : "VoicemeeterRemote.dll"
         if(!FileExist(VBVMR.DLL_PATH . "\" . VBVMR.DLL_FILE))
-            Throw, Format("Voicemeeter is not installed in the path :`n{}", VBVMR.DLL_PATH)
+            Throw, Exception(Format("Voicemeeter is not installed in the path :`n{}", VBVMR.DLL_PATH))
         VBVMR.STR_TYPE := A_IsUnicode? "W" : "A"
         VBVMR.DLL := DllCall("LoadLibrary", "Str", VBVMR.DLL_PATH . "\" . VBVMR.DLL_FILE, "Ptr")
         VBVMR.__getAddresses()
@@ -62,7 +62,7 @@ class VMR{
             }
         }
         if(ErrorLevel)
-            Throw, "Could not run Voicemeeter"
+            Throw, Exception("Could not run Voicemeeter")
     }
 
     updateDevices(){
@@ -85,7 +85,7 @@ class VMR{
     exec(script){
         Try errLn:= VBVMR.SetParameters(script)
         if(errLn != 0)
-            Throw, "exec:`nScript error at line " . errLn
+            Throw, Exception("exec:`nScript error at line " . errLn)
         return errLn
     }
 
@@ -566,14 +566,14 @@ class VBVMR {
     Login(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Login)
         if(errLevel<0)
-            Throw, Format("`nVBVMR_Login returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_Login returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         return errLevel
     }
 
     Logout(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Logout)
         if(errLevel<0)
-            Throw, Format("`nVBVMR_Logout returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_Logout returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         return errLevel
     }
 
@@ -581,7 +581,7 @@ class VBVMR {
         this.IsParametersDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR.SetParameterFloat, "AStr" , p_prefix . "." . p_parameter , "Float" , p_value, "Int")
         if (errLevel<0)
-            Throw, Format("`nVBVMR_SetParameterFloat returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_SetParameterFloat returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         return p_value
     }
 
@@ -589,7 +589,7 @@ class VBVMR {
         this.IsParametersDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR["SetParameterString" . VBVMR.STR_TYPE], "AStr", p_prefix . "." . p_parameter , VBVMR.STR_TYPE . "Str" , p_value , "Int")
         if (errLevel<0)
-            Throw, Format("`nVBVMR_SetParameterString returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_SetParameterString returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         return p_value
     }
 
@@ -599,7 +599,7 @@ class VBVMR {
         VarSetCapacity(value, 4)
         errLevel := DllCall(VBVMR.FUNC_ADDR.GetParameterFloat, "AStr" , p_prefix . "." . p_parameter , "Ptr" , &value, "Int")
         if (errLevel<0)
-            Throw, Format("`nVBVMR_GetParameterFloat returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_GetParameterFloat returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         value := NumGet(&value, 0, "Float")
         return value
     }
@@ -610,7 +610,7 @@ class VBVMR {
         VarSetCapacity(value, A_IsUnicode? 1024 : 512)
         errLevel := DllCall(VBVMR.FUNC_ADDR["GetParameterString" . VBVMR.STR_TYPE], "AStr" , p_prefix . "." . p_parameter , "Ptr" , &value , "Int")
         if (errLevel<0)
-            Throw, Format("`nVBVMR_GetParameterString returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_GetParameterString returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         value := StrGet(&value,512)
         return value
     }
@@ -622,7 +622,7 @@ class VBVMR {
         errLevel := DllCall(VBVMR.FUNC_ADDR.GetLevel, "Int", p_type, "Int", p_channel, "Ptr", &level)
         if(errLevel<0){
             SetTimer,, Off
-            Throw, Format("`nVBVMR_GetLevel returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_GetLevel returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         }
         level := NumGet(&level, 0, "Float")
         return level
@@ -633,7 +633,7 @@ class VBVMR {
         VarSetCapacity(vtype, 4)
         errLevel := DllCall(VBVMR.FUNC_ADDR.GetVoicemeeterType, "Ptr", &vtype, "Int")
         if(errLevel<0)
-            Throw, Format("`nVBVMR_GetVoicemeeterType returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_GetVoicemeeterType returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         vtype:= NumGet(&vtype, 0, "Int")
         return vtype
     }
@@ -641,7 +641,7 @@ class VBVMR {
     Output_GetDeviceNumber(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Output_GetDeviceNumber,"Int") 
         if(errLevel<0)
-            Throw, Format("`nVBVMR_Output_GetDeviceNumber returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_Output_GetDeviceNumber returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         else
             return errLevel
     }
@@ -652,7 +652,7 @@ class VBVMR {
         VarSetCapacity(driver, 4)
         errLevel := DllCall(VBVMR.FUNC_ADDR["Output_GetDeviceDesc" . VBVMR.STR_TYPE], "Int", p_index, "Ptr" , &driver , "Ptr", &name, "Ptr", 0, "Int")
         if(errLevel<0)
-            Throw, Format("`nVBVMR_Output_GetDeviceDesc returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_Output_GetDeviceDesc returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         driver := NumGet(&driver, 0, "UInt")
         name := StrGet(&name,512)
         device.name := name
@@ -663,7 +663,7 @@ class VBVMR {
     Input_GetDeviceNumber(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.Input_GetDeviceNumber,"Int") 
         if(errLevel<0)
-            Throw, Format("`nVBVMR_Input_GetDeviceNumber returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_Input_GetDeviceNumber returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         else
             return errLevel
     }
@@ -674,7 +674,7 @@ class VBVMR {
         VarSetCapacity(driver, 4)
         errLevel := DllCall(VBVMR.FUNC_ADDR["Input_GetDeviceDesc" . VBVMR.STR_TYPE], "Int", p_index, "Ptr" , &driver , "Ptr", &name, "Ptr", 0, "Int")
         if(errLevel<0)
-            Throw, Format("`nVBVMR_Input_GetDeviceDesc returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_Input_GetDeviceDesc returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         driver := NumGet(&driver, 0, "UInt")
         name := StrGet(&name,512)
         device.name := name
@@ -685,7 +685,7 @@ class VBVMR {
     IsParametersDirty(){
         errLevel := DllCall(VBVMR.FUNC_ADDR.IsParametersDirty)
         if(errLevel<0)
-            Throw, Format("`nVBVMR_IsParametersDirty returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_IsParametersDirty returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         else
             return errLevel 
     }
@@ -733,7 +733,7 @@ class VBVMR {
         this.IsParametersDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR["SetParameters" . VBVMR.STR_TYPE], VBVMR.STR_TYPE . "Str" , script , "Int")
         if (errLevel<0)
-            Throw, Format("`nVBVMR_SetParameters returned {}`nDllCall returned {}", errLevel, ErrorLevel)
+            Throw, Exception(Format("`nVBVMR_SetParameters returned {}`nDllCall returned {}", errLevel, ErrorLevel))
         return errLevel
     }
 
