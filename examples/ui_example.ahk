@@ -36,7 +36,7 @@ showUI(){
         GuiControl +g, % bus_%A_Index%_mute, % FuncObj
         
         ;bus device
-        if(vm.bus[A_Index].__isPhysical()){ ; make sure the bus is a physical one (eg. 1-3 in banana)
+        if(vm.bus[A_Index].isPhysical()){ ; make sure the bus is a physical one (eg. 1-3 in banana)
             yPos+= 30
             Gui, Add, DropDownList, x%xPos% y%yPos% Hwndbus_%A_Index%_device
             funcObj:= Func("updateParam").bind("device", A_Index)

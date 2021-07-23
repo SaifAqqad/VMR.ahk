@@ -271,6 +271,21 @@ class VMR{
             return (VBVMR)[func](this.BUS_STRIP_ID, parameter)
         }
 
+        ; Returns 1 if the bus/strip is a physical one (Hardware bus/strip), 0 otherwise
+        isPhysical(){
+            Switch VBVMR.VM_TYPE {
+                case 1:
+                    if(this.BUS_STRIP_TYPE = "Strip")
+                        return this.BUS_STRIP_INDEX < 2
+                    else
+                        return 1
+                case 2:
+                        return this.BUS_STRIP_INDEX < 3
+                case 3:
+                        return this.BUS_STRIP_INDEX < 5
+            }
+        }
+
         __setDevice(device){
             if (!this.__isPhysical())
                 return -4
@@ -292,20 +307,6 @@ class VMR{
             loop % this.LEVEL_INDEX.Length() {
                 level := VBVMR.GetLevel(type, this.LEVEL_INDEX[A_Index])
                 this.level[A_Index] := Max(Round(20 * Log(level)), -999)
-            }
-        }
-
-        __isPhysical(){
-            Switch VBVMR.VM_TYPE {
-                case 1:
-                    if(this.BUS_STRIP_TYPE = "Strip")
-                        return this.BUS_STRIP_INDEX < 2
-                    else
-                        return 1
-                case 2:
-                        return this.BUS_STRIP_INDEX < 3
-                case 3:
-                        return this.BUS_STRIP_INDEX < 5
             }
         }
     }
