@@ -1,99 +1,51 @@
----
-layout: default
-title: Command
-parent: VMR Class
-nav_order: 5
----
-# `command`
+## `command` <!-- {docsify-ignore-all} -->
 
 Use this object to access command methods.
 
----
+### Methods
 
-## Methods
-
-## `restart()`
-Restarts VoiceMeeter's audio engine
-
-```lua
-    voicemeeter.command.restart()
+* #### `restart()`
+Restarts Voicemeeter's audio engine
+* #### `shutdown()`
+Closes Voicemeeter completely
+* #### `show([state])`
+Shows/Hides Voicemeeter's window
+```autohotkey
+    voicemeeter.command.show(false) ; hides the window
 ```
-
-## `shutdown()`
-Closes VoiceMeeter completely
-
-```lua
-    voicemeeter.command.shutdown()
-```
-
-## `show()`
-Shows VoiceMeeter's window
-
-```lua
-    voicemeeter.command.show()
-```
-
-## `eject()`
+* #### `eject()`
 Ejects the recorder's cassette (releases the audio file)
-
-```lua
-    voicemeeter.command.eject()
-```
-
-## `reset()`
+* #### `reset()`
 Resets All configuration
-
-```lua
-    voicemeeter.command.reset()
+* #### `save([filePath])`
+Saves Voicemeeter's configuration to a file
+```autohotkey
+    voicemeeter.command.save("VMconfig.xml") ; saves the file in the user's documents folder
 ```
-
-## `save([filePath])`
-Saves VoiceMeeter's configuration to a file
-
-`filePath` : Name of the file to save the configuration to, if the path is not specified, the file will be saved in the `Documents` folder
-
-```lua
-    voicemeeter.command.save("VMconfig.xml")
-```
-
-## `load([filePath])`
-Loads VoiceMeeter's configuration from a file
-
-`filePath` : Name of the file to load the configuration from, if the path is not specified, the file is assumed to be in the `Documents` folder
-
-```lua
+* #### `load([filePath])`
+Loads Voicemeeter's configuration from a file
+```autohotkey
     voicemeeter.command.load("C:\config\voicemeeter.xml")
 ```
-
-## `showVBANChat([state])`
+* #### `showVBANChat([state])`
 Shows/hides the VBAN-Chat Dialog
-
-```lua
-    voicemeeter.command.showVBANChat(false)
+```autohotkey
+    voicemeeter.command.showVBANChat(true)
 ```
-
-## `state(buttonIndex, [state])`
-Changes the actual state of a macro button, pass `-1` to the `state` parameter to invert it
-
-If `state` is not passed, the current state for the button is returned
-```lua
-    voicemeeter.command.state(1,-1)
-    button_state:= voicemeeter.command.state(3)
+* #### `state(buttonIndex, [state])`
+Changes the actual state of a macro button. If `state` is not passed, the current state for the button is returned
+```autohotkey
+    voicemeeter.command.state(1,-1) ; passing -1 will toggle it
+    button_state := voicemeeter.command.state(3)
 ```
-
-## `stateOnly(buttonIndex, [state])`
-Changes the visual state of a macro button, pass `-1` to the `state` parameter to invert it
-
-If `state` is not passed, the current visual state for the button is returned
-```lua
+* #### `stateOnly(buttonIndex, [state])`
+Changes the visual state of a macro button, If `state` is not passed, the current visual state for the button is returned
+```autohotkey
     voicemeeter.command.stateOnly(2,0)
-    ;--> releases the key but does not run the release code programmed into the macrobutton.
+    ; releases the key visually but does not run the code programmed into the macrobutton.
 ```
-
-## `trigger(buttonIndex, [state])`
-Changes a button's trigger state, pass `-1` to the `state` parameter to invert it
-
-If `state` is not passed, the current state for the button's trigger is returned
-```lua
-    voicemeeter.command.trigger(3,-1)
+* #### `trigger(buttonIndex, [state])`
+Changes a button's trigger state, If `state` is not passed, the current state for the button's trigger is returned
+```autohotkey
+    voicemeeter.command.trigger(3,-1) ; passing -1 will toggle it
 ```

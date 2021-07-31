@@ -1,40 +1,30 @@
----
-layout: default
-title: Option
-parent: VMR Class
-nav_order: 6
----
-# `option`
+## `option` <!-- {docsify-ignore-all} -->
 
 Use this object to access/modify option parameters.
 
----
-for a list of all `option` parameters, check out [VBVMR docs](http://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=14)
-{: .fs-3 }
+### Methods
 
-## Set any parameter
-
-```lua
-    voicemeeter.option.sr:= 44.1
-    voicemeeter.option["buffer.wdm"]:= 1024
-```
-
-## Retrieve any parameter
-```lua
-    is_exclusif:= voicemeeter.option["mode.exclusif"]
-```
+* #### `delay(busIndex, [delay])`
+Set the bus output delay. If `delay` is not passed, it will return the current delay for that bus
 
 ---
 
-## Methods
+### Parameters
+for an up-to-date list of all `option` parameters, check out [VBVMR docs](https://download.vb-audio.com/Download_CABLE/VoicemeeterRemoteAPI.pdf#page=14)
 
-## `delay(busIndex, [delay])`
-Changes the bus's output delay
+---
 
-```lua
+### Examples
+#### Set any parameter
+
+```autohotkey
+    voicemeeter.option.sr := 44.1
+    voicemeeter.option["buffer.wdm"] := 1024
     voicemeeter.option.delay(2,200)
 ```
-If `delay` is not passed, it will return the current delay  for that bus
-```lua
-    delay:= voicemeeter.option.delay(1)
+#### Retrieve any parameter
+```autohotkey
+    is_exclusif := voicemeeter.option["mode.exclusif"]
+    delay := voicemeeter.option.delay(1)
 ```
+

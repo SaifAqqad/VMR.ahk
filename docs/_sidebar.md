@@ -1,0 +1,8 @@
+* [Getting started](/ 'VMR.ahk Docs')
+* [VMR Class](/VMR-Class/ 'VMR Class')
+    - [Bus/Strip](/VMR-Class/bus-strip-object.md 'Bus/Strip object')
+    - [Recorder](/VMR-Class/recorder-object.md 'Recorder object')
+    - [VBAN](/VMR-Class/vban-object.md 'VBAN object')
+    - [Option](/VMR-Class/option-object.md 'Option object')
+    - [command](/VMR-Class/command-object.md 'Command object')
+    - [MacroButton](/VMR-Class/macrobutton-object.md 'MacroButton object')
