@@ -15,6 +15,7 @@ class VMR{
     login(){
         if(VBVMR.Login()){
             this.runVoicemeeter()
+            WinWait, ahk_class VBCABLE0Voicemeeter0MainWindow0
             sleep, 2000
         }
         OnExit(ObjBindMethod(VBVMR, "Logout"))
@@ -53,10 +54,10 @@ class VMR{
 
     runVoicemeeter(p_type := ""){
         if(p_type){
-            Run, % VBVMR.DLL_PATH . this.__getTypeExecutable(p_type) , % VBVMR.DLL_PATH, UseErrorLevel Hide
+            Run, % VBVMR.DLL_PATH "\" this.__getTypeExecutable(p_type) , % VBVMR.DLL_PATH, UseErrorLevel Hide
         }else{
             loop 3 {
-                Run, % VBVMR.DLL_PATH . this.__getTypeExecutable(4-A_Index) , % VBVMR.DLL_PATH, UseErrorLevel Hide
+                Run, % VBVMR.DLL_PATH "\" this.__getTypeExecutable(4-A_Index) , % VBVMR.DLL_PATH, UseErrorLevel Hide
                 if(!ErrorLevel)
                     return
             }
