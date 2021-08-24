@@ -335,6 +335,7 @@ class VMR{
         }
     }
 
+    ; These are read-only commands
     class command {
 
         restart(){
@@ -369,34 +370,16 @@ class VMR{
             return VBVMR.SetParameterFloat("Command","dialogshow.VBANCHAT",show)
         }
 
-        state(buttonNum, newPos := -2) {
-            switch (newPos){
-                case -2: ;getParam
-                    return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
-                case -1: ;invert state
-                    newPos := !VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "state")
-            }
-            return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "state", newPos)
+        state(buttonNum, newState) {
+            return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "State", newState)
         }
 
-        stateOnly(buttonNum, newPos := -2) {
-            switch (newPos){
-                case -2: ;getParam
-                    return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly")
-                case -1: ;invert state
-                    newPos := !VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly")
-            }
-            return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly", newPos)
+        stateOnly(buttonNum, newState) {
+            return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "stateOnly", newState)
         }
 
-        trigger(buttonNum, newPos := -2) {
-            switch (newPos){
-                case -2: ;getParam
-                    return VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
-                case -1: ;invert state
-                    newPos := !VBVMR.GetParameterFloat("Command.Button[" . buttonNum . "]", "trigger")
-            }
-            return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newPos)
+        trigger(buttonNum, newState) {
+            return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newState)
         }
     }
 
@@ -445,13 +428,13 @@ class VMR{
     }
 
     class macroButton {
-        
-        setStatus(nuLogicalButton, fValue, bitMode := 1){
-            return VBVMR.MacroButton_SetStatus(nuLogicalButton, fValue, bitMode)
+
+        setStatus(buttonIndex, newStatus, bitmode:=0) {
+            return VBVMR.MacroButton_SetStatus(buttonIndex, newStatus, bitmode)
         }
         
-        getStatus(nuLogicalButton, bitMode := 1){
-            return VBVMR.MacroButton_GetStatus(nuLogicalButton, bitMode)
+        getStatus(buttonIndex, bitmode:=0){
+            return VBVMR.MacroButton_GetStatus(buttonIndex, bitmode)
         }
         
     }
@@ -692,23 +675,23 @@ class VBVMR {
             return errLevel 
     }
 
-    MacroButton_GetStatus(nuLogicalButton, bitMode := 0){
+    MacroButton_GetStatus(nuLogicalButton, bitMode){
         local pValue
         this.IsMacroButtonsDirty()
         VarSetCapacity(pValue, 4)
         errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_GetStatus, "Int" , nuLogicalButton , "Ptr", &pValue, "Int", bitMode, "Int")
         if (errLevel<0)
-            Throw, Exception("VBVMR_MacroButton_GetStatus returned " . errLevel . "`n DLLCALL returned " . ErrorLevel, -1)
-        pValue := NumGet(&pValue, 0, "Int")
-        return [pValue, bitMode]
+            Throw, Exception("VBVMR_MacroButton_GetStatus returned " . errLevel . "`n DllCall returned " . ErrorLevel, -1)
+        pValue := NumGet(&pValue, 0, "Float")
+        return pValue
     }
     
-    MacroButton_SetStatus(nuLogicalButton, fValue := 0, bitMode := 1){
+    MacroButton_SetStatus(nuLogicalButton, fValue, bitMode){
         this.IsMacroButtonsDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_SetStatus, "Int" ,  nuLogicalButton , "Float" , fValue, "Int", bitMode, "Int")
         if (errLevel<0)
             Throw, Exception("VBVMR_MacroButton_SetStatus returned " . errLevel, -1)
-        return [fValue, bitMode]
+        return fValue
     }
     
     MacroButton_IsDirty(){
