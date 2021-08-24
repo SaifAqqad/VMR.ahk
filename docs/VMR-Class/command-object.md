@@ -32,20 +32,19 @@ Shows/hides the VBAN-Chat Dialog
 ```autohotkey
     voicemeeter.command.showVBANChat(true)
 ```
-* #### `state(buttonIndex, [state])`
-Changes the actual state of a macro button. If `state` is not passed, the current state for the button is returned
+* #### `state(buttonIndex, state)`
+Changes the actual state of a macro button. `buttonIndex` is zero-based.
 ```autohotkey
-    voicemeeter.command.state(1,-1) ; passing -1 will toggle it
-    button_state := voicemeeter.command.state(3)
+    voicemeeter.command.state(0,1) ; sets the state of the first macro button to 1
 ```
-* #### `stateOnly(buttonIndex, [state])`
-Changes the visual state of a macro button, If `state` is not passed, the current visual state for the button is returned
+* #### `stateOnly(buttonIndex, state)`
+Changes the visual state of a macro button.
 ```autohotkey
     voicemeeter.command.stateOnly(2,0)
     ; releases the key visually but does not run the code programmed into the macrobutton.
 ```
-* #### `trigger(buttonIndex, [state])`
-Changes a button's trigger state, If `state` is not passed, the current state for the button's trigger is returned
+* #### `trigger(buttonIndex, state)`
+Changes a button's trigger state.
 ```autohotkey
-    voicemeeter.command.trigger(3,-1) ; passing -1 will toggle it
+    voicemeeter.command.trigger(3,1)
 ```
