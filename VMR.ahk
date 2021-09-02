@@ -288,7 +288,7 @@ class VMR{
         }
 
         __setDevice(device){
-            if (!this.__isPhysical())
+            if (!this.isPhysical())
                 return -4
             if device.driver not in wdm,mme,ks,asio
                 return -5
