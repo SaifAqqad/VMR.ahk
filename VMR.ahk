@@ -298,7 +298,7 @@ class VMR{
         __getDeviceObj(substring,driver){
             local devices:= VMR.VM_BUS_STRIP[this.BUS_STRIP_TYPE . "Devices"]
             for i in devices 
-                if (devices[i].driver = driver && devices[i].name == substring)
+                if (devices[i].driver = driver && InStr(devices[i].name, substring))
                     return devices[i]
             return {name:"",driver:"wdm"}
         }
