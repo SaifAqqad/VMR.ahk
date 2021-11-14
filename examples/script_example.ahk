@@ -4,7 +4,6 @@
 global voicemeeter := (new VMR).login()
 AhkScript()
 ;VoiceMeeterScript()
-sleep 100 ; delay exit to allow the script to execute
 ExitApp
 
 AhkScript(){
