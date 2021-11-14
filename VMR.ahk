@@ -18,12 +18,13 @@ class VMR{
             WinWait, ahk_class VBCABLE0Voicemeeter0MainWindow0
             sleep, 2000
         }
-        OnExit(ObjBindMethod(VBVMR, "Logout"))
+        OnExit(ObjBindMethod(this, "__onExit"))
         syncWithDLL := ObjBindMethod(this, "__syncWithDLL")
         SetTimer, %syncWithDLL%, 20, 1
         this.getType()
         this.__init_arrays()
         this.__init_obj()
+        this.__syncWithDLL()
         return this
     }
     
@@ -170,6 +171,7 @@ class VMR{
             if(IsFunc(this.onMidiMessage) && midiMessages:= VBVMR.GetMidiMessage()){
                 this.onMidiMessage.Call(midiMessages)
             }
+            return isParametersDirty || isMacroButtonsDirty || midiMessages
         } catch e {
             if(!ignore_msg){
                 MsgBox, 52, VMR.ahk, % Format("An error occurred during synchronization: {}`nAttempt to restart VoiceMeeter?", e.Message), 10
@@ -184,7 +186,11 @@ class VMR{
         }
     }
 
-    __Delete(){
+    __onExit(){
+        syncCounter:=0
+        while(this.__syncWithDLL() || syncCounter++ < 4){ 
+        }
+        VBVMR.Logout()
         DllCall("FreeLibrary", "Ptr", VBVMR.DLL)
     }
     
@@ -350,6 +356,10 @@ class VMR{
             return VBVMR.SetParameterFloat("Command","Show",open)
         }
 
+        lock(state := 1){
+            return VBVMR.SetParameterFloat("Command","Lock",state)
+        }
+
         eject(){
             return VBVMR.SetParameterFloat("Command","Eject",1)
         }
@@ -380,6 +390,14 @@ class VMR{
 
         trigger(buttonNum, newState) {
             return VBVMR.SetParameterFloat("Command.Button[" . buttonNum . "]", "trigger", newState)
+        }
+
+        saveBusEQ(busIndex, filePath) {
+            return VBVMR.SetParameterFloat("Command","SaveBUSEQ[" busIndex "]", filePath)
+        }
+
+        loadBusEQ(busIndex, filePath) {
+            return VBVMR.SetParameterFloat("Command","LoadBUSEQ[" busIndex "]", filePath)
         }
     }
 
