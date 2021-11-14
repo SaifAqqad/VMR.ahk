@@ -13,6 +13,11 @@ Shows/Hides Voicemeeter's window
 ```autohotkey
     voicemeeter.command.show(false) ; hides the window
 ```
+* #### `lock([state])`
+Locks/Unlocks Voicemeeter's window
+```autohotkey
+    voicemeeter.command.lock(true) ; locks the window
+```
 * #### `eject()`
 Ejects the recorder's cassette (releases the audio file)
 * #### `reset()`
@@ -47,4 +52,14 @@ Changes the visual state of a macro button.
 Changes a button's trigger state.
 ```autohotkey
     voicemeeter.command.trigger(3,1)
+```
+* #### `saveBusEQ(busIndex, filePath)`
+Saves the bus EQ settings to a file. `busIndex` is zero-based.
+```autohotkey
+    voicemeeter.command.saveBusEQ(0,"C:\config\bus0_eq.xml")
+```
+* #### `loadBusEQ(busIndex, filePath)`
+Loads the bus EQ settings from a file.
+```autohotkey
+    voicemeeter.command.loadBusEQ(2,"C:\config\bus2_eq.xml")
 ```
