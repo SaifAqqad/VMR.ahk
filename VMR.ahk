@@ -240,7 +240,7 @@ class VMR{
             this.gain_limit:= 12.0
             if (p_type="Strip") {
                 this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.STRIP_COUNT++
-                loop % this.__isPhysical() ? 2 : 8 
+                loop % this.isPhysical() ? 2 : 8 
                     this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.STRIP_LEVEL_COUNT++)
             }else{
                 this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.BUS_COUNT++
