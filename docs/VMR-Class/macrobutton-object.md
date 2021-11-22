@@ -3,6 +3,20 @@
 Use this object to access/modify macro buttons status.
 
 ### Methods
+* #### `show([state])`
+  Shows/Hides the MacroButtons app window
+  ```autohotkey
+    voicemeeter.macroButton.show(1)
+
+    voicemeeter.macroButton.show(0)
+  ```
+
+* #### `run()`
+  Runs the MacroButtons app
+  ```autohotkey
+    voicemeeter.macroButton.run()
+  ```
+
 * #### `setStatus(buttonIndex, newStatus [, bitmode])`
   Set the status of a macro button. 
 
