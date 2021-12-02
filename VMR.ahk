@@ -510,14 +510,14 @@ class VMR{
         
         __Set(p_name,p_value){
             local type:= "Float"
-            if p_name contains goto,load
+            if p_name contains load
                 type:= "String"
             return (VBVMR)["SetParameter" type]("Recorder", p_name, p_value)
         }
 
         __Get(p_name){
             local type:= "Float"
-            if p_name contains goto,load
+            if p_name contains load
                 type:= "String"
             return (VBVMR)["GetParameter" type]("Recorder", p_name)
         }
