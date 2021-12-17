@@ -25,7 +25,7 @@ for an up-to-date list of all `recorder` parameters, check out [VBVMR docs](http
 
 ```autohotkey
     voicemeeter.recorder.record := true
-    voicemeeter.recorder.goto := "00:04:23"
+    voicemeeter.recorder.goto := 90 ; go to 00:01:30
 
     ; if no path is specified, the file is assumed to be in the Documents folder
     voicemeeter.recorder.load := "C:\audio\audioFile.mp3"
