@@ -20,7 +20,8 @@ jobs:
         run: |
           echo "Installing scoop"
           Set-ExecutionPolicy RemoteSigned -scope CurrentUser -Force;
-          Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+          iwr -useb get.scoop.sh -outfile 'install.ps1'
+          .\install.ps1 -RunAsAdmin
           scoop bucket add extras;
           scoop bucket add utils https://github.com/SaifAqqad/utils.git;
 
