@@ -153,22 +153,22 @@ class VMR{
             ignore_msg:=0
 
             ;level callback
-            if(IsFunc(this.onUpdateLevels)){
+            if(this.onUpdateLevels){
                 this.onUpdateLevels.Call()
             }
 
             ;parameter callback
-            if(isParametersDirty && IsFunc(this.onUpdateParameters)){
+            if(isParametersDirty && this.onUpdateParameters){
                 this.onUpdateParameters.Call()
             }
 
             ;macrobutton callback
-            if(isMacroButtonsDirty && IsFunc(this.onUpdateMacrobuttons)){
+            if(isMacroButtonsDirty && this.onUpdateMacrobuttons){
                 this.onUpdateMacrobuttons.Call()
             }
 
             ;midi callback
-            if(IsFunc(this.onMidiMessage) && midiMessages:= VBVMR.GetMidiMessage()){
+            if(this.onMidiMessage && midiMessages:= VBVMR.GetMidiMessage()){
                 this.onMidiMessage.Call(midiMessages)
             }
             return isParametersDirty || isMacroButtonsDirty || midiMessages
