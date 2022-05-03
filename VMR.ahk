@@ -199,7 +199,60 @@ class VMR{
     
     class VM_BUS_STRIP {
         static BUS_COUNT:=0, BUS_LEVEL_COUNT:=0, BusDevices:=Array(), STRIP_COUNT:=0, STRIP_LEVEL_COUNT:=0, StripDevices:=Array(), initiated
-        BUS_STRIP_TYPE:=, BUS_STRIP_INDEX:=, BUS_STRIP_ID, LEVEL_INDEX, level, gain_limit
+        static BUS_STRIP_NAMES:=
+        ( Join LTrim ; ahk
+            {
+                1: {
+                    "Bus": [
+                        "A",
+                        "B"
+                    ],
+                    "Strip": [
+                        "Input #1",
+                        "Input #2",
+                        "Virtual Input #1"
+                    ]
+                },
+                2: {
+                    "Bus": [
+                        "A1",
+                        "A2",
+                        "A3",
+                        "B1",
+                        "B2"
+                    ],
+                    "Strip": [
+                        "Input #1",
+                        "Input #2",
+                        "Input #3",
+                        "Virtual Input #1",
+                        "Virtual Input #2"
+                    ]
+                },
+                3: {
+                    "Bus": [
+                        "A1",
+                        "A2",
+                        "A3",
+                        "A4",
+                        "A5",
+                        "B1",
+                        "B2",
+                        "B3"
+                    ],
+                    "Strip": [
+                        "Input #1",
+                        "Input #2",
+                        "Input #3",
+                        "Input #4",
+                        "Input #5",
+                        "Virtual Input #1",
+                        "Virtual Input #2",
+                        "Virtual Input #3"
+                    ]
+                }
+            }
+        )
         
         __Set(p_name, p_value, p_sec_value:=""){
             if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
@@ -251,6 +304,7 @@ class VMR{
                     this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.BUS_LEVEL_COUNT++)
             }
             this.BUS_STRIP_ID := this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]"
+            this.name := VMR.VM_BUS_STRIP.BUS_STRIP_NAMES[VBVMR.VM_TYPE][this.BUS_STRIP_TYPE][this.BUS_STRIP_INDEX+1]
         }
 
         getGainPercentage(){

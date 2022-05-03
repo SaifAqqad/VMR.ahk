@@ -8,7 +8,8 @@ Use this object to access or modify bus/strip parameters.
      The maximum gain (in dB) that can be applied to a bus/strip, Increamenting the gain above this value will reapply the limit
 * #### `level` array
      Contains the current level (in dB) for every channel a bus/strip has, physical (hardware) strips have 2 channels (left, right), Buses and virtual strips have 8 channels
-
+* #### `name`
+     The name of the bus/strip (e.g. `A1`, `B1`, `Virtual Input #1`)
 
 ---
 ### Methods
