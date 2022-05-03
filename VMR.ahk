@@ -20,7 +20,7 @@ class VMR{
         }
         OnExit(ObjBindMethod(this, "__onExit"))
         syncWithDLL := ObjBindMethod(this, "__syncWithDLL")
-        SetTimer, %syncWithDLL%, 20, 1
+        SetTimer, %syncWithDLL%, 20
         this.getType()
         this.__init_arrays()
         this.__init_obj()
@@ -190,9 +190,9 @@ class VMR{
     }
 
     __onExit(){
-        syncCounter:=0
-        while(this.__syncWithDLL() || syncCounter++ < 4){ 
+        while(this.__syncWithDLL()){ 
         }
+        Sleep, 100 ; to make sure all commands are executed before exiting
         VBVMR.Logout()
         DllCall("FreeLibrary", "Ptr", VBVMR.DLL)
     }
@@ -331,7 +331,6 @@ class VMR{
                 func:= "getParameterString"
             else
                 func:= "getParameterFloat"
-            VBVMR.IsParametersDirty()
             return (VBVMR)[func](this.BUS_STRIP_ID, parameter)
         }
 
@@ -459,7 +458,7 @@ class VMR{
     }
 
     class vban {
-        static instream:=,outstream:=
+        static instream,outstream
 
         enable{
             set{
@@ -611,7 +610,7 @@ class VMR{
 }
 
 class VBVMR {
-    static DLL, DLL_PATH:=, DLL_FILE:=, VM_TYPE:=, BUSCOUNT:=, STRIPCOUNT:=, STR_TYPE:=, VBANINCOUNT:=, VBANOUTCOUNT:=
+    static DLL, DLL_PATH, DLL_FILE, VM_TYPE, BUSCOUNT, STRIPCOUNT, STR_TYPE, VBANINCOUNT, VBANOUTCOUNT
     static FUNC_ADDR:={ Login:0
         ,Logout:0
         ,SetParameterFloat:0
@@ -651,7 +650,6 @@ class VBVMR {
     }
 
     SetParameterFloat(p_prefix, p_parameter, p_value){
-        this.IsParametersDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR.SetParameterFloat, "AStr" , p_prefix . "." . p_parameter , "Float" , p_value, "Int")
         if (errLevel<0)
             Throw, Exception(Format("`nVBVMR_SetParameterFloat returned {}`nDllCall returned {}", errLevel, ErrorLevel))
@@ -659,7 +657,6 @@ class VBVMR {
     }
 
     SetParameterString(p_prefix, p_parameter, p_value){
-        this.IsParametersDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR["SetParameterString" . VBVMR.STR_TYPE], "AStr", p_prefix . "." . p_parameter , VBVMR.STR_TYPE . "Str" , p_value , "Int")
         if (errLevel<0)
             Throw, Exception(Format("`nVBVMR_SetParameterString returned {}`nDllCall returned {}", errLevel, ErrorLevel))
@@ -668,7 +665,6 @@ class VBVMR {
 
     GetParameterFloat(p_prefix, p_parameter){
         local value
-        this.IsParametersDirty()
         VarSetCapacity(value, 4)
         errLevel := DllCall(VBVMR.FUNC_ADDR.GetParameterFloat, "AStr" , p_prefix . "." . p_parameter , "Ptr" , &value, "Int")
         if (errLevel<0)
@@ -679,7 +675,6 @@ class VBVMR {
 
     GetParameterString(p_prefix, p_parameter){
         local value
-        this.IsParametersDirty()
         VarSetCapacity(value, A_IsUnicode? 1024 : 512)
         errLevel := DllCall(VBVMR.FUNC_ADDR["GetParameterString" . VBVMR.STR_TYPE], "AStr" , p_prefix . "." . p_parameter , "Ptr" , &value , "Int")
         if (errLevel<0)
@@ -690,7 +685,6 @@ class VBVMR {
 
     GetLevel(p_type, p_channel){
         local level
-        this.IsParametersDirty()
         VarSetCapacity(level,4)
         errLevel := DllCall(VBVMR.FUNC_ADDR.GetLevel, "Int", p_type, "Int", p_channel, "Ptr", &level)
         if(errLevel<0){
@@ -765,7 +759,6 @@ class VBVMR {
 
     MacroButton_GetStatus(nuLogicalButton, bitMode){
         local pValue
-        this.IsMacroButtonsDirty()
         VarSetCapacity(pValue, 4)
         errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_GetStatus, "Int" , nuLogicalButton , "Ptr", &pValue, "Int", bitMode, "Int")
         if (errLevel<0)
@@ -775,7 +768,6 @@ class VBVMR {
     }
     
     MacroButton_SetStatus(nuLogicalButton, fValue, bitMode){
-        this.IsMacroButtonsDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR.MacroButton_SetStatus, "Int" ,  nuLogicalButton , "Float" , fValue, "Int", bitMode, "Int")
         if (errLevel<0)
             Throw, Exception("VBVMR_MacroButton_SetStatus returned " . errLevel, -1)
@@ -803,7 +795,6 @@ class VBVMR {
     }
 
     SetParameters(script){
-        this.IsParametersDirty()
         errLevel := DllCall(VBVMR.FUNC_ADDR["SetParameters" . VBVMR.STR_TYPE], VBVMR.STR_TYPE . "Str" , script , "Int")
         if (errLevel<0)
             Throw, Exception(Format("`nVBVMR_SetParameters returned {}`nDllCall returned {}", errLevel, ErrorLevel))
