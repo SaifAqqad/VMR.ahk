@@ -94,7 +94,10 @@ class VMR{
     __getDLLPath(){
         vmkey := "VB:Voicemeeter {17359A74-1236-5467}"
         key := "HKLM\Software{}\Microsoft\Windows\CurrentVersion\Uninstall\{}"
-        RegRead, value, % Format(key, A_Is64bitOS?"\WOW6432Node":"", vmkey), UninstallString
+        Try RegRead, value, % Format(key, A_Is64bitOS?"\WOW6432Node":"", vmkey), UninstallString
+        catch {
+            Throw, Exception("Voicemeeter is not installed")
+        }
         SplitPath, value,, dir
         return dir
     }
