@@ -1,3 +1,0 @@
-[submodule "tests/Lib/Yunit"]
-	path = tests/Lib/Yunit
-	url = https://github.com/SaifAqqad/Yunit.git
