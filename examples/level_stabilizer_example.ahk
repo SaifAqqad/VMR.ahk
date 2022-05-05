@@ -1,4 +1,4 @@
-#Include, %A_ScriptDir%\..\VMR.ahk
+#Include, %A_ScriptDir%\..\dist\VMR.ahk
 #Persistent
 
 ; This is just an example to demo the `level` array

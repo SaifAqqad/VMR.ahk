@@ -1,4 +1,4 @@
-#Include, %A_ScriptDir%\..\VMR.ahk
+#Include, %A_ScriptDir%\..\dist\VMR.ahk
 SetBatchLines, 20ms
 
 Global vm, GUI_hwnd, is_win_pos_changing:=0

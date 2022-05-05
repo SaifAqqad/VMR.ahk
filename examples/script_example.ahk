@@ -1,4 +1,4 @@
-#Include, %A_ScriptDir%\..\VMR.ahk
+#Include, %A_ScriptDir%\..\dist\VMR.ahk
 #Persistent
 
 global voicemeeter := (new VMR).login()
