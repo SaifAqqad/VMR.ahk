@@ -1,6 +1,8 @@
 #Include, %A_ScriptDir%\..\dist\VMR.ahk
 
 voicemeeter := new VMR().login()
+vol := 0.5
+voicemeeter.strip[6].AppGain := Format("(""Spotify"", {:.1f})", vol) ;set initial Spotify volume
 voicemeeter.bus[1].gain_limit:=0
 
 for i, bus in voicemeeter.bus {
@@ -39,4 +41,14 @@ return
 !s::
 voicemeeter.recorder.stop:=1
 voicemeeter.command.eject(1)
+return
+
+^A::
+vol -= 0.1
+voicemeeter.strip[6].AppGain := Format("(""Spotify"", {:.1f})", vol) ;increase Spotify volume by 0.1
+return
+
+^D::
+vol += 0.1
+voicemeeter.strip[6].AppGain := Format("(""Spotify"", {:.1f})", vol) ;decrease Spotify volume by 0.1
 return
