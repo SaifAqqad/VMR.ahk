@@ -39,7 +39,7 @@ global header_regex:= "imO)^( *)(?:`;\s*)vmr-header"
 file_content:= RegExReplace(file_content, header_regex, header,,1)
 
 FileCreateDir, % output_path
-FileOpen(output_path "\" base_file, "w").Write(file_content)
+FileOpen(output_path "\" base_file, "w`n").Write(file_content)
 
 
 insertPrefix(text, prefix){
