@@ -1,4 +1,4 @@
-; These are read-only commands
+﻿; These are read-only commands
 class Command {
 
     restart(){

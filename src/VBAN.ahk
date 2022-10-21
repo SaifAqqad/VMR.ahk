@@ -1,4 +1,4 @@
-class VBAN {
+﻿class VBAN {
     static instream:=""
     , outstream:=""
 

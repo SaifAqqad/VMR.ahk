@@ -1,4 +1,4 @@
-class BusStrip {
+﻿class BusStrip {
     static BUS_COUNT:=0
     , BUS_LEVEL_COUNT:=0
     , BusDevices:=Array()

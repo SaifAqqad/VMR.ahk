@@ -1,4 +1,4 @@
-; VMR-header
+﻿; VMR-header
 class VMR{
     bus:=""
     , strip:=""

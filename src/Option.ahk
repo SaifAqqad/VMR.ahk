@@ -1,4 +1,4 @@
-class OptionBase {
+﻿class OptionBase {
     __Set(p_name, p_value){
         return VBVMR.SetParameterFloat("Option", p_name, p_value)
     }

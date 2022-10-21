@@ -1,4 +1,4 @@
-class VBVMR {
+﻿class VBVMR {
     static DLL
     , DLL_PATH
     , DLL_FILE
