@@ -14,7 +14,7 @@ global new_line:= "`r`n"
 , base_file := "VMR.ahk"
 , file_content:= FileOpen(src_path "\" base_file, "r").Read()
 
-global include_regex:= "imO)^( *){{\s*include\s+\""(.+)\""\s*}}$"
+global include_regex:= "imO)^( *)`;\s*vmr-include\s+?'(.+?)'$"
 , current_match:=""
 , current_pos:=1
 
@@ -35,7 +35,7 @@ Loop{
     }  
 }
 
-global header_regex:= "imO)^( *){{\s*header\s*}}$"
+global header_regex:= "imO)^( *)(?:`;\s*)vmr-header"
 file_content:= RegExReplace(file_content, header_regex, header,,1)
 
 FileCreateDir, % output_path

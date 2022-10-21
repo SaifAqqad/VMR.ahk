@@ -1,4 +1,4 @@
-{{header}}
+; VMR-header
 class VMR{
     bus:=""
     , strip:=""
@@ -206,21 +206,21 @@ class VMR{
         DllCall("FreeLibrary", "Ptr", VBVMR.DLL)
     }
     
-    {{include "./BusStrip.ahk"}}
+    ; VMR-include './BusStrip.ahk'
 
-    {{include "./Fx.ahk"}}
+    ; VMR-include './Fx.ahk'
 
-    {{include "./Command.ahk"}}
+    ; VMR-include './Command.ahk'
     
-    {{include "./VBAN.ahk"}}
+    ; VMR-include './VBAN.ahk'
 
-    {{include "./MacroButton.ahk"}}
+    ; VMR-include './MacroButton.ahk'
 
-    {{include "./Patch.ahk"}}
+    ; VMR-include './Patch.ahk'
 
-    {{include "./Option.ahk"}}
+    ; VMR-include './Option.ahk'
 
-    {{include "./Recorder.ahk"}}
+    ; VMR-include './Recorder.ahk'
 }
 
-{{include "./VBVMR.ahk"}}
+; VMR-include './VBVMR.ahk'
