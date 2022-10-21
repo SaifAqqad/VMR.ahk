@@ -1,5 +1,4 @@
-class patch_base {
-
+class PatchBase {
     __Set(p_name, p_value){
         return VBVMR.SetParameterFloat("Patch", p_name, p_value)
     }

@@ -1,4 +1,4 @@
-class macroButton {
+class MacroButton {
 
     run(){
         Run, % VBVMR.DLL_PATH "\VoicemeeterMacroButtons.exe", % VBVMR.DLL_PATH, UseErrorLevel

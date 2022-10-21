@@ -1,4 +1,4 @@
-class VM_BUS_STRIP {
+class BusStrip {
     static BUS_COUNT:=0
     , BUS_LEVEL_COUNT:=0
     , BusDevices:=Array()
@@ -62,7 +62,7 @@ class VM_BUS_STRIP {
     , initiated:=0
     
     __Set(p_name, p_value, p_sec_value:=""){
-        if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+        if(VMR.BusStrip.initiated && this.BUS_STRIP_ID){
             switch p_name {
                 case "gain":
                     return Format("{:.1f}",this.setParameter(p_name, max(-60.0, min(p_value, this.gain_limit))))
@@ -85,7 +85,7 @@ class VM_BUS_STRIP {
     }
 
     __Get(p_name){
-        if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+        if(VMR.BusStrip.initiated && this.BUS_STRIP_ID){
             switch p_name {
                 case "gain","limit":
                     return Format("{:.1f}",this.getParameter(p_name))
@@ -102,16 +102,16 @@ class VM_BUS_STRIP {
         this.LEVEL_INDEX := Array()
         this.gain_limit:= 12.0
         if (p_type="Strip") {
-            this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.STRIP_COUNT++
+            this.BUS_STRIP_INDEX := VMR.BusStrip.STRIP_COUNT++
             loop % this.isPhysical() ? 2 : 8 
-                this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.STRIP_LEVEL_COUNT++)
+                this.LEVEL_INDEX.Push(VMR.BusStrip.STRIP_LEVEL_COUNT++)
         }else{
-            this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.BUS_COUNT++
+            this.BUS_STRIP_INDEX := VMR.BusStrip.BUS_COUNT++
             loop 8 
-                this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.BUS_LEVEL_COUNT++)
+                this.LEVEL_INDEX.Push(VMR.BusStrip.BUS_LEVEL_COUNT++)
         }
         this.BUS_STRIP_ID := this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]"
-        this.name := VMR.VM_BUS_STRIP.BUS_STRIP_NAMES[VBVMR.VM_TYPE][this.BUS_STRIP_TYPE][this.BUS_STRIP_INDEX+1]
+        this.name := VMR.BusStrip.BUS_STRIP_NAMES[VBVMR.VM_TYPE][this.BUS_STRIP_TYPE][this.BUS_STRIP_INDEX+1]
     }
 
     getGainPercentage(){
@@ -165,7 +165,7 @@ class VM_BUS_STRIP {
     }
     
     __getDeviceObj(substring,driver){
-        local devices:= VMR.VM_BUS_STRIP[this.BUS_STRIP_TYPE . "Devices"]
+        local devices:= VMR.BusStrip[this.BUS_STRIP_TYPE . "Devices"]
         for i in devices 
             if (devices[i].driver = driver && InStr(devices[i].name, substring))
                 return devices[i]

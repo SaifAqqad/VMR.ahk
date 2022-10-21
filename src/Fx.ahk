@@ -1,4 +1,4 @@
-class fx_base {
+class FXBase {
 
     reverb(onOff := -2) {
         switch (onOff) {

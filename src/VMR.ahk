@@ -77,20 +77,20 @@ class VMR{
     }
 
     updateDevices(){
-        VMR.VM_BUS_STRIP.BusDevices:= Array()
-        VMR.VM_BUS_STRIP.StripDevices:= Array()
+        VMR.BusStrip.BusDevices:= Array()
+        VMR.BusStrip.StripDevices:= Array()
         loop % VBVMR.Output_GetDeviceNumber()
-            VMR.VM_BUS_STRIP.BusDevices.Push(VBVMR.Output_GetDeviceDesc(A_Index-1))
+            VMR.BusStrip.BusDevices.Push(VBVMR.Output_GetDeviceDesc(A_Index-1))
         loop % VBVMR.Input_GetDeviceNumber()
-            VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
+            VMR.BusStrip.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
     getBusDevices(){
-        return VMR.VM_BUS_STRIP.BusDevices
+        return VMR.BusStrip.BusDevices
     }
 
     getStripDevices(){
-        return VMR.VM_BUS_STRIP.StripDevices
+        return VMR.BusStrip.StripDevices
     }
 
     exec(script){
@@ -112,28 +112,28 @@ class VMR{
     }
     
     __init_obj(){
-        this.option:= new this.option_base
+        this.option:= new this.OptionBase
         this.vban.init()
         this.vban.stream.initiated:=1
         if(this.getType() >= 2){
-            this.patch:= new this.patch_base
-            this.recorder:= new this.recorder_base
+            this.patch:= new this.PatchBase
+            this.recorder:= new this.RecorderBase
         }
         if(this.getType() >= 3)
-            this.fx := new this.fx_base
+            this.fx := new this.FXBase
     }
 
     __init_arrays(){
         this.bus:= Array()
         this.strip:= Array()
         loop % VBVMR.BUSCOUNT {
-            this.bus.Push(new this.VM_BUS_STRIP("Bus"))
+            this.bus.Push(new this.BusStrip("Bus"))
         }
         loop % VBVMR.STRIPCOUNT {
-            this.strip.Push(new this.VM_BUS_STRIP("Strip"))
+            this.strip.Push(new this.BusStrip("Strip"))
         }
         this.updateDevices()
-        VMR.VM_BUS_STRIP.initiated:=1
+        VMR.BusStrip.initiated:=1
     }
 
     __getTypeExecutable(p_type){
@@ -206,7 +206,7 @@ class VMR{
         DllCall("FreeLibrary", "Ptr", VBVMR.DLL)
     }
     
-    {{include "./Bus_Strip.ahk"}}
+    {{include "./BusStrip.ahk"}}
 
     {{include "./Fx.ahk"}}
 

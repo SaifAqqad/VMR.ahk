@@ -1,5 +1,4 @@
-class recorder_base {
-    
+class RecorderBase {
     __Set(p_name,p_value){
         local type:= "Float"
         if p_name contains load

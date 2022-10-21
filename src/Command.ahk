@@ -1,5 +1,5 @@
 ; These are read-only commands
-class command {
+class Command {
 
     restart(){
         return VBVMR.SetParameterFloat("Command","Restart",1)

@@ -1,5 +1,4 @@
-class option_base {
-    
+class OptionBase {
     __Set(p_name, p_value){
         return VBVMR.SetParameterFloat("Option", p_name, p_value)
     }
@@ -19,6 +18,5 @@ class option_base {
             ; set it to a new value
             return VBVMR.SetParameterFloat("Option", "delay[" . busNum . "]", Min(Max(p_delay,0),500))
         }
-        
     }
 }
