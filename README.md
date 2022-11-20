@@ -6,7 +6,14 @@ VMR.ahk
 </p>
 
 ## Getting Started
-To use `VMR.ahk` in your script, follow these steps:
+To use `VMR.ahk` in your script, follow one of the following methods:
+
+### A - ahkpm installation
+1. Install and set up [ahkpm](https://github.com/joshuacc/ahkpm), then run `ahkpm install gh:SaifAqqad/VMR.ahk`
+2. Run `ahkpm include -f my-script.ahk gh:SaifAqqad/VMR.ahk` to add an include directive in your script 
+    ###### Replace *my-script.ahk* with your script's path
+
+### B - Manual Installation
 1.  Download the latest pre-built version from the [`dist` folder](https://raw.githubusercontent.com/SaifAqqad/VMR.ahk/master/dist/VMR.ahk) or follow the build instructions below
 
 2.  Include it using `#Include VMR.ahk` or copy it to a [library folder](https://www.autohotkey.com/docs/Functions.htm#lib) and use `#Include <VMR>`
