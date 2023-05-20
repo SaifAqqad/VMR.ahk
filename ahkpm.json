@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "AutoHotkey wrapper class for Voicemeeter's Remote API",
   "repository": "https://github.com/SaifAqqad/VMR.ahk",
   "website": "https://saifaqqad.github.io/VMR.ahk",

@@ -1,6 +1,6 @@
 ;
-; VMR.ahk v1.0.0
-; Build timestamp: 20220505085629
+; VMR.ahk v1.2.0
+; Build timestamp: 20230520071651
 ; Repo: https://github.com/SaifAqqad/VMR.ahk
 ; Docs: https://saifaqqad.github.io/VMR.ahk
 ;
@@ -82,20 +82,20 @@ class VMR{
     }
 
     updateDevices(){
-        VMR.VM_BUS_STRIP.BusDevices:= Array()
-        VMR.VM_BUS_STRIP.StripDevices:= Array()
+        VMR.BusStrip.BusDevices:= Array()
+        VMR.BusStrip.StripDevices:= Array()
         loop % VBVMR.Output_GetDeviceNumber()
-            VMR.VM_BUS_STRIP.BusDevices.Push(VBVMR.Output_GetDeviceDesc(A_Index-1))
+            VMR.BusStrip.BusDevices.Push(VBVMR.Output_GetDeviceDesc(A_Index-1))
         loop % VBVMR.Input_GetDeviceNumber()
-            VMR.VM_BUS_STRIP.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
+            VMR.BusStrip.StripDevices.Push(VBVMR.Input_GetDeviceDesc(A_Index-1))
     }
 
     getBusDevices(){
-        return VMR.VM_BUS_STRIP.BusDevices
+        return VMR.BusStrip.BusDevices
     }
 
     getStripDevices(){
-        return VMR.VM_BUS_STRIP.StripDevices
+        return VMR.BusStrip.StripDevices
     }
 
     exec(script){
@@ -117,28 +117,28 @@ class VMR{
     }
     
     __init_obj(){
-        this.option:= new this.option_base
+        this.option:= new this.OptionBase
         this.vban.init()
         this.vban.stream.initiated:=1
         if(this.getType() >= 2){
-            this.patch:= new this.patch_base
-            this.recorder:= new this.recorder_base
+            this.patch:= new this.PatchBase
+            this.recorder:= new this.RecorderBase
         }
         if(this.getType() >= 3)
-            this.fx := new this.fx_base
+            this.fx := new this.FXBase
     }
 
     __init_arrays(){
         this.bus:= Array()
         this.strip:= Array()
         loop % VBVMR.BUSCOUNT {
-            this.bus.Push(new this.VM_BUS_STRIP("Bus"))
+            this.bus.Push(new this.BusStrip("Bus"))
         }
         loop % VBVMR.STRIPCOUNT {
-            this.strip.Push(new this.VM_BUS_STRIP("Strip"))
+            this.strip.Push(new this.BusStrip("Strip"))
         }
         this.updateDevices()
-        VMR.VM_BUS_STRIP.initiated:=1
+        VMR.BusStrip.initiated:=1
     }
 
     __getTypeExecutable(p_type){
@@ -211,7 +211,7 @@ class VMR{
         DllCall("FreeLibrary", "Ptr", VBVMR.DLL)
     }
     
-    class VM_BUS_STRIP {
+    class BusStrip {
         static BUS_COUNT:=0
         , BUS_LEVEL_COUNT:=0
         , BusDevices:=Array()
@@ -275,7 +275,7 @@ class VMR{
         , initiated:=0
         
         __Set(p_name, p_value, p_sec_value:=""){
-            if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+            if(VMR.BusStrip.initiated && this.BUS_STRIP_ID){
                 switch p_name {
                     case "gain":
                         return Format("{:.1f}",this.setParameter(p_name, max(-60.0, min(p_value, this.gain_limit))))
@@ -298,7 +298,7 @@ class VMR{
         }
     
         __Get(p_name){
-            if(VMR.VM_BUS_STRIP.initiated && this.BUS_STRIP_ID){
+            if(VMR.BusStrip.initiated && this.BUS_STRIP_ID){
                 switch p_name {
                     case "gain","limit":
                         return Format("{:.1f}",this.getParameter(p_name))
@@ -315,25 +315,34 @@ class VMR{
             this.LEVEL_INDEX := Array()
             this.gain_limit:= 12.0
             if (p_type="Strip") {
-                this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.STRIP_COUNT++
+                this.BUS_STRIP_INDEX := VMR.BusStrip.STRIP_COUNT++
                 loop % this.isPhysical() ? 2 : 8 
-                    this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.STRIP_LEVEL_COUNT++)
+                    this.LEVEL_INDEX.Push(VMR.BusStrip.STRIP_LEVEL_COUNT++)
             }else{
-                this.BUS_STRIP_INDEX := VMR.VM_BUS_STRIP.BUS_COUNT++
+                this.BUS_STRIP_INDEX := VMR.BusStrip.BUS_COUNT++
                 loop 8 
-                    this.LEVEL_INDEX.Push(VMR.VM_BUS_STRIP.BUS_LEVEL_COUNT++)
+                    this.LEVEL_INDEX.Push(VMR.BusStrip.BUS_LEVEL_COUNT++)
             }
             this.BUS_STRIP_ID := this.BUS_STRIP_TYPE . "[" . this.BUS_STRIP_INDEX . "]"
-            this.name := VMR.VM_BUS_STRIP.BUS_STRIP_NAMES[VBVMR.VM_TYPE][this.BUS_STRIP_TYPE][this.BUS_STRIP_INDEX+1]
+            this.name := VMR.BusStrip.BUS_STRIP_NAMES[VBVMR.VM_TYPE][this.BUS_STRIP_TYPE][this.BUS_STRIP_INDEX+1]
         }
     
         getGainPercentage(){
             return Format("{:.2f}",this.getPercentage(this.gain))
         }
     
+        setGainPercentage(percentage){
+            return this.gain := this.getdB(percentage)
+        }
+    
         getPercentage(dB){
             min_s := 10**(-60/20), max_s := 10**(0/20)
             return ((10**(dB/20))-min_s)/(max_s-min_s)*100
+        }
+    
+        getdB(percentage){
+            min_s := 10**(-60/20), max_s := 10**(0/20)
+            return 20*Log(min_s + percentage/100*(max_s-min_s))
         }
     
         setParameter(parameter, value){
@@ -378,7 +387,7 @@ class VMR{
         }
         
         __getDeviceObj(substring,driver){
-            local devices:= VMR.VM_BUS_STRIP[this.BUS_STRIP_TYPE . "Devices"]
+            local devices:= VMR.BusStrip[this.BUS_STRIP_TYPE . "Devices"]
             for i in devices 
                 if (devices[i].driver = driver && InStr(devices[i].name, substring))
                     return devices[i]
@@ -395,7 +404,7 @@ class VMR{
     }
 
 
-    class fx_base {
+    class FXBase {
     
         reverb(onOff := -2) {
             switch (onOff) {
@@ -420,7 +429,7 @@ class VMR{
 
 
     ; These are read-only commands
-    class command {
+    class Command {
     
         restart(){
             return VBVMR.SetParameterFloat("Command","Restart",1)
@@ -480,7 +489,7 @@ class VMR{
     }
 
     
-    class vban {
+    class VBAN {
         static instream:=""
         , outstream:=""
     
@@ -494,21 +503,21 @@ class VMR{
         }
     
         init(){
-            VMR.vban.instream:= Array()
-            VMR.vban.outstream:= Array()
+            VMR.VBAN.instream:= Array()
+            VMR.VBAN.outstream:= Array()
             loop % VBVMR.VBANINCOUNT
-                VMR.vban.instream.Push(new VMR.vban.stream("in", A_Index))
+                VMR.VBAN.instream.Push(new VMR.VBAN.Stream("in", A_Index))
             loop % VBVMR.VBANOUTCOUNT
-                VMR.vban.outstream.Push(new VMR.vban.stream("out", A_Index))
+                VMR.VBAN.outstream.Push(new VMR.VBAN.Stream("out", A_Index))
         }
         
-        class stream{
+        class Stream{
             static initiated:= 0
             __New(p_type,p_index){
                 this.PARAM_PREFIX:= Format("vban.{}stream[{}]", p_type, p_index)
             }
             __Set(p_name,p_value){
-                if(VMR.vban.stream.initiated) {
+                if(VMR.VBAN.stream.initiated) {
                     if p_name contains name, ip
                         return VBVMR.SetParameterString(this.PARAM_PREFIX, p_name, p_value)
                     return VBVMR.SetParameterFloat(this.PARAM_PREFIX, p_name, p_value)
@@ -516,7 +525,7 @@ class VMR{
                 
             }
             __Get(p_name){
-                if(VMR.vban.stream.initiated){
+                if(VMR.VBAN.stream.initiated){
                     if p_name contains name, ip
                         return VBVMR.GetParameterString(this.PARAM_PREFIX, p_name)
                     return VBVMR.GetParameterFloat(this.PARAM_PREFIX, p_name)
@@ -526,7 +535,7 @@ class VMR{
     }
 
 
-    class macroButton {
+    class MacroButton {
     
         run(){
             Run, % VBVMR.DLL_PATH "\VoicemeeterMacroButtons.exe", % VBVMR.DLL_PATH, UseErrorLevel
@@ -553,8 +562,7 @@ class VMR{
     
 
 
-    class patch_base {
-    
+    class PatchBase {
         __Set(p_name, p_value){
             return VBVMR.SetParameterFloat("Patch", p_name, p_value)
         }
@@ -565,8 +573,7 @@ class VMR{
     }
 
 
-    class option_base {
-        
+    class OptionBase {
         __Set(p_name, p_value){
             return VBVMR.SetParameterFloat("Option", p_name, p_value)
         }
@@ -586,13 +593,11 @@ class VMR{
                 ; set it to a new value
                 return VBVMR.SetParameterFloat("Option", "delay[" . busNum . "]", Min(Max(p_delay,0),500))
             }
-            
         }
     }
 
 
-    class recorder_base {
-        
+    class RecorderBase {
         __Set(p_name,p_value){
             local type:= "Float"
             if p_name contains load
