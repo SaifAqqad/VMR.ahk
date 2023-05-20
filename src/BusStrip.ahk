@@ -118,9 +118,18 @@
         return Format("{:.2f}",this.getPercentage(this.gain))
     }
 
+    setGainPercentage(percentage){
+        return this.gain := this.getdB(percentage)
+    }
+
     getPercentage(dB){
         min_s := 10**(-60/20), max_s := 10**(0/20)
         return ((10**(dB/20))-min_s)/(max_s-min_s)*100
+    }
+
+    getdB(percentage){
+        min_s := 10**(-60/20), max_s := 10**(0/20)
+        return 20*Log(min_s + percentage/100*(max_s-min_s))
     }
 
     setParameter(parameter, value){

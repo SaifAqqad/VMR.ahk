@@ -20,8 +20,12 @@ Use this object to access or modify bus/strip parameters.
     Returns the value of a bus/strip's parameter
 * #### `getGainPercentage()`
     Returns the bus/strip's gain as a scalar percentage
+* #### `setGainPercentage(percentage)`
+    Sets the bus/strip's gain using a scalar percentage
 * #### `getPercentage(dB)`
     Converts a dB value to a scalar percentage
+* #### `getdB(percentage)`
+    Converts a scalar percentage to a dB value
 * #### `isPhysical()`
     Returns `1` if the bus/strip is a physical one (Hardware bus/strip), otherwise return `0`
 
