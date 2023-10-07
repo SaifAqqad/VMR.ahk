@@ -26,15 +26,24 @@ class VBVMR {
         SetParametersW: 0
     }
 
+    ; Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
+    ; If the DLL is already loaded, it returns immediately.
+    ;
+    ; Parameters:
+    ;  - `p_path` (optional): The path to the Voicemeeter Remote DLL. If not specified, it will try to find it in the registry.
+    ;
+    ; Returns: Nothing.
+    ;
+    ; Throws: `VMRError` if the DLL is not found in the specified path or if voicemeeter is not installed.
     static Init(p_path := "") {
         if (VBVMR.DLL != "")
             return
 
-        local dllPath := p_path ? p_path : VBVMR.GetDLLPath()
+        local dllPath := p_path ? p_path : VBVMR._GetDLLPath()
         dllPath .= A_PtrSize = 8 ? "\VoicemeeterRemote64.dll" : "\VoicemeeterRemote.dll"
 
         if (!FileExist(dllPath))
-            throw VMRError(VBVMR.Init.Name, "Voicemeeter is not installed in the path :`n" . dllPath, A_LineNumber)
+            throw VMRError("Voicemeeter is not installed in the path :`n" . dllPath, VBVMR.Init.Name)
 
         ; Load the voicemeeter DLL
         VBVMR.DLL := DllCall("LoadLibrary", "Str", dllPath, "Ptr")
@@ -45,102 +54,170 @@ class VBVMR {
         }
     }
 
-    static GetDLLPath() {
+    static _GetDLLPath() {
         local value := "", dir := ""
         try
             value := RegRead(Format(VBVMR.REG_KEY, A_Is64bitOS ? "\WOW6432Node" : ""), "UninstallString")
-        catch
-            Throw VMRError(VBVMR.GetDLLPath.Name, "Failed to retrieve the installation path of Voicemeeter", A_LineNumber)
+        catch OSError
+            Throw VMRError("Failed to retrieve the installation path of Voicemeeter", VBVMR._GetDLLPath.Name)
 
         SplitPath(value, , &dir)
         return dir
     }
 
+    ; Opens Communication Pipe With Voicemeeter.
+    ;
+    ; Parameters: None
+    ;
+    ; Returns:
+    ; - `0` : OK (no error).
+    ; - `1` : OK but Voicemeeter Application not launched
     static Login() {
         local result
 
         try result := DllCall(VBVMR.FUNC.Login)
         catch Error as err
-            throw VMRError(VBVMR.Login.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.Login.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.Login.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.Login.Name)
 
         return result
     }
 
+    ; Closes Communication Pipe With Voicemeeter.
+    ;
+    ; Parameters: None
+    ;
+    ; Returns:
+    ; - `0` : OK (no error).
     static Logout() {
         local result
 
         try result := DllCall(VBVMR.FUNC.Logout)
         catch Error as err
-            throw VMRError(VBVMR.Logout.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.Logout.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.Logout.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.Logout.Name)
 
         return result
     }
 
+    ; Sets the value of a float (numeric) parameter.
+    ;
+    ; Parameters:
+    ; - `p_prefix` : The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
+    ; - `p_parameter` : The name of the parameter (ex: `gain`).
+    ; - `p_value` : The value to set.
+    ;
+    ; Returns:
+    ; - `0` : OK (no error).
+    ;
+    ; Throws: `VMRError` if the parameter is not found, or an internal error occurs.
     static SetParameterFloat(p_prefix, p_parameter, p_value) {
         local result
 
         try result := DllCall(VBVMR.FUNC.SetParameterFloat, "AStr", p_prefix . "." . p_parameter, "Float", p_value, "Int")
         catch Error as err
-            throw VMRError(VBVMR.SetParameterFloat.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.SetParameterFloat.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.SetParameterFloat.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.SetParameterFloat.Name)
 
         return result
     }
 
+    ; Sets the value of a string parameter.
+    ;
+    ; Parameters:
+    ; - `p_prefix` : The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
+    ; - `p_parameter` : The name of the parameter (ex: `name`).
+    ; - `p_value` : The value to set.
+    ;
+    ; Returns:
+    ; - `0` : OK (no error).
+    ;
+    ; Throws: `VMRError` if the parameter is not found, or an internal error occurs.
     static SetParameterString(p_prefix, p_parameter, p_value) {
         local result
 
         try result := DllCall(VBVMR.FUNC.SetParameterStringW, "AStr", p_prefix . "." . p_parameter, "WStr", p_value, "Int")
         catch Error as err
-            throw VMRError(VBVMR.SetParameterString.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.SetParameterString.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.SetParameterString.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.SetParameterString.Name)
 
         return result
     }
 
+    ; Gets the value of a float (numeric) parameter.
+    ;
+    ; Parameters:
+    ; - `p_prefix` : The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
+    ; - `p_parameter` : The name of the parameter (ex: `gain`).
+    ;
+    ; Returns:
+    ; - The value of the parameter.
+    ;
+    ; Throws: `VMRError` if the parameter is not found, or an internal error occurs.
     static GetParameterFloat(p_prefix, p_parameter) {
         local result, value := Buffer(4)
 
         try result := DllCall(VBVMR.FUNC.GetParameterFloat, "AStr", p_prefix . "." . p_parameter, "Ptr", value, "Int")
         catch Error as err
-            throw VMRError(VBVMR.GetParameterFloat.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.GetParameterFloat.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.GetParameterFloat.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.GetParameterFloat.Name)
 
         value := NumGet(value, 0, "Float")
         return value
     }
 
+    ; Gets the value of a string parameter.
+    ;
+    ; Parameters:
+    ; - `p_prefix` : The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
+    ; - `p_parameter` : The name of the parameter (ex: `name`).
+    ;
+    ; Returns:
+    ; - The value of the parameter.
+    ;
+    ; Throws: `VMRError` if the parameter is not found, or an internal error occurs.
     static GetParameterString(p_prefix, p_parameter) {
         local result, value := Buffer(1024)
 
         try result := DllCall(VBVMR.FUNC.GetParameterFloat, "AStr", p_prefix . "." . p_parameter, "Ptr", value, "Int")
         catch Error as err
-            throw VMRError(VBVMR.GetParameterString.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.GetParameterString.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.GetParameterString.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.GetParameterString.Name)
 
         return StrGet(value, 512)
     }
 
+    ; Gets the level of a single bus/strip channel.
+    ;
+    ; Parameters:
+    ; - `p_type` : The type of the returned level (`0`: pre-fader, `1`: post-fader, `2`: post-mute, `3`: output-levels).
+    ; - `p_channel` : The channel index (ex: `1`), channels indexes are different depending on the type of voiceemeeter running.
+    ;
+    ; Channel indexes are incremented from the left to right (On the UI), starting at `0`.
+    ; Physical (hardware) strips have 2 channels (left, right), Buses and virtual strips have 8 channels.
+    ;
+    ; Returns:
+    ; - The level of the requested channel.
+    ;
+    ; Throws: `VMRError` if the channel index is invalid, or an internal error occurs.
     static GetLevel(p_type, p_channel) {
         local result, level := Buffer(4)
 
         try result := DllCall(VBVMR.FUNC.GetLevel, "Int", p_type, "Int", p_channel, "Ptr", level)
         catch Error as err
-            throw VMRError(VBVMR.GetLevel.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.GetLevel.Name)
 
         if (result < 0) {
             SetTimer(unset, 0)
@@ -150,42 +227,67 @@ class VBVMR {
         return NumGet(level, 0, "Float")
     }
 
+    ; Gets the type of voicemeeter running.
+    ;
+    ; Parameters: None
+    ;
+    ; Returns:
+    ; - `1` : Voicemeeter
+    ; - `2` : Voicemeeter Banana
+    ; - `3` : Voicemeeter Potato
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static GetVoicemeeterType() {
         local result, vtype := Buffer(4)
 
         try result := DllCall(VBVMR.FUNC.GetVoicemeeterType, "Ptr", vtype, "Int")
         catch Error as err
-            throw VMRError(VBVMR.GetVoicemeeterType.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.GetVoicemeeterType.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.GetVoicemeeterType.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.GetVoicemeeterType.Name)
 
         return NumGet(vtype, 0, "Int")
     }
 
+    ; Gets the number of Output Devices available on the system
+    ;
+    ; Parameters: None
+    ;
+    ; Returns: The number of output devices.
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static Output_GetDeviceNumber() {
         local result
 
         try result := DllCall(VBVMR.FUNC.Output_GetDeviceNumber, "Int")
         catch Error as err
-            throw VMRError(VBVMR.Output_GetDeviceNumber.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.Output_GetDeviceNumber.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.Output_GetDeviceNumber.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.Output_GetDeviceNumber.Name)
 
         return result
     }
 
+    ; Gets the Descriptor of an output device.
+    ;
+    ; Parameters:
+    ; - `p_index` : The index of the device (zero-based).
+    ;
+    ; Returns: An object containing the `name` and `driver` of the device.
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static Output_GetDeviceDesc(p_index) {
         local result, name := Buffer(1024),
             driver := Buffer(4)
 
         try result := DllCall(VBVMR.FUNC.Output_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", 0, "Int")
         catch Error as err
-            throw VMRError(VBVMR.Output_GetDeviceDesc.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.Output_GetDeviceDesc.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.Output_GetDeviceDesc.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.Output_GetDeviceDesc.Name)
 
         name := StrGet(name, 512)
         switch NumGet(driver, 0, "UInt") {
@@ -202,29 +304,44 @@ class VBVMR {
         return { name: name, driver: driver }
     }
 
+    ; Gets the number of Input Devices available on the system
+    ;
+    ; Parameters: None
+    ;
+    ; Returns: The number of input devices.
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static Input_GetDeviceNumber() {
         local result
 
         try result := DllCall(VBVMR.FUNC.Input_GetDeviceNumber, "Int")
         catch Error as err
-            throw VMRError(VBVMR.Input_GetDeviceNumber.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.Input_GetDeviceNumber.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.Input_GetDeviceNumber.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.Input_GetDeviceNumber.Name)
 
         return result
     }
 
+    ; Gets the Descriptor of an input device.
+    ;
+    ; Parameters:
+    ; - `p_index` : The index of the device (zero-based).
+    ;
+    ; Returns: An object containing the `name` and `driver` of the device.
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static Input_GetDeviceDesc(p_index) {
         local result, name := Buffer(1024),
             driver := Buffer(4)
 
         try result := DllCall(VBVMR.FUNC.Input_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", 0, "Int")
         catch Error as err
-            throw VMRError(VBVMR.Input_GetDeviceDesc.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.Input_GetDeviceDesc.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.Input_GetDeviceDesc.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.Input_GetDeviceDesc.Name)
 
         name := StrGet(name, 512)
         switch NumGet(driver, 0, "UInt") {
@@ -241,68 +358,114 @@ class VBVMR {
         return { name: name, driver: driver }
     }
 
+    ; Checks if any parameters have changed
+    ;
+    ; Parameters: None
+    ;
+    ; Returns:
+    ; - `0` : No change
+    ; - `1` : Some parameters have changed
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static IsParametersDirty() {
         local result
 
         try result := DllCall(VBVMR.FUNC.IsParametersDirty)
         catch Error as err
-            throw VMRError(VBVMR.IsParametersDirty.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.IsParametersDirty.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.IsParametersDirty.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.IsParametersDirty.Name)
 
         return result
     }
 
+    ; Gets the current status of a given button.
+    ;
+    ; Parameters:
+    ; - `nuLogicalButton` : The index of the button (zero-based).
+    ; - `bitMode` : The type of the returned value (`0`: button-state, `2`: displayed-state, `3`: trigger-state).
+    ;
+    ; Returns: The status of the button (`0`: Off, `1`: On)
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static MacroButton_GetStatus(nuLogicalButton, bitMode) {
         local pValue := Buffer(4)
 
         try errLevel := DllCall(VBVMR.FUNC.MacroButton_GetStatus, "Int", nuLogicalButton, "Ptr", pValue, "Int", bitMode, "Int")
         catch Error as err
-            throw VMRError(VBVMR.MacroButton_GetStatus.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.MacroButton_GetStatus.Name)
 
         if (errLevel < 0)
-            throw VMRError(VBVMR.MacroButton_GetStatus.Name, errLevel, A_LineNumber)
+            throw VMRError(errLevel, VBVMR.MacroButton_GetStatus.Name)
 
         return NumGet(pValue, 0, "Float")
     }
 
+    ; Sets the status of a given button.
+    ;
+    ; Parameters:
+    ; - `nuLogicalButton` : The index of the button (zero-based).
+    ; - `fValue` : The value to set (`0`: Off, `1`: On).
+    ; - `bitMode` : The type of the returned value (`0`: button-state, `2`: displayed-state, `3`: trigger-state).
+    ;
+    ; Returns: The status of the button (`0`: Off, `1`: On)
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static MacroButton_SetStatus(nuLogicalButton, fValue, bitMode) {
         local result
 
         try result := DllCall(VBVMR.FUNC.MacroButton_SetStatus, "Int", nuLogicalButton, "Float", fValue, "Int", bitMode, "Int")
         catch Error as err
-            throw VMRError(VBVMR.MacroButton_SetStatus.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.MacroButton_SetStatus.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.MacroButton_SetStatus.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.MacroButton_SetStatus.Name)
 
         return fValue
     }
 
+    ; Check if any Macro Buttons states have changed
+    ;
+    ; Parameters: None
+    ;
+    ; Returns:
+    ; - `0` : No change
+    ; - `> 0` : Some buttons have changed
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static MacroButton_IsDirty() {
         local result
 
         try result := DllCall(VBVMR.FUNC.MacroButton_IsDirty)
         catch Error as err
-            throw VMRError(VBVMR.MacroButton_IsDirty.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.MacroButton_IsDirty.Name)
 
         if (result < 0)
-            throw VMRError(VBVMR.MacroButton_IsDirty.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.MacroButton_IsDirty.Name)
 
         return result
     }
 
+    ; Gets MIDI messages from a MIDI input device used by Voicemeeter MIDI mapping
+    ;
+    ; Parameters: None
+    ;
+    ; Returns:
+    ; - `[0xF0, 0xFF, ...]` : An array of bytes containing one or more MIDI messages. a single message is usually 2 or 3 bytes long.
+    ; - `""` : No MIDI messages available.
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static GetMidiMessage() {
         local result, data := Buffer(1024),
             messages := []
 
         try result := DllCall(VBVMR.FUNC.GetMidiMessage, "Ptr", data, "Int", 1024)
         catch Error as err
-            throw VMRError(VBVMR.GetMidiMessage.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.GetMidiMessage.Name)
 
         if (result == -1)
-            throw VMRError(VBVMR.GetMidiMessage.Name, result, A_LineNumber)
+            throw VMRError(result, VBVMR.GetMidiMessage.Name)
 
         if (result < 1)
             return ""
@@ -314,12 +477,25 @@ class VBVMR {
         return messages
     }
 
+    ; Sets one or several parameters by a script
+    ;
+    ; Parameters:
+    ; - `script` : The script to execute (must be less than `48kb`).
+    ;
+    ; Scripts can contain one or more parameter changes, changes can be seperated by a new line, `;` or `,`.
+    ; Indexes are zero-based.
+    ;
+    ; Returns:
+    ; - `0` : OK (no error).
+    ; - `> 0` : Number of the line causing an error
+    ;
+    ; Throws: `VMRError` if an internal error occurs.
     static SetParameters(script) {
         local result
 
         try result := DllCall(VBVMR.FUNC.SetParametersW, "WStr", script, "Int")
         catch Error as err
-            throw VMRError(VBVMR.SetParameters.Name, err, A_LineNumber)
+            throw VMRError(err, VBVMR.SetParameters.Name)
 
         if (result < 0)
             return ""
