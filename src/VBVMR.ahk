@@ -250,7 +250,7 @@ class VBVMR {
         return NumGet(vtype, 0, "Int")
     }
 
-    ; Gets the number of Output Devices available on the system
+    ; Gets the number of Output Devices available on the system.
     ;
     ; Parameters: None
     ;
@@ -304,7 +304,7 @@ class VBVMR {
         return { name: name, driver: driver }
     }
 
-    ; Gets the number of Input Devices available on the system
+    ; Gets the number of Input Devices available on the system.
     ;
     ; Parameters: None
     ;
@@ -358,7 +358,7 @@ class VBVMR {
         return { name: name, driver: driver }
     }
 
-    ; Checks if any parameters have changed
+    ; Checks if any parameters have changed.
     ;
     ; Parameters: None
     ;
@@ -425,7 +425,7 @@ class VBVMR {
         return fValue
     }
 
-    ; Check if any Macro Buttons states have changed
+    ; Check if any Macro Buttons states have changed.
     ;
     ; Parameters: None
     ;
@@ -447,7 +447,7 @@ class VBVMR {
         return result
     }
 
-    ; Gets MIDI messages from a MIDI input device used by Voicemeeter MIDI mapping
+    ; Gets MIDI messages from a MIDI input device used by Voicemeeter MIDI mapping.
     ;
     ; Parameters: None
     ;
@@ -477,7 +477,7 @@ class VBVMR {
         return messages
     }
 
-    ; Sets one or several parameters by a script
+    ; Sets one or several parameters by a script.
     ;
     ; Parameters:
     ; - `script` : The script to execute (must be less than `48kb`).
