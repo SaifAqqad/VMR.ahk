@@ -2,11 +2,20 @@
 #Include VBVMR.ahk
 #Include VMRError.ahk
 
+/**
+ * #### A base class for `VMRBus` and `VMRStrip`
+ */
 class VMRDevice {
     static STR_PARAMETERS := ["Device", "FadeTo", "Label", "FadeBy", "AppGain", "AppMute"]
     static DEVICE_DRIVERS := ["wdm", "mme", "asio", "ks"]
     static IS_CLASS_INIT := false
 
+    /**
+     * #### Creates a new `VMRDevice` object.
+     * 
+     * @param {Number} p_index - The zero-based index of the device.
+     * @param {String} p_deviceType - The type of the device. (`Bus` or `Strip`)
+     */
     __New(p_index, p_deviceType) {
         this.index := p_index
         this.gain_limit := 12
@@ -16,7 +25,7 @@ class VMRDevice {
 
     /**
      * #### Implements a default property getter.
-     * this is invoked when using the object access syntax (bus.gain)
+     * this is invoked when using the object access syntax. (example: `bus.gain`)
      * 
      * @param {String} p_key - The name of the parameter.
      * 
@@ -33,11 +42,11 @@ class VMRDevice {
 
     /**
      * #### Implements a default property setter.
-     * this is invoked when using the object access syntax `bus.gain := 0.5`
+     * this is invoked when using the object access syntax. (example: `bus.gain := 0.5`)
      * 
      * @param {String} p_key - The name of the parameter.
      * @param {Number | String} p_value - The value of the parameter, or the extra parameters passed to the accessed property.
-     * @param {Number | String} [p_extra] - An extra parameter which is set to the actual value when passing params to the accessed property. `bus.device["wdm"] := "Headset"`
+     * @param {Number | String} p_extra - An extra parameter which is set to the actual value when passing params to the accessed property. `bus.device["wdm"] := "Headset"`
      * 
      * ----
      * @returns {Number} - `0` Parameter set successfully
@@ -87,7 +96,7 @@ class VMRDevice {
      * 
      * @param {String} p_name - The name of the parameter.
      * @param {Number | String} p_value - The value of the parameter.
-     * @param {Number | String} [p_extra] - (optional) An extra value which is used when setting some parameters like `device`
+     * @param {Number | String} p_extra - (optional) An extra value which is used when setting some parameters like `device`
      * 
      * _____
      * @returns {Number} - `0` Parameter set successfully

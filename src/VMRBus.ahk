@@ -16,17 +16,6 @@ class VMRBus extends VMRDevice {
     ]
 
     /**
-     * #### Retrieves a device object by its name/driver.
-     * 
-     * @param {String} p_name - The name of the device, or any substring of it.
-     * @param {String} p_driver - (Optional) The driver of the device, If omitted, `p_name` must be the full name of the device.
-     * 
-     * _____
-     * @returns {{name, driver}} The device object, or an empty string if no device was found.
-     */
-    static GetDevice(p_name, p_driver?) => VMRDevice._GetDevice(VMRBus.DEVICES, p_name, p_driver)
-
-    /**
      * #### Creates a new VMRBus object.
      * 
      * @param {Number} p_index - The zero-based index of the bus.
@@ -56,7 +45,9 @@ class VMRBus extends VMRDevice {
     }
 
     /**
-     * #### Set/Get the bus's upper gain limit. setting the gain above the limit will reset it to this value.
+     * #### The bus's upper gain limit
+     * Setting the gain above the limit will reset it to this value.
+     * @type {Number}
      */
     GainLimit {
         get {
