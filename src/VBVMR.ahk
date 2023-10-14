@@ -238,10 +238,8 @@ class VBVMR {
         catch Error as err
             throw VMRError(err, VBVMR.GetLevel.Name)
 
-        if (result < 0) {
-            SetTimer(unset, 0)
+        if (result < 0)
             return
-        }
 
         return NumGet(level, 0, "Float")
     }
