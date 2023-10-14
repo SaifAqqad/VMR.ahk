@@ -168,7 +168,7 @@ class VBVMR {
 
 
     /**
-     * #### Gets the value of a float (numeric) parameter.
+     * #### Returns the value of a float (numeric) parameter.
      * 
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
      * @param {String} p_parameter - The name of the parameter (ex: `gain`).
@@ -193,7 +193,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the value of a string parameter.
+     * #### Returns the value of a string parameter.
      * 
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
      * @param {String} p_parameter - The name of the parameter (ex: `name`).
@@ -217,7 +217,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the level of a single bus/strip channel.
+     * #### Returns the level of a single bus/strip channel.
      * 
      * @param {Number} p_type - The type of the returned level (`0`: pre-fader, `1`: post-fader, `2`: post-mute, `3`: output-levels).
      * @param {Number} p_channel - The channel index (ex: `1`), channels Indices are different depending on the type of voiceemeeter running.
@@ -247,7 +247,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the type of voicemeeter running.
+     * #### Returns the type of voicemeeter running.
      * 
      * @returns {Number}
      * - `1` : Voicemeeter
@@ -270,7 +270,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the number of Output Devices available on the system.
+     * #### Returns the number of Output Devices available on the system.
      * 
      * @returns {Number} - The number of output devices.
      * 
@@ -290,7 +290,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the Descriptor of an output device.
+     * #### Returns the Descriptor of an output device.
      * 
      * @param {Number} p_index - The index of the device (zero-based).
      * 
@@ -326,7 +326,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the number of Input Devices available on the system.
+     * #### Returns the number of Input Devices available on the system.
      * 
      * @returns {Number} - The number of input devices.
      * 
@@ -346,7 +346,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the Descriptor of an input device.
+     * #### Returns the Descriptor of an input device.
      * 
      * @param {Number} p_index - The index of the device (zero-based).
      * 
@@ -404,7 +404,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the current status of a given button.
+     * #### Returns the current status of a given button.
      * 
      * @param {Number} p_logicalButton - The index of the button (zero-based).
      * @param {Number} p_bitMode - The type of the returned value (`0`: button-state, `2`: displayed-state, `3`: trigger-state).
@@ -479,7 +479,7 @@ class VBVMR {
     }
 
     /**
-     * #### Gets the MIDI message from a MIDI input device used by Voicemeeter MIDI mapping.
+     * #### Returns the MIDI message from a MIDI input device used by Voicemeeter MIDI mapping.
      * 
      * @returns {Array} - `[0xF0, 0xFF, ...]` An array of hex-formatted bytes that compose one or more MIDI messages. a single message is usually 2 or 3 bytes long.
      * @returns {String} `""` No MIDI messages available.
