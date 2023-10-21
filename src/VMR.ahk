@@ -1,20 +1,100 @@
 #Requires AutoHotkey >=2.0
 #Include VMRError.ahk
+#Include VMRConsts.ahk
 #Include VBVMR.ahk
 #Include VMRDevice.ahk
 #Include VMRBus.ahk
 #Include VMRStrip.ahk
 
+/**
+ * #### A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.
+ * 
+ * Must be initialized by calling `Login()` after creating the VMR instance.
+ */
 class VMR {
-    static VOICEMEETER_TYPES := ["Voicemeeter", "Voicemeeter Banana", "Voicemeeter Potato"]
+    type := ""
+    _eventListeners := Map(
+        VMRConsts.Events.LevelsUpdated, [],
+        VMRConsts.Events.ParametersChanged, [],
+        VMRConsts.Events.MacroButtonsChanged, [],
+        VMRConsts.Events.MidiMessage, [],
+    )
 
-    __New(p_path := "") {
-        VBVMR.Init(p_path)
+    /**
+     * #### Initializes the internal VBVMR wrapper class.
+     * 
+     * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, it will try to find it in the registry.
+     * 
+     * _____
+     * @throws {VMRError} - If the DLL is not found in the specified path or if voicemeeter is not installed.
+     */
+    __New(p_path := "") => VBVMR.Init(p_path)
+
+    /**
+     * #### Initializes the VMR instance and opens the communication pipe with Voicemeeter.
+     * 
+     * @param {Boolean} p_launchVoicemeeter - (Optional) Whether to launch Voicemeeter if it's not already running. Defaults to `true`.
+     * 
+     * _____
+     * @returns {VMR} The VMR instance.
+     * 
+     * @throws {VMRError} - If an internal error occurs.
+     */
+    Login(p_launchVoicemeeter := true) {
+        local loginStatus := VBVMR.Login()
+
+        ; Check if we should launch the Voicemeeter UI
+        if (loginStatus != 0 && p_launchVoicemeeter) {
+            local vmPID := this.RunVoicemeeter()
+            WinWait("ahk_pid " . vmPID)
+            Sleep(2000)
+        }
+
+        this.type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()]
+        if (!this.type)
+            throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name)
+
+        OnExit(this.__Delete)
+        ; TODO: setup sync timer, init obj/arr
+
+        this.Sync()
+        return this
     }
 
-    GetVoicemeeterType() {
-        local vType := VBVMR.GetVoicemeeterType()
-        return { type: vType, name: VMR.VOICEMEETER_TYPES[vType] }
+    /**
+     * #### Attempts to run Voicemeeter.
+     * 
+     * Passing a `p_type` will attempt to run the specified Voicemeeter type, otherwise it will try to run the highest available type.
+     * 
+     * @param {Number} p_type - (Optional) The type of Voicemeeter to run. If omitted, the highest available type will be used.
+     * 
+     * _____
+     * @returns {Number} The PID of the launched Voicemeeter process.
+     * 
+     * @throws {VMRError} If the specified Voicemeeter type is invalid, or if no Voicemeeter type could be launched.
+     */
+    RunVoicemeeter(p_type?) {
+        local vmPID := ""
+        if (IsSet(p_type)) {
+            local vmInfo := VMRConsts.VOICEMEETER_TYPES[p_type]
+            if (!vmInfo)
+                throw VMRError("Invalid Voicemeeter type: " . p_type, this.RunVoicemeeter.Name)
+
+            local vmPath := VBVMR.DLL_PATH . "\" . vmInfo.executable
+            Run(vmPath, VBVMR.DLL_PATH, "Hide", &vmPID)
+
+            return vmPID
+        }
+
+        local vmTypeCount := VMRConsts.VOICEMEETER_TYPES.Length
+        loop vmTypeCount {
+            try {
+                vmPID := this.RunVoicemeeter((vmTypeCount + 1) - A_Index)
+                return vmPID
+            }
+        }
+
+        throw VMRError("Failed to launch Voicemeeter", this.RunVoicemeeter.Name)
     }
 
     ; TODO: Login, obj/arr init, auto update devices, sync timers
@@ -56,4 +136,49 @@ class VMR {
      * @returns {Array} An array of device objects `{name, driver}`.
      */
     GetBusDevices() => VMRBus.DEVICES
+
+    /**
+     * #### Syncronizes the VMR instance with Voicemeeter.
+     * 
+     * Normally this is called automatically on a timer, and doesn't need to be manually called/checked.
+     * 
+     * _____
+     * @returns {Boolean} - Whether voicemeeter state has changed since the last sync.
+     */
+    Sync() {
+        static ignoreMsg := false
+        try {
+            ; TODO: call VBVMR.*IsDirty funcs + invoke event listeners
+        } catch Error as err {
+            if (ignoreMsg)
+                return false
+
+            result := MsgBox(
+                Format("An error occurred during VMR sync: {}`nDetails:{}`nAttempt to restart Voicemeeter?", err.Message, err.Extra),
+                "VMR",
+                "YesNo Icon! T10"
+            )
+            switch (result) {
+                case "Yes":
+                    this.runVoicemeeter(this.type.id)
+                case "No", "Timeout":
+                    ignore_msg := true
+            }
+
+            sleep 1000
+            return false
+        }
+    }
+
+    __Delete() {
+        if (!this.type)
+            return
+
+        this.type := ""
+        while (this.Sync()) {
+        }
+
+        Sleep(100) ; Make sure all commands finish executing before logging out
+        VBVMR.Logout()
+    }
 }

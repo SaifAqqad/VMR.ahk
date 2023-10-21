@@ -2,6 +2,7 @@
 #Include VBVMR.ahk
 #Include VMRError.ahk
 #Include VMRDevice.ahk
+#Include VMRConsts.ahk
 
 /**
  * A wrapper around a voicemeeter strip.
@@ -9,11 +10,6 @@
 class VMRStrip extends VMRDevice {
     static LEVELS_COUNT := 0
     static DEVICES := Array()
-    static STRIP_NAMES := [
-        ["Input #1", "Input #2", "Virtual Input #1"],
-        ["Input #1", "Input #2", "Input #3", "Virtual Input #1", "Virtual Input #2"],
-        ["Input #1", "Input #2", "Input #3", "Input #4", "Input #5", "Virtual Input #1", "Virtual Input #2", "Virtual Input #3"]
-    ]
 
     /**
      * #### Creates a new VMRStrip object.
@@ -23,7 +19,7 @@ class VMRStrip extends VMRDevice {
      */
     __New(p_index, p_vmrType) {
         super.__New(p_index, "Strip")
-        this.name := VMRStrip.STRIP_NAMES[p_vmrType][p_index + 1]
+        this.name := VMRConsts.STRIP_NAMES[p_vmrType][p_index + 1]
 
         switch p_vmrType {
             case 1:

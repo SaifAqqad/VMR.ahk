@@ -1,5 +1,6 @@
 #Requires AutoHotkey >=2.0
 #Include VMRError.ahk
+#Include VMRConsts.ahk
 
 /**
  * #### A static wrapper class for the Voicemeeter Remote DLL.
@@ -7,8 +8,6 @@
  * Must be initialized by calling `Init()` before using any of its static methods.
  */
 class VBVMR {
-    static REG_KEY := Format("HKLM\Software{}\Microsoft\Windows\CurrentVersion\Uninstall\VB:Voicemeeter {17359A74-1236-5467}", A_Is64bitOS ? "\WOW6432Node" : "")
-    static DLL := ""
     static FUNC := {
         Login: 0,
         Logout: 0,
@@ -30,6 +29,7 @@ class VBVMR {
         SetParameters: 0,
         SetParametersW: 0
     }
+    static DLL := "", DLL_PATH := ""
 
     /**
      * #### Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
@@ -51,6 +51,7 @@ class VBVMR {
             throw VMRError("Voicemeeter is not installed in the path :`n" . dllPath, VBVMR.Init.Name)
 
         ; Load the voicemeeter DLL
+        VBVMR.DLL_PATH := dllPath
         VBVMR.DLL := DllCall("LoadLibrary", "Str", dllPath, "Ptr")
 
         ; Get the addresses of all needed function
@@ -62,7 +63,7 @@ class VBVMR {
     static _GetDLLPath() {
         local value := "", dir := ""
         try
-            value := RegRead(VBVMR.REG_KEY, "UninstallString")
+            value := RegRead(VMRConsts.REGISTRY_KEY, "UninstallString")
         catch OSError
             Throw VMRError("Failed to retrieve the installation path of Voicemeeter", VBVMR._GetDLLPath.Name)
 

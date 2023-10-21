@@ -2,6 +2,7 @@
 #Include VBVMR.ahk
 #Include VMRError.ahk
 #Include VMRDevice.ahk
+#Include VMRConsts.ahk
 
 /**
  * A wrapper around a voicemeeter bus.
@@ -9,11 +10,6 @@
 class VMRBus extends VMRDevice {
     static LEVELS_COUNT := 0
     static DEVICES := Array()
-    static BUS_NAMES := [
-        ["A", "B"],
-        ["A1", "A2", "A3", "B1", "B2"],
-        ["A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3"]
-    ]
 
     /**
      * #### Creates a new VMRBus object.
@@ -24,7 +20,7 @@ class VMRBus extends VMRDevice {
     __New(p_index, p_vmrType) {
         super.__New(p_index, "Bus")
         this.channel_count := 8
-        this.name := VMRBus.BUS_NAMES[p_vmrType][p_index + 1]
+        this.name := VMRConsts.BUS_NAMES[p_vmrType][p_index + 1]
 
         switch p_vmrType {
             case 1:
