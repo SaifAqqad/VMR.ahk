@@ -1,4 +1,5 @@
 #Requires AutoHotkey >=2.0
+#Include VMRUtils.ahk
 #Include VMRError.ahk
 #Include VMRConsts.ahk
 #Include VBVMR.ahk
@@ -13,12 +14,6 @@
  */
 class VMR {
     type := ""
-    _eventListeners := Map(
-        VMRConsts.Events.LevelsUpdated, [],
-        VMRConsts.Events.ParametersChanged, [],
-        VMRConsts.Events.MacroButtonsChanged, [],
-        VMRConsts.Events.MidiMessage, [],
-    )
 
     /**
      * #### Initializes the internal VBVMR wrapper class.
@@ -28,7 +23,14 @@ class VMR {
      * _____
      * @throws {VMRError} - If the DLL is not found in the specified path or if voicemeeter is not installed.
      */
-    __New(p_path := "") => VBVMR.Init(p_path)
+    __New(p_path := "") {
+        VBVMR.Init(p_path)
+
+        this._eventListeners := Map()
+        this._eventListeners.CaseSense := "Off"
+        for (event in VMRConsts.Events.OwnProps())
+            this._eventListeners[event] := []
+    }
 
     /**
      * #### Initializes the VMR instance and opens the communication pipe with Voicemeeter.
@@ -136,6 +138,56 @@ class VMR {
      * @returns {Array} An array of device objects `{name, driver}`.
      */
     GetBusDevices() => VMRBus.DEVICES
+
+    /**
+     * #### Registers a callback function to be called when the specified event is fired.
+     * 
+     * @param {String} p_event - The name of the event to listen for. See `VMRConsts.Events` for a list of available events.
+     * @param {Func} p_listener - The function to call when the event is fired.
+     * 
+     * _____
+     * @throws {VMRError} If the specified event is invalid, or if the listener is not a valid `Func` object.
+     */
+    On(p_event, p_listener) {
+        if (!this._eventListeners.Has(p_event))
+            throw VMRError("Invalid event: " p_event, this.On.Name)
+
+        if !(p_listener is Func)
+            throw VMRError("Invalid listener: " String(p_listener), this.On.Name)
+
+        local eventListeners := this._eventListeners[p_event]
+
+        if (VMRUtils.IndexOf(eventListeners, p_listener) == -1)
+            eventListeners.Push(p_listener)
+    }
+
+    /**
+     * #### Removes a callback function from the specified event.
+     * 
+     * @param {String} p_event - The name of the event.
+     * @param {Func} p_listener - The function to remove.
+     * 
+     * _____
+     * @returns {Boolean} Whether the listener was removed.
+     * 
+     * @throws {VMRError} If the specified event is invalid, or if the listener is not a valid `Func` object.
+     */
+    Off(p_event, p_listener) {
+        if (!this._eventListeners.Has(p_event))
+            throw VMRError("Invalid event: " p_event, this.Off.Name)
+
+        if !(p_listener is Func)
+            throw VMRError("Invalid listener: " String(p_listener), this.Off.Name)
+
+        local eventListeners := this._eventListeners[p_event]
+        local listenerIndex := VMRUtils.IndexOf(eventListeners, p_listener)
+
+        if (listenerIndex == -1)
+            return false
+
+        eventListeners.RemoveAt(listenerIndex)
+        return true
+    }
 
     /**
      * #### Syncronizes the VMR instance with Voicemeeter.

@@ -30,7 +30,7 @@ class VMRConsts {
     /**
      * #### Events fired by the VMR object
      * 
-     * Use `VMR.On(event, callback)` to listen to events.
+     * Use `VMR.On()` to register event listeners.
      * 
      * - `ParametersChanged` - Called when bus/strip parameters change
      * - `LevelsUpdated` - Called when the `level` arrays for buses/strips are updated
