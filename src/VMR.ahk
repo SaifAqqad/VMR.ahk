@@ -110,7 +110,7 @@ class VMR {
      * _____
      * @returns {{name, driver}} The device object, or an empty string if no device was found.
      */
-    GetStripDevice(p_name, p_driver?) => VMRDevice._GetDevice(VMRStrip.DEVICES, p_name, p_driver)
+    GetStripDevice(p_name, p_driver?) => VMRDevice._GetDevice(VMRStrip.Devices, p_name, p_driver)
 
     /**
      * #### Retrieves all strip devices (input devices).
@@ -118,7 +118,7 @@ class VMR {
      * _____
      * @returns {Array} An array of device objects `{name, driver}`.
      */
-    GetStripDevices() => VMRStrip.DEVICES
+    GetStripDevices() => VMRStrip.Devices
 
     /**
      * #### Retrieves a bus device (output device) by its name/driver.
@@ -129,7 +129,7 @@ class VMR {
      * _____
      * @returns {{name, driver}} The device object, or an empty string if no device was found.
      */
-    GetBusDevice(p_name, p_driver?) => VMRDevice._GetDevice(VMRBus.DEVICES, p_name, p_driver)
+    GetBusDevice(p_name, p_driver?) => VMRDevice._GetDevice(VMRBus.Devices, p_name, p_driver)
 
     /**
      * #### Retrieves all bus devices (output devices).
@@ -137,7 +137,7 @@ class VMR {
      * _____
      * @returns {Array} An array of device objects `{name, driver}`.
      */
-    GetBusDevices() => VMRBus.DEVICES
+    GetBusDevices() => VMRBus.Devices
 
     /**
      * #### Registers a callback function to be called when the specified event is fired.
@@ -210,6 +210,7 @@ class VMR {
                 "VMR",
                 "YesNo Icon! T10"
             )
+
             switch (result) {
                 case "Yes":
                     this.runVoicemeeter(this.type.id)

@@ -9,7 +9,7 @@
  */
 class VMRBus extends VMRDevice {
     static LEVELS_COUNT := 0
-    static DEVICES := Array()
+    static Devices := Array()
 
     /**
      * #### Creates a new VMRBus object.
