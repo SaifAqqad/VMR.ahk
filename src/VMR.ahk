@@ -16,9 +16,9 @@ class VMR {
     type := ""
 
     /**
-     * #### Initializes the internal VBVMR wrapper class.
+     * #### Creates a new VMR instance, and initializes the VBVMR class.
      * 
-     * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, it will try to find it in the registry.
+     * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, VBVMR will attempt to find it in the registry.
      * 
      * _____
      * @throws {VMRError} - If the DLL is not found in the specified path or if voicemeeter is not installed.
@@ -56,8 +56,13 @@ class VMR {
         if (!this.type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name)
 
-        OnExit(this.__Delete)
-        ; TODO: setup sync timer, init obj/arr
+        OnExit(ObjBindMethod(this, this.__Delete.Name))
+
+        ; TODO: obj/arr init
+
+        ; setup sync timer
+        this.syncTimer := ObjBindMethod(this, this.Sync.Name)
+        SetTimer(this.syncTimer, 20)
 
         this.Sync()
         return this
@@ -99,7 +104,7 @@ class VMR {
         throw VMRError("Failed to launch Voicemeeter", this.RunVoicemeeter.Name)
     }
 
-    ; TODO: Login, obj/arr init, auto update devices, sync timers
+    ; TODO: auto update devices, ToString methods for all objects, update levels timer
 
     /**
      * #### Retrieves a strip device (input device) by its name/driver.
@@ -200,7 +205,26 @@ class VMR {
     Sync() {
         static ignoreMsg := false
         try {
-            ; TODO: call VBVMR.*IsDirty funcs + invoke event listeners
+            local dirtyParameters := VBVMR.IsParametersDirty()
+                , dirtyMacroButtons := VBVMR.MacroButton_IsDirty()
+
+            ; Api calls were successful -> reset ignore_msg flag
+            ignore_msg := false
+
+            if (dirtyParameters > 0)
+                this._DispatchEvent(VMRConsts.Events.ParametersChanged)
+
+            if (dirtyMacroButtons > 0)
+                this._DispatchEvent(VMRConsts.Events.MacroButtonsChanged)
+
+            ; Check if there are any listeners for midi messages
+            local midiListeners := this._eventListeners[VMRConsts.Events.MidiMessage]
+            if (midiListeners.Length > 0) {
+                ; Get new midi messages and dispatch event if there's any
+                local midiMessages := VBVMR.GetMidiMessage()
+                if (midiMessages && midiMessages.Length > 0)
+                    this._DispatchEvent(VMRConsts.Events.MidiMessage, midiMessages)
+            }
         } catch Error as err {
             if (ignoreMsg)
                 return false
@@ -223,11 +247,27 @@ class VMR {
         }
     }
 
+    _DispatchEvent(p_event, p_args*) {
+        local eventListeners := this._eventListeners[p_event]
+        if (eventListeners.Length == 0)
+            return
+
+        for (listener in eventListeners) {
+            if (p_args.Length == 0 || listener.MaxParams < p_args.Length)
+                listener()
+            else
+                listener(p_args*)
+        }
+    }
+
     __Delete() {
         if (!this.type)
             return
 
         this.type := ""
+        if (this.syncTimer)
+            SetTimer(this.syncTimer, 0)
+
         while (this.Sync()) {
         }
 
