@@ -58,7 +58,8 @@ class VMR {
 
         OnExit(ObjBindMethod(this, this.__Delete.Name))
 
-        ; TODO: obj/arr init
+        ; Initialize VMR components (bus/strip arrays, macro buttons, etc)
+        this._InitializeComponents()
 
         ; setup sync timer
         this.syncTimer := ObjBindMethod(this, this.Sync.Name)
@@ -258,6 +259,25 @@ class VMR {
             else
                 listener(p_args*)
         }
+    }
+
+    _InitializeComponents() {
+        this.bus := Array()
+        loop this.type.busCount {
+            this.bus.Push(VMRBus(A_Index - 1, this.type.id))
+        }
+
+        this.strip := Array()
+        loop this.type.stripCount {
+            this.strip.Push(VMRStrip(A_Index - 1, this.type.id))
+        }
+
+        this._UpdateDevices()
+        VMRDevice.IS_CLASS_INIT := true
+    }
+
+    _UpdateDevices() {
+        ; TODO: update devices arrays in VMRStrip/VMRBus
     }
 
     __Delete() {

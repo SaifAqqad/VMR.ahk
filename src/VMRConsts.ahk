@@ -3,14 +3,23 @@ class VMRConsts {
 
     static VOICEMEETER_TYPES := [{
         id: 1,
+        busCount: 2,
+        vbanCount: 4,
+        stripCount: 3,
         name: "Voicemeeter",
         executable: "Voicemeeter.exe"
     }, {
         id: 2,
+        busCount: 5,
+        vbanCount: 8,
+        stripCount: 5,
         name: "Voicemeeter Banana",
         executable: "voicemeeterpro.exe"
     }, {
         id: 3,
+        busCount: 8,
+        vbanCount: 8,
+        stripCount: 8,
         name: "Voicemeeter Potato",
         executable: Format("voicemeeter8{}.exe", A_Is64bitOS ? "x64" : "")
     }]
