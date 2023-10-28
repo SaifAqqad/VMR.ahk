@@ -42,6 +42,8 @@ class VMRConsts {
 
     static DEVICE_DRIVERS := ["wdm", "mme", "asio", "ks"]
 
+    static WM_DEVICE_CHANGE := 0x0219, WM_DEVICE_CHANGE_PARAM := 0x0007
+
     /**
      * #### Events fired by the VMR object
      * 

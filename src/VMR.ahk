@@ -19,7 +19,7 @@ class VMR {
      * @type {Object} - An object containing information about the current Voicemeeter type.
      * 
      * -----
-     * `id`, `name`, `executable`, `busCount`, `stripCount`, `vbanCount`
+     * Properties: `id`, `name`, `executable`, `busCount`, `stripCount`, `vbanCount`
      */
     Type := ""
 
@@ -83,12 +83,15 @@ class VMR {
         ; Initialize VMR components (bus/strip arrays, macro buttons, etc)
         this._InitializeComponents()
 
-        ; setup sync timer
+        ; Setup timers
         this._syncTimer := this.Sync.Bind(this)
-        SetTimer(this._syncTimer, 20)
-
         this._levelsTimer := this._UpdateLevels.Bind(this)
+        SetTimer(this._syncTimer, 20)
         SetTimer(this._levelsTimer, 50)
+
+        ; Listen for device changes to update the device arrays
+        this._updateDevicesCallback := this.UpdateDevices.Bind(this)
+        OnMessage(VMRConsts.WM_DEVICE_CHANGE, this._updateDevicesCallback)
 
         this.Sync()
         return this
@@ -97,7 +100,8 @@ class VMR {
     /**
      * #### Attempts to run Voicemeeter.
      * 
-     * When passing a `p_type`, it will run the specified Voicemeeter type, otherwise it will attempt to run every voicemeeter type descendingly until one is successfully launched.
+     * When passing a `p_type`, it will only attempt to run the specified Voicemeeter type,
+     * otherwise it will attempt to run every voicemeeter type descendingly until one is successfully launched.
      * 
      * @param {Number} p_type - (Optional) The type of Voicemeeter to run.
      * 
@@ -129,8 +133,6 @@ class VMR {
 
         throw VMRError("Failed to launch Voicemeeter", this.RunVoicemeeter.Name)
     }
-
-    ; TODO: auto update devices, ToString methods for all objects, update levels timer, exec scripts
 
     /**
      * #### Retrieves a strip device (input device) by its name/driver.
@@ -273,6 +275,57 @@ class VMR {
         }
     }
 
+    /**
+     * #### Executes a Voicemeeter Remote script (*Not* an AutoHotkey script).
+     * 
+     * - Scripts can contain one or more parameter changes, changes can be seperated by a new line, `;` or `,`.
+     * - Indices in the script are zero-based.
+     * 
+     * @param {String} p_script - The script to execute.
+     * 
+     * _____
+     * @throws {VMRError} If an error occurs while executing the script.
+     */
+    Exec(p_script) {
+        local result := VBVMR.SetParameters(p_script)
+
+        if (result > 0)
+            throw VMRError("An error occurred while executing the script at line: " . result, this.Exec.Name)
+    }
+
+    /**
+     * #### Updates the list of strip/bus devices.
+     * 
+     * @param {Number} p_wParam - (Optional) If passed, must be equal to `VMRConsts.WM_DEVICE_CHANGE_PARAM` to update the device arrays.
+     * 
+     * _____
+     * @throws {VMRError} If an internal error occurs.
+     */
+    UpdateDevices(p_wParam?, *) {
+        if (IsSet(p_wParam) && p_wParam != VMRConsts.WM_DEVICE_CHANGE_PARAM)
+            return
+
+        VMRStrip.Devices := Array()
+        loop VBVMR.Input_GetDeviceNumber()
+            VMRStrip.Devices.Push(VBVMR.Input_GetDeviceDesc(A_Index - 1))
+
+        VMRBus.Devices := Array()
+        loop VBVMR.Output_GetDeviceNumber()
+            VMRBus.Devices.Push(VBVMR.Output_GetDeviceDesc(A_Index - 1))
+    }
+
+    ToString() {
+        local value := "VMR:`n"
+
+        if (this.Type) {
+            value .= "Logged into " . this.Type.name . " in (" . VBVMR.DLL_PATH . ")"
+        } else {
+            value .= "Not logged in"
+        }
+
+        return value
+    }
+
     _DispatchEvent(p_event, p_args*) {
         local eventListeners := this._eventListeners[p_event]
         if (eventListeners.Length == 0)
@@ -297,12 +350,10 @@ class VMR {
             this.Strip.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
 
+        ; TODO: Initialize macro buttons, recorder, vban, command, fx, option, patch
+
         this._UpdateDevices()
         VMRDevice.IS_CLASS_INIT := true
-    }
-
-    _UpdateDevices() {
-        ; TODO: update devices arrays in VMRStrip/VMRBus
     }
 
     _UpdateLevels() {
@@ -320,15 +371,22 @@ class VMR {
     __Delete() {
         if (!this.Type)
             return
-
         this.Type := ""
+
         if (this._syncTimer)
             SetTimer(this._syncTimer, 0)
+
+        if (this._levelsTimer)
+            SetTimer(this._levelsTimer, 0)
+
+        if (this._updateDevicesCallback)
+            OnMessage(VMRConsts.WM_DEVICE_CHANGE, this._updateDevicesCallback)
 
         while (this.Sync()) {
         }
 
-        Sleep(100) ; Make sure all commands finish executing before logging out
+        ; Make sure all commands finish executing before logging out
+        Sleep(100)
         VBVMR.Logout()
     }
 }

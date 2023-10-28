@@ -530,7 +530,7 @@ class VBVMR {
             throw VMRError(err, VBVMR.SetParameters.Name)
 
         if (result < 0)
-            return ""
+            throw VMRError(result, VBVMR.SetParameters.Name)
 
         return result
     }
