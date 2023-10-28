@@ -135,7 +135,7 @@ class VMRDevice {
                 p_value := p_value == -1 ? !this.GetParameter("mute") : p_value
         }
 
-        return vmrFunc.Call(this.Id, p_name, p_value) == 0
+        return vmrFunc.Call(VBVMR, this.Id, p_name, p_value) == 0
     }
 
     /**
@@ -158,7 +158,7 @@ class VMRDevice {
             case "gain", "limit":
                 return Format("{:.1f}", vmrFunc.Call(this.Id, p_name))
             case "device":
-                return vmrFunc.Call(this.Id, "device.name")
+                return vmrFunc.Call(VBVMR, this.Id, "device.name")
         }
 
         return this.getParameter(p_name)
