@@ -13,41 +13,29 @@
  * Must be initialized by calling `Login()` after creating the VMR instance.
  */
 class VMR {
+    /**
+     * #### The type of Voicemeeter that is currently running.
+     * 
+     * @type {Object} - An object containing information about the current Voicemeeter type.
+     * 
+     * -----
+     * `id`, `name`, `executable`, `busCount`, `stripCount`, `vbanCount`
+     */
     Type := ""
 
     /**
      * #### An array of voicemeeter buses
      * 
-     * @param {Number} index - The one-based index of the bus.
-     * 
-     * _____
-     * @returns {VMRBus} The bus object.
+     * @type {Array} - An array of `VMRBus` objects.
      */
-    Bus[index]
-    {
-        get {
-            if (index < 1 || index > this.Type.busCount)
-                throw VMRError("Invalid bus index: " . index, this.Bus.Name)
-            return this._busArray[index]
-        }
-    }
+    Bus := Array()
 
     /**
      * #### An array of voicemeeter strips
      * 
-     * @param {Number} index - The one-based index of the strip.
-     * 
-     * _____
-     * @returns {VMRStrip} The strip object.
+     * @type {Array} - An array of `VMRStrip` objects.
      */
-    Strip[index]
-    {
-        get {
-            if (index < 1 || index > this.Type.stripCount)
-                throw VMRError("Invalid strip index: " . index, this.Strip.Name)
-            return this._stripArray[index]
-        }
-    }
+    Strip := Array()
 
     /**
      * #### Creates a new VMR instance, and initializes the VBVMR class.
@@ -109,9 +97,9 @@ class VMR {
     /**
      * #### Attempts to run Voicemeeter.
      * 
-     * Passing a `p_type` will attempt to run the specified Voicemeeter type, otherwise it will try to run the highest available type.
+     * When passing a `p_type`, it will run the specified Voicemeeter type, otherwise it will attempt to run every voicemeeter type descendingly until one is successfully launched.
      * 
-     * @param {Number} p_type - (Optional) The type of Voicemeeter to run. If omitted, the highest available type will be used.
+     * @param {Number} p_type - (Optional) The type of Voicemeeter to run.
      * 
      * _____
      * @returns {Number} The PID of the launched Voicemeeter process.
@@ -299,14 +287,14 @@ class VMR {
     }
 
     _InitializeComponents() {
-        this._busArray := Array()
+        this.Bus := Array()
         loop this.Type.busCount {
-            this._busArray.Push(VMRBus(A_Index - 1, this.Type.id))
+            this.Bus.Push(VMRBus(A_Index - 1, this.Type.id))
         }
 
-        this._stripArray := Array()
+        this.Strip := Array()
         loop this.Type.stripCount {
-            this._stripArray.Push(VMRStrip(A_Index - 1, this.Type.id))
+            this.Strip.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
 
         this._UpdateDevices()
@@ -318,11 +306,11 @@ class VMR {
     }
 
     _UpdateLevels() {
-        for (bus in this._busArray) {
+        for (bus in this.Bus) {
             bus._UpdateLevels()
         }
 
-        for (strip in this._stripArray) {
+        for (strip in this.Strip) {
             strip._UpdateLevels()
         }
 
