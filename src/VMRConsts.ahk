@@ -1,6 +1,8 @@
 class VMRConsts {
     static REGISTRY_KEY := Format("HKLM\Software{}\Microsoft\Windows\CurrentVersion\Uninstall\VB:Voicemeeter {17359A74-1236-5467}", A_Is64bitOS ? "\WOW6432Node" : "")
 
+    static DLL_FILE := A_PtrSize == 8 ? "VoicemeeterRemote64.dll" : "VoicemeeterRemote.dll"
+
     static VOICEMEETER_TYPES := [{
         id: 1,
         busCount: 2,
@@ -35,7 +37,11 @@ class VMRConsts {
         ["Input #1", "Input #2", "Input #3", "Virtual Input #1", "Virtual Input #2"],
         ["Input #1", "Input #2", "Input #3", "Input #4", "Input #5", "Virtual Input #1", "Virtual Input #2", "Virtual Input #3"]
     ]
-    
+
+    static STRING_PARAMETERS := ["Device", "FadeTo", "Label", "FadeBy", "AppGain", "AppMute"]
+
+    static DEVICE_DRIVERS := ["wdm", "mme", "asio", "ks"]
+
     /**
      * #### Events fired by the VMR object
      * 

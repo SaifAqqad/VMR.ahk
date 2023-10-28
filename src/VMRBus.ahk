@@ -3,6 +3,7 @@
 #Include VMRError.ahk
 #Include VMRDevice.ahk
 #Include VMRConsts.ahk
+#Include VMRUtils.ahk
 
 /**
  * A wrapper around a voicemeeter bus.
@@ -19,46 +20,35 @@ class VMRBus extends VMRDevice {
      */
     __New(p_index, p_vmrType) {
         super.__New(p_index, "Bus")
-        this.channel_count := 8
-        this.name := VMRConsts.BUS_NAMES[p_vmrType][p_index + 1]
+        this._channelCount := 8
+        this.Name := VMRConsts.BUS_NAMES[p_vmrType][p_index + 1]
 
         switch p_vmrType {
             case 1:
-                super.is_physical := true
+                super._isPhysical := true
             case 2:
-                super.is_physical := this.index < 3
+                super._isPhysical := this._index < 3
             case 3:
-                super.is_physical := this.index < 5
+                super._isPhysical := this._index < 5
         }
 
         ; Setup the bus's levels array
-        this.level := Array()
-        this.level.Length := this.channel_count
+        this.Level := Array()
+        this.Level.Length := this._channelCount
 
-        ; A bus's level indices start at the current total count
-        this.level_index := VMRBus.LEVELS_COUNT
-        VMRBus.LEVELS_COUNT += this.channel_count
-    }
+        ; A bus's level index starts at the current total count
+        this._levelIndex := VMRBus.LEVELS_COUNT
+        VMRBus.LEVELS_COUNT += this._channelCount
 
-    /**
-     * #### The bus's upper gain limit
-     * Setting the gain above the limit will reset it to this value.
-     * @type {Number}
-     */
-    GainLimit {
-        get {
-            return super.gain_limit
-        }
-        set {
-            return super.gain_limit := Value
-        }
+        this.DefineProp("__Get", { Call: super._Get })
+        this.DefineProp("__Set", { Call: super._Set })
     }
 
     _UpdateLevels() {
-        loop this.channel_count {
-            vmrIndex := this.level_index + A_Index - 1
-            local levelValue := Number(VBVMR.GetLevel(3, vmrIndex))
-            this.level[A_Index] := levelValue
+        loop this._channelCount {
+            local vmrIndex := this._levelIndex + A_Index - 1
+            local level := Round(20 * Log(VBVMR.GetLevel(3, vmrIndex)))
+            this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
 }

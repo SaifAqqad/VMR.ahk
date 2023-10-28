@@ -44,14 +44,13 @@ class VBVMR {
         if (VBVMR.DLL != "")
             return
 
-        local dllPath := p_path ? p_path : VBVMR._GetDLLPath()
-        dllPath .= A_PtrSize = 8 ? "\VoicemeeterRemote64.dll" : "\VoicemeeterRemote.dll"
+        VBVMR.DLL_PATH := p_path ? p_path : VBVMR._GetDLLPath()
+        local dllPath := VBVMR.DLL_PATH "\" VMRConsts.DLL_FILE
 
         if (!FileExist(dllPath))
             throw VMRError("Voicemeeter is not installed in the path :`n" . dllPath, VBVMR.Init.Name)
 
         ; Load the voicemeeter DLL
-        VBVMR.DLL_PATH := dllPath
         VBVMR.DLL := DllCall("LoadLibrary", "Str", dllPath, "Ptr")
 
         ; Get the addresses of all needed function

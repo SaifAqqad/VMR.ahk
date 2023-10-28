@@ -1,13 +1,13 @@
 #Requires AutoHotkey >=2.0
 #Include VBVMR.ahk
 #Include VMRError.ahk
+#Include VMRUtils.ahk
+#Include VMRConsts.ahk
 
 /**
  * #### A base class for `VMRBus` and `VMRStrip`
  */
 class VMRDevice {
-    static STR_PARAMETERS := ["Device", "FadeTo", "Label", "FadeBy", "AppGain", "AppMute"]
-    static DEVICE_DRIVERS := ["wdm", "mme", "asio", "ks"]
     static IS_CLASS_INIT := false
 
     /**
@@ -17,10 +17,10 @@ class VMRDevice {
      * @param {String} p_deviceType - The type of the device. (`Bus` or `Strip`)
      */
     __New(p_index, p_deviceType) {
-        this.index := p_index
-        this.gain_limit := 12
-        this.is_physical := false
-        this.id := p_deviceType "[" p_index "]"
+        this._index := p_index
+        this._isPhysical := false
+        this.GainLimit := 12
+        this.Id := p_deviceType "[" p_index "]"
     }
 
     /**
@@ -34,7 +34,7 @@ class VMRDevice {
      * 
      * @throws {VMRError} - If an internal error occurs.
      */
-    __Get(p_key) {
+    _Get(p_key) {
         if (!VMRDevice.IS_CLASS_INIT)
             return
         return this.GetParameter(p_key)
@@ -53,10 +53,10 @@ class VMRDevice {
      * 
      * @throws {VMRError} - If an internal error occurs.
      */
-    __Set(p_key, p_value, p_extra) {
+    _Set(p_key, p_params, p_value) {
         if (!VMRDevice.IS_CLASS_INIT)
             return
-        return this.SetParameter(p_key, p_value, p_extra)
+        return this.SetParameter(p_key, p_value, p_params.Length > 0 ? p_params[1] : unset)
     }
 
     /**
@@ -86,10 +86,11 @@ class VMRDevice {
     /**
      * #### Returns `true` if the device is a physical (hardware) device.
      * 
-     * @returns {1 | 0} 
+     * _____
+     * @returns {Boolean}
      * @throws {VMRError} - If an internal error occurs.
      */
-    IsPhysical() => this.is_physical
+    IsPhysical() => this._isPhysical
 
     /**
      * #### Sets the value of a parameter.
@@ -99,7 +100,7 @@ class VMRDevice {
      * @param {Number | String} p_extra - (optional) An extra value which is used when setting some parameters like `device`
      * 
      * _____
-     * @returns {Number} - `0` Parameter set successfully
+     * @returns {Boolean} - `true` if the parameter was set successfully.
      * 
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
@@ -111,9 +112,9 @@ class VMRDevice {
 
         switch p_name, false {
             case "gain":
-                p_value := this._EnsureBetween(p_value, -60, this.gain_limit)
+                p_value := VMRUtils.EnsureBetween(p_value, -60, this.GainLimit)
             case "limit":
-                p_value := this._EnsureBetween(p_value, -60, 12.0)
+                p_value := VMRUtils.EnsureBetween(p_value, -60, 12.0)
             case "device":
                 local deviceDriver := IsSet(p_extra) ? p_value : "wdm"
                 local deviceName := IsSet(p_extra) ? p_extra : p_value
@@ -134,7 +135,7 @@ class VMRDevice {
                 p_value := p_value == -1 ? !this.GetParameter("mute") : p_value
         }
 
-        return vmrFunc.Call(this.id, p_name, p_value)
+        return vmrFunc.Call(this.Id, p_name, p_value) == 0
     }
 
     /**
@@ -155,9 +156,9 @@ class VMRDevice {
 
         switch p_name {
             case "gain", "limit":
-                return Format("{:.1f}", vmrFunc.Call(this.id, p_name))
+                return Format("{:.1f}", vmrFunc.Call(this.Id, p_name))
             case "device":
-                return vmrFunc.Call(this.id, "device.name")
+                return vmrFunc.Call(this.Id, "device.name")
         }
 
         return this.getParameter(p_name)
@@ -172,7 +173,7 @@ class VMRDevice {
      * @throws {VMRError} - If an internal error occurs.
      */
     GetGainPercentage() {
-        return this._DbToPercentage(this.GetParameter("gain"))
+        return VMRUtils.DbToPercentage(this.GetParameter("gain"))
     }
 
     /**
@@ -181,41 +182,17 @@ class VMRDevice {
      * @param {Number} p_percentage - The gain as a percentage (`0.40` = 40%)
      * 
      * _____
-     * @returns {Number} - `0` Parameter set successfully
+     * @returns {Boolean} - `true` if the gain was set successfully.
      * 
      * @throws {VMRError} - If an internal error occurs.
      */
     SetGainPercentage(p_percentage) {
-        return this.SetParameter("gain", this._PercentageToDb(p_percentage))
+        return this.SetParameter("gain", VMRUtils.PercentageToDb(p_percentage))
     }
 
-    _DbToPercentage(p_dB) {
-        min_s := 10 ** (-60 / 20), max_s := 10 ** (0 / 20)
-        return Format("{:.2f}", ((10 ** (p_dB / 20)) - min_s) / (max_s - min_s) * 100)
-    }
+    _IsValidDriver(p_driver) => VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, p_driver) > 0
 
-    _PercentageToDb(p_percentage) {
-        min_s := 10 ** (-60 / 20), max_s := 10 ** (0 / 20)
-        return Format("{:.1f}", 20 * Log(min_s + p_percentage / 100 * (max_s - min_s)))
-    }
-
-    _EnsureBetween(p_value, p_min, p_max) => Max(p_min, Min(p_max, p_value))
-
-    _IsValidDriver(p_driver) {
-        for driver in VMRDevice.DEVICE_DRIVERS {
-            if (driver = p_driver)
-                return true
-        }
-        return false
-    }
-
-    _IsStringParam(p_param) {
-        for param in VMRDevice.STR_PARAMETERS {
-            if (param = p_param)
-                return true
-        }
-        return false
-    }
+    _IsStringParam(p_param) => VMRUtils.IndexOf(VMRConsts.STRING_PARAMETERS, p_param) > 0
 
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
         for index, device in p_devicesArr {

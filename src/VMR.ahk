@@ -13,7 +13,41 @@
  * Must be initialized by calling `Login()` after creating the VMR instance.
  */
 class VMR {
-    type := ""
+    Type := ""
+
+    /**
+     * #### An array of voicemeeter buses
+     * 
+     * @param {Number} index - The one-based index of the bus.
+     * 
+     * _____
+     * @returns {VMRBus} The bus object.
+     */
+    Bus[index]
+    {
+        get {
+            if (index < 1 || index > this.Type.busCount)
+                throw VMRError("Invalid bus index: " . index, this.Bus.Name)
+            return this._busArray[index]
+        }
+    }
+
+    /**
+     * #### An array of voicemeeter strips
+     * 
+     * @param {Number} index - The one-based index of the strip.
+     * 
+     * _____
+     * @returns {VMRStrip} The strip object.
+     */
+    Strip[index]
+    {
+        get {
+            if (index < 1 || index > this.Type.stripCount)
+                throw VMRError("Invalid strip index: " . index, this.Strip.Name)
+            return this._stripArray[index]
+        }
+    }
 
     /**
      * #### Creates a new VMR instance, and initializes the VBVMR class.
@@ -52,18 +86,21 @@ class VMR {
             Sleep(2000)
         }
 
-        this.type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()]
-        if (!this.type)
+        this.Type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()]
+        if (!this.Type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name)
 
-        OnExit(ObjBindMethod(this, this.__Delete.Name))
+        OnExit(this.__Delete.Bind(this))
 
         ; Initialize VMR components (bus/strip arrays, macro buttons, etc)
         this._InitializeComponents()
 
         ; setup sync timer
-        this.syncTimer := ObjBindMethod(this, this.Sync.Name)
-        SetTimer(this.syncTimer, 20)
+        this._syncTimer := this.Sync.Bind(this)
+        SetTimer(this._syncTimer, 20)
+
+        this._levelsTimer := this._UpdateLevels.Bind(this)
+        SetTimer(this._levelsTimer, 50)
 
         this.Sync()
         return this
@@ -105,7 +142,7 @@ class VMR {
         throw VMRError("Failed to launch Voicemeeter", this.RunVoicemeeter.Name)
     }
 
-    ; TODO: auto update devices, ToString methods for all objects, update levels timer
+    ; TODO: auto update devices, ToString methods for all objects, update levels timer, exec scripts
 
     /**
      * #### Retrieves a strip device (input device) by its name/driver.
@@ -238,7 +275,7 @@ class VMR {
 
             switch (result) {
                 case "Yes":
-                    this.runVoicemeeter(this.type.id)
+                    this.runVoicemeeter(this.Type.id)
                 case "No", "Timeout":
                     ignore_msg := true
             }
@@ -262,14 +299,14 @@ class VMR {
     }
 
     _InitializeComponents() {
-        this.bus := Array()
-        loop this.type.busCount {
-            this.bus.Push(VMRBus(A_Index - 1, this.type.id))
+        this._busArray := Array()
+        loop this.Type.busCount {
+            this._busArray.Push(VMRBus(A_Index - 1, this.Type.id))
         }
 
-        this.strip := Array()
-        loop this.type.stripCount {
-            this.strip.Push(VMRStrip(A_Index - 1, this.type.id))
+        this._stripArray := Array()
+        loop this.Type.stripCount {
+            this._stripArray.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
 
         this._UpdateDevices()
@@ -280,13 +317,25 @@ class VMR {
         ; TODO: update devices arrays in VMRStrip/VMRBus
     }
 
+    _UpdateLevels() {
+        for (bus in this._busArray) {
+            bus._UpdateLevels()
+        }
+
+        for (strip in this._stripArray) {
+            strip._UpdateLevels()
+        }
+
+        this._DispatchEvent(VMRConsts.Events.LevelsUpdated)
+    }
+
     __Delete() {
-        if (!this.type)
+        if (!this.Type)
             return
 
-        this.type := ""
-        if (this.syncTimer)
-            SetTimer(this.syncTimer, 0)
+        this.Type := ""
+        if (this._syncTimer)
+            SetTimer(this._syncTimer, 0)
 
         while (this.Sync()) {
         }
