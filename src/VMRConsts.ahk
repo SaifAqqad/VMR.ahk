@@ -38,14 +38,26 @@ class VMRConsts {
         ["Input #1", "Input #2", "Input #3", "Input #4", "Input #5", "Virtual Input #1", "Virtual Input #2", "Virtual Input #3"]
     ]
 
-    static STRING_PARAMETERS := ["Device", "FadeTo", "Label", "FadeBy", "AppGain", "AppMute"]
+    static STRING_PARAMETERS := [
+        "Device",
+        "Device.name",
+        "Device.wdm",
+        "Device.mme",
+        "Device.ks",
+        "Device.asio",
+        "Label",
+        "FadeTo",
+        "FadeBy",
+        "AppGain",
+        "AppMute"
+    ]
 
     static DEVICE_DRIVERS := ["wdm", "mme", "asio", "ks"]
 
     static WM_DEVICE_CHANGE := 0x0219, WM_DEVICE_CHANGE_PARAM := 0x0007
 
     /**
-     * #### Events fired by the VMR object
+     * @description Events fired by the VMR object
      * 
      * Use `VMR.On()` to register event listeners.
      * 

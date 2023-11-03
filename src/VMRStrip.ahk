@@ -1,19 +1,20 @@
 #Requires AutoHotkey >=2.0
 #Include VBVMR.ahk
 #Include VMRError.ahk
-#Include VMRDevice.ahk
+#Include VMRAudioIO.ahk
 #Include VMRConsts.ahk
 #Include VMRUtils.ahk
 
 /**
- * A wrapper class for voicemeeter strips.
+ * @description A wrapper class for voicemeeter strips.
+ * @extends {VMRAudioIO}
  */
-class VMRStrip extends VMRDevice {
+class VMRStrip extends VMRAudioIO {
     static LEVELS_COUNT := 0
     static Devices := Array()
 
     /**
-     * #### Creates a new VMRStrip object.
+     * @description Creates a new VMRStrip object.
      * 
      * @param {Number} p_index - The zero-based index of the strip.
      * @param {Number} p_vmrType - The type of the running voicemeeter.

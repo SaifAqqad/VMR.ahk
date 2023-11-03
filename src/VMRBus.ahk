@@ -1,19 +1,20 @@
 #Requires AutoHotkey >=2.0
 #Include VBVMR.ahk
 #Include VMRError.ahk
-#Include VMRDevice.ahk
+#Include VMRAudioIO.ahk
 #Include VMRConsts.ahk
 #Include VMRUtils.ahk
 
 /**
- * A wrapper class for voicemeeter buses.
+ * @description A wrapper class for voicemeeter buses.
+ * @extends {VMRAudioIO}
  */
-class VMRBus extends VMRDevice {
+class VMRBus extends VMRAudioIO {
     static LEVELS_COUNT := 0
     static Devices := Array()
 
     /**
-     * #### Creates a new VMRBus object.
+     * @description Creates a new VMRBus object.
      * 
      * @param {Number} p_index - The zero-based index of the bus.
      * @param {Number} p_vmrType - The type of the running voicemeeter.

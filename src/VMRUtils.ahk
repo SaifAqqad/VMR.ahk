@@ -6,7 +6,7 @@ class VMRUtils {
             throw Error("p_array is not a valid array")
 
         for (i, value in p_array) {
-            if (value == p_value)
+            if (value = p_value)
                 return i
         }
 
