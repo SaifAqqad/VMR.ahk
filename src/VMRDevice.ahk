@@ -28,10 +28,8 @@ class VMRDevice {
      * this is invoked when using the object access syntax. (example: `bus.gain`)
      * 
      * @param {String} p_key - The name of the parameter.
-     * 
-     * ----
+     * __________
      * @returns {Number | String} The value of the parameter.
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     _Get(p_key) {
@@ -47,10 +45,8 @@ class VMRDevice {
      * @param {String} p_key - The name of the parameter.
      * @param {Number | String} p_value - The value of the parameter, or the extra parameters passed to the accessed property.
      * @param {Number | String} p_extra - An extra parameter which is set to the actual value when passing params to the accessed property. `bus.device["wdm"] := "Headset"`
-     * 
-     * ----
+     * __________
      * @returns {Number} - `0` Parameter set successfully
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     _Set(p_key, p_params, p_value) {
@@ -64,10 +60,8 @@ class VMRDevice {
      * this is invoked when using the array access syntax `bus["gain"]` or `bus["gain"] := 0.5`
      * 
      * @param {String} p_key - The name of the parameter.
-     * 
-     * ----
+     * __________
      * @returns {Number | String} The value of the parameter.
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     __Item[p_key] {
@@ -85,8 +79,7 @@ class VMRDevice {
 
     /**
      * #### Returns `true` if the device is a physical (hardware) device.
-     * 
-     * _____
+     * __________
      * @returns {Boolean}
      * @throws {VMRError} - If an internal error occurs.
      */
@@ -98,10 +91,8 @@ class VMRDevice {
      * @param {String} p_name - The name of the parameter.
      * @param {Number | String} p_value - The value of the parameter.
      * @param {Number | String} p_extra - (optional) An extra value which is used when setting some parameters like `device`
-     * 
-     * _____
+     * __________
      * @returns {Boolean} - `true` if the parameter was set successfully.
-     * 
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     SetParameter(p_name, p_value, p_extra?) {
@@ -142,10 +133,8 @@ class VMRDevice {
      * #### Returns the value of a parameter.
      * 
      * @param {String} p_name - The name of the parameter.
-     * 
-     * _____
+     * __________
      * @returns {String | Number} - The value of the parameter.
-     * 
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     GetParameter(p_name) {
@@ -166,10 +155,8 @@ class VMRDevice {
 
     /**
      * #### Returns the gain as a percentage
-     * 
-     * _____
+     * __________
      * @returns {Number} - The gain as a percentage (`0.40` = 40%)
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     GetGainPercentage() {
@@ -180,10 +167,8 @@ class VMRDevice {
      * #### Sets the gain as a percentage
      * 
      * @param {Number} p_percentage - The gain as a percentage (`0.40` = 40%)
-     * 
-     * _____
+     * __________
      * @returns {Boolean} - `true` if the gain was set successfully.
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     SetGainPercentage(p_percentage) {

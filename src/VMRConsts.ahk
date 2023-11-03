@@ -5,25 +5,25 @@ class VMRConsts {
 
     static VOICEMEETER_TYPES := [{
         id: 1,
+        name: "Voicemeeter",
+        executable: "Voicemeeter.exe",
         busCount: 2,
         vbanCount: 4,
-        stripCount: 3,
-        name: "Voicemeeter",
-        executable: "Voicemeeter.exe"
+        stripCount: 3
     }, {
         id: 2,
+        name: "Voicemeeter Banana",
+        executable: "voicemeeterpro.exe",
         busCount: 5,
         vbanCount: 8,
-        stripCount: 5,
-        name: "Voicemeeter Banana",
-        executable: "voicemeeterpro.exe"
+        stripCount: 5
     }, {
         id: 3,
+        name: "Voicemeeter Potato",
+        executable: Format("voicemeeter8{}.exe", A_Is64bitOS ? "x64" : ""),
         busCount: 8,
         vbanCount: 8,
-        stripCount: 8,
-        name: "Voicemeeter Potato",
-        executable: Format("voicemeeter8{}.exe", A_Is64bitOS ? "x64" : "")
+        stripCount: 8
     }]
 
     static BUS_NAMES := [
@@ -51,12 +51,14 @@ class VMRConsts {
      * 
      * - `ParametersChanged` - Called when bus/strip parameters change
      * - `LevelsUpdated` - Called when the `level` arrays for buses/strips are updated
+     * - `DevicesUpdated` - Called when the list of available devices is updated
      * - `MacroButtonsChanged` - Called when macro-buttons's states change
      * - `MidiMessage` - Called when a midi message is received
      */
     static Events := {
         ParametersChanged: "ParametersChanged",
         LevelsUpdated: "LevelsUpdated",
+        DevicesUpdated: "DevicesUpdated",
         MacroButtonsChanged: "MacroButtonsChanged",
         MidiMessage: "MidiMessage"
     }

@@ -5,7 +5,7 @@
 /**
  * #### A static wrapper class for the Voicemeeter Remote DLL.
  * 
- * Must be initialized by calling `Init()` before using any of its static methods.
+ * Must be initialized by calling `VBVMR.Init()` before using any of its static methods.
  */
 class VBVMR {
     static FUNC := {
@@ -35,9 +35,8 @@ class VBVMR {
      * #### Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
      * If the DLL is already loaded, it returns immediately.
      * 
-     * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, it will try to find it in the registry.
-     * 
-     * ----
+     * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, it will be looked up in the registry.
+     * __________
      * @throws {VMRError} - If the DLL is not found in the specified path or if voicemeeter is not installed.
      */
     static Init(p_path := "") {
@@ -71,12 +70,11 @@ class VBVMR {
     }
 
     /**
-     * #### Opens Communication Pipe With Voicemeeter.
-     * 
+     * #### Opens a Communication Pipe With Voicemeeter.
+     * __________
      * @returns {Number}
      * - `0` : OK (no error).
-     * - `1` : OK but Voicemeeter Application not launched
-     * 
+     * - `1` : OK but Voicemeeter is not launched (need to launch it manually).
      * @throws {VMRError} - If an internal error occurs.
      */
     static Login() {
@@ -93,11 +91,10 @@ class VBVMR {
     }
 
     /**
-     * #### Closes Communication Pipe With Voicemeeter.
-     * 
+     * #### Closes the Communication Pipe With Voicemeeter.
+     * __________
      * @returns {Number}
      * - `0` : OK (no error).
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static Logout() {
@@ -120,11 +117,9 @@ class VBVMR {
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
      * @param {String} p_parameter - The name of the parameter (ex: `gain`).
      * @param {Number} p_value - The value to set.
-     * 
-     * ----
+     * __________
      * @returns {Number}
      * - `0` : OK (no error).
-     * 
      * @throws {VMRError} - If the parameter is not found, or an internal error occurs.
      */
     static SetParameterFloat(p_prefix, p_parameter, p_value) {
@@ -146,11 +141,9 @@ class VBVMR {
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
      * @param {String} p_parameter - The name of the parameter (ex: `name`).
      * @param {String} p_value - The value to set.
-     * 
-     * ----
+     * __________
      * @returns {Number}
      * - `0` : OK (no error).
-     * 
      * @throws {VMRError} - If the parameter is not found, or an internal error occurs.
      */
     static SetParameterString(p_prefix, p_parameter, p_value) {
@@ -172,10 +165,8 @@ class VBVMR {
      * 
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
      * @param {String} p_parameter - The name of the parameter (ex: `gain`).
-     * 
-     * ----
+     * __________
      * @returns {Number} - The value of the parameter.
-     * 
      * @throws {VMRError} - If the parameter is not found, or an internal error occurs.
      */
     static GetParameterFloat(p_prefix, p_parameter) {
@@ -197,10 +188,8 @@ class VBVMR {
      * 
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
      * @param {String} p_parameter - The name of the parameter (ex: `name`).
-     * 
-     * ----
+     * __________
      * @returns {String} - The value of the parameter.
-     * 
      * @throws {VMRError} - If the parameter is not found, or an internal error occurs.
      */
     static GetParameterString(p_prefix, p_parameter) {
@@ -220,15 +209,12 @@ class VBVMR {
      * #### Returns the level of a single bus/strip channel.
      * 
      * @param {Number} p_type - The type of the returned level (`0`: pre-fader, `1`: post-fader, `2`: post-mute, `3`: output-levels).
-     * @param {Number} p_channel - The channel index (ex: `1`), channels Indices are different depending on the type of voiceemeeter running.
-     * 
-     * Channel Indices are incremented from the left to right (On the UI), starting at `0`, Buses and Strips have separate Indices.
-     * 
-     * Physical (hardware) strips have 2 channels (left, right), Buses and virtual strips have 8 channels.
-     * 
-     * ----
+     * @param {Number} p_channel - The channel index (ex: `1`).
+     * - Channel Indices are dependant on the type of voiceemeeter running.
+     * - Channel Indices are incremented from the left to right (On the Voicemeeter UI), starting at `0`, Buses and Strips have separate Indices.
+     * - Physical (hardware) strips have 2 channels (left, right), Buses and virtual strips have 8 channels.
+     * __________
      * @returns {Number} - The level of the requested channel.
-     * 
      * @throws {VMRError} - If the channel index is invalid, or an internal error occurs.
      */
     static GetLevel(p_type, p_channel) {
@@ -246,12 +232,8 @@ class VBVMR {
 
     /**
      * #### Returns the type of voicemeeter running.
-     * 
-     * @returns {Number}
-     * - `1` : Voicemeeter
-     * - `2` : Voicemeeter Banana
-     * - `3` : Voicemeeter Potato
-     * 
+     * __________
+     * @returns {Number} - The type of voicemeeter running, Check `VMRConsts.VOICEMEETER_TYPES` for possible values.
      * @throws {VMRError} - If an internal error occurs.
      */
     static GetVoicemeeterType() {
@@ -269,9 +251,8 @@ class VBVMR {
 
     /**
      * #### Returns the number of Output Devices available on the system.
-     * 
+     * __________
      * @returns {Number} - The number of output devices.
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static Output_GetDeviceNumber() {
@@ -291,10 +272,8 @@ class VBVMR {
      * #### Returns the Descriptor of an output device.
      * 
      * @param {Number} p_index - The index of the device (zero-based).
-     * 
-     * ----
-     * @returns {{name, driver}} - An object containing the `name` and `driver` of the device.
-     * 
+     * __________
+     * @returns {Object} - An object containing the `name` and `driver` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Output_GetDeviceDesc(p_index) {
@@ -325,9 +304,8 @@ class VBVMR {
 
     /**
      * #### Returns the number of Input Devices available on the system.
-     * 
+     * __________
      * @returns {Number} - The number of input devices.
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static Input_GetDeviceNumber() {
@@ -347,10 +325,8 @@ class VBVMR {
      * #### Returns the Descriptor of an input device.
      * 
      * @param {Number} p_index - The index of the device (zero-based).
-     * 
-     * ----
-     * @returns {{name, driver}} - An object containing the `name` and `driver` of the device.
-     * 
+     * __________
+     * @returns {Object} - An object containing the `name` and `driver` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Input_GetDeviceDesc(p_index) {
@@ -381,11 +357,10 @@ class VBVMR {
 
     /**
      * #### Checks if any parameters have changed.
-     * 
+     * __________
      * @returns {Number}
      * - `0` : No change
      * - `1` : Some parameters have changed
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static IsParametersDirty() {
@@ -406,12 +381,10 @@ class VBVMR {
      * 
      * @param {Number} p_logicalButton - The index of the button (zero-based).
      * @param {Number} p_bitMode - The type of the returned value (`0`: button-state, `2`: displayed-state, `3`: trigger-state).
-     * 
-     * ----
+     * __________
      * @returns {Number} - The status of the button
      * - `0`: Off
      * - `1`: On
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static MacroButton_GetStatus(p_logicalButton, p_bitMode) {
@@ -433,12 +406,10 @@ class VBVMR {
      * @param {Number} p_logicalButton - The index of the button (zero-based).
      * @param {Number} p_value - The value to set (`0`: Off, `1`: On).
      * @param {Number} p_bitMode - The type of the returned value (`0`: button-state, `2`: displayed-state, `3`: trigger-state).
-     * 
-     * ----
+     * __________
      * @returns {Number} - The status of the button
      * - `0`: Off
      * - `1`: On
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static MacroButton_SetStatus(p_logicalButton, p_value, p_bitMode) {
@@ -456,11 +427,10 @@ class VBVMR {
 
     /**
      * #### Checks if any Macro Buttons states have changed.
-     * 
+     * __________
      * @returns {Number} 
      *  - `0` : No change 
      *  - `> 0` : Some buttons have changed
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static MacroButton_IsDirty() {
@@ -477,11 +447,11 @@ class VBVMR {
     }
 
     /**
-     * #### Returns the MIDI message from a MIDI input device used by Voicemeeter MIDI mapping.
-     * 
-     * @returns {Array} - `[0xF0, 0xFF, ...]` An array of hex-formatted bytes that compose one or more MIDI messages. a single message is usually 2 or 3 bytes long.
-     * @returns {String} `""` No MIDI messages available.
-     * 
+     * #### Returns any available MIDI messages from Voicemeeter's MIDI mapping.
+     * __________
+     * @returns {Array | String} - `[0xF0, 0xFF, ...]` An array of hex-formatted bytes that compose one or more MIDI messages, or an empty string `""` if no messages are available.
+     * - A single message is usually 2 or 3 bytes long
+     * - The returned array will contain at most `1024` bytes.
      * @throws {VMRError} - If an internal error occurs.
      */
     static GetMidiMessage() {
@@ -506,20 +476,16 @@ class VBVMR {
     }
 
     /**
-     * #### Sets one or several parameters using a script.
+     * #### Sets one or more parameters using a voicemeeter script.
      * 
      * @param {String} p_script - The script to execute (must be less than `48kb`).
-     * 
-     * Scripts can contain one or more parameter changes, changes can be seperated by a new line, `;` or `,`.
-     * 
-     * Indices inside the script are zero-based.
-     * 
-     * ----
-     * 
+     * - Scripts can contain one or more parameter changes
+     * - Changes can be seperated by a new line, `;` or `,`.
+     * - Indices inside the script are zero-based.
+     * __________
      * @returns {Number} 
      *  - `0` : OK (no error) 
      *  - `> 0` : Number of the line causing an error
-     * 
      * @throws {VMRError} - If an internal error occurs.
      */
     static SetParameters(p_script) {

@@ -6,7 +6,7 @@
 #Include VMRUtils.ahk
 
 /**
- * A wrapper around a voicemeeter bus.
+ * A wrapper class for voicemeeter buses.
  */
 class VMRBus extends VMRDevice {
     static LEVELS_COUNT := 0

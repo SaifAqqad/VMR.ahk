@@ -6,7 +6,7 @@
 #Include VMRUtils.ahk
 
 /**
- * A wrapper around a voicemeeter strip.
+ * A wrapper class for voicemeeter strips.
  */
 class VMRStrip extends VMRDevice {
     static LEVELS_COUNT := 0
