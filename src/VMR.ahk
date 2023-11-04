@@ -123,13 +123,13 @@ class VMR {
     }
 
     /**
-     * @description Retrieves a strip device (input device) by its name/driver.
+     * @description Retrieves a strip (input) device by its name/driver.
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
      * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */
-    GetStripDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRStrip.Devices, p_name, p_driver)
+    GetStripDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRStrip.Devices, p_name, p_driver?)
 
     /**
      * @description Retrieves all strip devices (input devices).
@@ -139,13 +139,13 @@ class VMR {
     GetStripDevices() => VMRStrip.Devices
 
     /**
-     * @description Retrieves a bus device (output device) by its name/driver.
+     * @description Retrieves a bus (output) device by its name/driver.
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
      * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */
-    GetBusDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRBus.Devices, p_name, p_driver)
+    GetBusDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRBus.Devices, p_name, p_driver?)
 
     /**
      * @description Retrieves all bus devices (output devices).
@@ -222,8 +222,8 @@ class VMR {
             local dirtyParameters := VBVMR.IsParametersDirty()
                 , dirtyMacroButtons := VBVMR.MacroButton_IsDirty()
 
-            ; Api calls were successful -> reset ignore_msg flag
-            ignore_msg := false
+            ; Api calls were successful -> reset ignoreMsg flag
+            ignoreMsg := false
 
             if (dirtyParameters > 0)
                 SetTimer(() => this._DispatchEvent(VMRConsts.Events.ParametersChanged), -10)
@@ -245,7 +245,7 @@ class VMR {
                 return false
 
             result := MsgBox(
-                Format("An error occurred during VMR sync: {}`nDetails:{}`nAttempt to restart Voicemeeter?", err.Message, err.Extra),
+                Format("An error occurred during VMR sync:`n{}`nDetails: {}`nAttempt to restart Voicemeeter?", err.Message, err.Extra),
                 "VMR",
                 "YesNo Icon! T10"
             )
@@ -254,7 +254,7 @@ class VMR {
                 case "Yes":
                     this.runVoicemeeter(this.Type.id)
                 case "No", "Timeout":
-                    ignore_msg := true
+                    ignoreMsg := true
             }
 
             Sleep(1000)

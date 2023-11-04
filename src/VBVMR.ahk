@@ -224,7 +224,7 @@ class VBVMR {
             throw VMRError(err, VBVMR.GetLevel.Name)
 
         if (result < 0)
-            return
+            return 0
 
         return NumGet(level, 0, "Float")
     }
