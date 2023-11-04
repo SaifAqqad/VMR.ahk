@@ -13,7 +13,6 @@ class VMRAudioIO {
 
     /**
      * @description Creates a new `VMRAudioIO` object.
-     * 
      * @param {Number} p_index - The zero-based index of the bus/strip.
      * @param {String} p_ioType - The type of the object. (`Bus` or `Strip`)
      */
@@ -26,8 +25,10 @@ class VMRAudioIO {
 
     /**
      * @private - Internal method
-     * @description Implements a default property getter.
-     * this is invoked when using the object access syntax. (example: `bus.gain`)
+     * @description Implements a default property getter, this is invoked when using the object access syntax.
+     * @example
+     * local sampleRate := bus.device["sr"]
+     * MsgBox("Gain is " bus.gain)
      * 
      * @param {String} p_key - The name of the parameter.
      * @param {Array} p_params - An extra param passed when using bracket syntax with a normal prop access (`bus.device["sr"]`).
@@ -49,8 +50,10 @@ class VMRAudioIO {
 
     /**
      * @private - Internal method
-     * @description Implements a default property setter.
-     * this is invoked when using the object access syntax. (example: `bus.gain := 0.5`)
+     * @description Implements a default property setter, this is invoked when using the object access syntax.
+     * @example
+     * bus.gain := 0.5
+     * bus.device["mme"] := "Headset"
      * 
      * @param {String} p_key - The name of the parameter.
      * @param {Array} p_params - An extra param passed when using bracket syntax with a normal prop access. `bus.device["wdm"] := "Headset"`
@@ -73,7 +76,10 @@ class VMRAudioIO {
 
     /**
      * @description Implements a default indexer.
-     * this is invoked when using the bracket access syntax `strip["mute"]` or `bus["gain"] := 0.5`
+     * this is invoked when using the bracket access syntax.
+     * @example
+     * MsgBox(strip["mute"])
+     * bus["gain"] := 0.5
      * 
      * @param {String} p_key - The name of the parameter.
      * __________
@@ -198,12 +204,23 @@ class VMRAudioIO {
 
     static _IsStringParam(p_param) => VMRUtils.IndexOf(VMRConsts.STRING_PARAMETERS, p_param) > 0
 
+    /**
+     * @private - Internal method
+     * @description Returns a device object.
+     * 
+     * @param {Array} p_devicesArr - An array of {@link VMRDevice|`VMRDevice`} objects.
+     * @param {String} p_name - The name of the device.
+     * @param {String} p_driver - The driver of the device.
+     * @see {@link VMRConsts.DEVICE_DRIVERS|`VMRConsts.DEVICE_DRIVERS`} for a list of valid drivers.
+     * __________
+     * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
+     */
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
-        for (index, device in p_devicesArr) {
-            if (IsSet(p_driver) && device.driver = p_driver && InStr(device.name, p_name))
-                return device.Clone()
+        if (!IsSet(p_driver))
+            p_driver := VMRConsts.DEFAULT_DEVICE_DRIVER
 
-            if (device.name = p_name)
+        for (index, device in p_devicesArr) {
+            if (device.driver = p_driver && InStr(device.name, p_name))
                 return device.Clone()
         }
 

@@ -125,7 +125,7 @@ class VMR {
     /**
      * @description Retrieves a strip device (input device) by its name/driver.
      * @param {String} p_name - The name of the device, or any substring of it.
-     * @param {String} p_driver - (Optional) The driver of the device, If omitted, `p_name` must be the full name of the device.
+     * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
      * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */
@@ -141,7 +141,7 @@ class VMR {
     /**
      * @description Retrieves a bus device (output device) by its name/driver.
      * @param {String} p_name - The name of the device, or any substring of it.
-     * @param {String} p_driver - (Optional) The driver of the device, If omitted, `p_name` must be the full name of the device.
+     * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
      * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */

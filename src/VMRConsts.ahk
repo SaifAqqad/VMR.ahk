@@ -52,6 +52,8 @@ class VMRConsts {
         "AppMute"
     ]
 
+    static DEFAULT_DEVICE_DRIVER := "wdm"
+
     static DEVICE_DRIVERS := ["wdm", "mme", "asio", "ks"]
 
     static WM_DEVICE_CHANGE := 0x0219, WM_DEVICE_CHANGE_PARAM := 0x0007
