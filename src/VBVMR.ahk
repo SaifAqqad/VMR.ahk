@@ -53,7 +53,7 @@ class VBVMR {
         VBVMR.DLL := DllCall("LoadLibrary", "Str", dllPath, "Ptr")
 
         ; Get the addresses of all needed function
-        for fName in VBVMR.FUNC.OwnProps() {
+        for (fName in VBVMR.FUNC.OwnProps()) {
             VBVMR.FUNC.%fName% := DllCall("GetProcAddress", "Ptr", VBVMR.DLL, "AStr", "VBVMR_" . fName, "Ptr")
         }
     }
@@ -69,7 +69,7 @@ class VBVMR {
         try
             value := RegRead(VMRConsts.REGISTRY_KEY, "UninstallString")
         catch OSError
-            Throw VMRError("Failed to retrieve the installation path of Voicemeeter", VBVMR._GetDLLPath.Name)
+            throw VMRError("Failed to retrieve the installation path of Voicemeeter", VBVMR._GetDLLPath.Name)
 
         SplitPath(value, , &dir)
         return dir
@@ -195,7 +195,7 @@ class VBVMR {
     static GetParameterString(p_prefix, p_parameter) {
         local result, value := Buffer(1024)
 
-        try result := DllCall(VBVMR.FUNC.GetParameterFloat, "AStr", p_prefix . "." . p_parameter, "Ptr", value, "Int")
+        try result := DllCall(VBVMR.FUNC.GetParameterStringW, "AStr", p_prefix . "." . p_parameter, "Ptr", value, "Int")
         catch Error as err
             throw VMRError(err, VBVMR.GetParameterString.Name)
 
@@ -231,8 +231,9 @@ class VBVMR {
 
     /**
      * @description Returns the type of voicemeeter running.
+     * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for possible values.
      * __________
-     * @returns {Number} - The type of voicemeeter running, Check `VMRConsts.VOICEMEETER_TYPES` for possible values.
+     * @returns {Number} - The type of voicemeeter running.
      * @throws {VMRError} - If an internal error occurs.
      */
     static GetVoicemeeterType() {

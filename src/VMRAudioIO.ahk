@@ -30,13 +30,20 @@ class VMRAudioIO {
      * this is invoked when using the object access syntax. (example: `bus.gain`)
      * 
      * @param {String} p_key - The name of the parameter.
+     * @param {Array} p_params - An extra param passed when using bracket syntax with a normal prop access (`bus.device["sr"]`).
      * __________
-     * @returns {Number | String} The value of the parameter.
+     * @returns {Any} The value of the parameter.
      * @throws {VMRError} - If an internal error occurs.
      */
-    _Get(p_key) {
+    _Get(p_key, p_params) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return
+            return ""
+
+        if (p_params.Length > 0) {
+            local param := p_params[1]
+            p_key .= IsNumber(param) ? "[" param "]" : "." param
+        }
+
         return this.GetParameter(p_key)
     }
 
@@ -46,37 +53,43 @@ class VMRAudioIO {
      * this is invoked when using the object access syntax. (example: `bus.gain := 0.5`)
      * 
      * @param {String} p_key - The name of the parameter.
-     * @param {Number | String} p_extra - An extra parameter which is set to the actual value when passing params to the accessed property. `bus.device["wdm"] := "Headset"`
-     * @param {Number | String} p_value - The value of the parameter, or the extra parameters passed to the accessed property.
+     * @param {Array} p_params - An extra param passed when using bracket syntax with a normal prop access. `bus.device["wdm"] := "Headset"`
+     * @param {Any} p_value - The value of the parameter.
      * __________
-     * @returns {Number} - `0` Parameter set successfully
+     * @returns {Any} - If the parameter was set successfully it returns `p_value`, otherwise it returns `""`.
      * @throws {VMRError} - If an internal error occurs.
      */
     _Set(p_key, p_params, p_value) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return
-        return this.SetParameter(p_key, p_value, p_params.Length > 0 ? p_params[1] : unset)
+            return ""
+
+        if (p_params.Length > 0) {
+            local param := p_params[1]
+            p_key .= IsNumber(param) ? "[" param "]" : "." param
+        }
+
+        return this.SetParameter(p_key, p_value) ? p_value : ""
     }
 
     /**
      * @description Implements a default indexer.
-     * this is invoked when using the array access syntax `strip["mute"]` or `bus["gain"] := 0.5`
+     * this is invoked when using the bracket access syntax `strip["mute"]` or `bus["gain"] := 0.5`
      * 
      * @param {String} p_key - The name of the parameter.
      * __________
-     * @returns {Number | String} The value of the parameter.
+     * @returns {Any} The value of the parameter.
      * @throws {VMRError} - If an internal error occurs.
      */
     __Item[p_key] {
         get {
             if (!VMRAudioIO.IS_CLASS_INIT)
-                return
+                return ""
             return this.GetParameter(p_key)
         }
         set {
             if (!VMRAudioIO.IS_CLASS_INIT)
-                return
-            return this.SetParameter(p_key, value)
+                return ""
+            return this.SetParameter(p_key, Value) ? Value : ""
         }
     }
 
@@ -91,44 +104,47 @@ class VMRAudioIO {
      * @description Sets the value of a parameter.
      * 
      * @param {String} p_name - The name of the parameter.
-     * @param {Number | String} p_value - The value of the parameter.
-     * @param {Number | String} p_extra - (optional) An extra value which is used when setting some parameters like `device`
+     * @param {Any} p_value - The value of the parameter.
      * __________
      * @returns {Boolean} - `true` if the parameter was set successfully.
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
-    SetParameter(p_name, p_value, p_extra?) {
+    SetParameter(p_name, p_value) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return -1
+            return false
 
-        local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.SetParameterString : VBVMR.SetParameterFloat
+        local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.SetParameterString.Bind(VBVMR) : VBVMR.SetParameterFloat.Bind(VBVMR)
 
-        switch p_name, false {
-            case "gain":
-                p_value := VMRUtils.EnsureBetween(p_value, -60, this.GainLimit)
-            case "limit":
-                p_value := VMRUtils.EnsureBetween(p_value, -60, 12.0)
-            case "device":
-                local deviceDriver := IsSet(p_extra) ? p_value : "wdm"
-                local deviceName := IsSet(p_extra) ? p_extra : p_value
+        if (p_name = "gain") {
+            p_value := VMRUtils.EnsureBetween(p_value, -60, this.GainLimit)
+        }
+        else if (p_name = "limit") {
+            p_value := VMRUtils.EnsureBetween(p_value, -60, 12.0)
+        }
+        else if (p_name = "mute") {
+            p_value := p_value < 0 ? !this.GetParameter("mute") : p_value
+        }
+        else if (InStr(p_name, "device")) {
+            local deviceParts := StrSplit(p_name, ".")
 
-                ; Allows setting the device using a device object (e.g. bus.device := {name: "Headset", driver: "wdm"})
-                ; Device objects can be retrieved using VMRBus/VMRStrip GetDevice() method
-                if (IsObject(deviceName)) {
-                    deviceDriver := deviceName.driver
-                    deviceName := deviceName.name
-                }
+            local deviceDriver := deviceParts.Length > 1 ? deviceParts[2] : "wdm"
+            local deviceName := p_value
 
-                if (!VMRAudioIO._IsValidDriver(deviceDriver))
-                    throw VMRError(deviceDriver " is not a valid device driver", this.SetParameter.Name)
+            ; Allow setting the device using a device object (e.g. bus.device := { name: "Headset", driver: "wdm" })
+            ; Device objects can be retrieved using VMR's GetBusDevice/GetStripDevice methods
+            if (IsObject(deviceName)) {
+                deviceDriver := deviceName.driver
+                deviceName := deviceName.name
+            }
 
-                p_name := "device." deviceDriver
-                p_value := deviceName
-            case "mute":
-                p_value := p_value == -1 ? !this.GetParameter("mute") : p_value
+            if (!VMRAudioIO._IsValidDriver(deviceDriver))
+                throw VMRError(deviceDriver " is not a valid device driver", this.SetParameter.Name)
+
+            p_name := "device." deviceDriver
+            p_value := deviceName
         }
 
-        return vmrFunc.Call(VBVMR, this.Id, p_name, p_value) == 0
+        return vmrFunc.Call(this.Id, p_name, p_value) == 0
     }
 
     /**
@@ -136,23 +152,23 @@ class VMRAudioIO {
      * 
      * @param {String} p_name - The name of the parameter.
      * __________
-     * @returns {String | Number} - The value of the parameter.
+     * @returns {Any} - The value of the parameter.
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     GetParameter(p_name) {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return -1
 
-        local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.GetParameterString : VBVMR.GetParameterFloat
+        local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.GetParameterString.Bind(VBVMR) : VBVMR.GetParameterFloat.Bind(VBVMR)
 
         switch p_name {
             case "gain", "limit":
                 return Format("{:.1f}", vmrFunc.Call(this.Id, p_name))
             case "device":
-                return vmrFunc.Call(VBVMR, this.Id, "device.name")
+                p_name := "device.name"
         }
 
-        return this.getParameter(p_name)
+        return vmrFunc.Call(this.Id, p_name)
     }
 
     /**
@@ -167,8 +183,9 @@ class VMRAudioIO {
 
     /**
      * @description Sets the gain as a percentage
+     * @example local gain := vm.Bus[1].SetGainPercentage(0.75) ; sets the gain to 75%
      * 
-     * @param {Number} p_percentage - The gain as a percentage (`0.40` = 40%)
+     * @param {Number} p_percentage - The gain as a percentage (float between 0 and 1)
      * __________
      * @returns {Boolean} - `true` if the gain was set successfully.
      * @throws {VMRError} - If an internal error occurs.
@@ -182,7 +199,7 @@ class VMRAudioIO {
     static _IsStringParam(p_param) => VMRUtils.IndexOf(VMRConsts.STRING_PARAMETERS, p_param) > 0
 
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
-        for index, device in p_devicesArr {
+        for (index, device in p_devicesArr) {
             if (IsSet(p_driver) && device.driver = p_driver && InStr(device.name, p_name))
                 return device.Clone()
 

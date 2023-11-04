@@ -43,7 +43,6 @@ class VMRStrip extends VMRAudioIO {
         this._levelIndex := VMRStrip.LEVELS_COUNT
         VMRStrip.LEVELS_COUNT += this._channelCount
 
-        
         this.DefineProp("__Get", { Call: super._Get })
         this.DefineProp("__Set", { Call: super._Set })
     }

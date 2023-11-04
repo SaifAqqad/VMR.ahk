@@ -9,7 +9,8 @@ class VMRError extends Error {
 
         if (p_errorValue is Error) {
             this.Extra := "Inner error message (" . p_errorValue.Message . ")"
-        } else if (IsNumber(p_errorValue)) {
+        }
+        else if (IsNumber(p_errorValue)) {
             this.returnCode := p_errorValue
             this.Extra := "VMR Return Code (" . p_errorValue . ")"
         }

@@ -14,20 +14,22 @@
 class VMR {
     /**
      * @description The type of Voicemeeter that is currently running.
-     * @type {Object} - An object containing information about the current Voicemeeter type.
-     * - Properties: `id`, `name`, `executable`, `busCount`, `stripCount`, `vbanCount`
+     * @property {VMRType} Type - An object containing information about the current Voicemeeter type.
+     * __________
+     * @typedef {{ id, name, executable, busCount, stripCount, vbanCount }} VMRType
+     * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for a list of available types.
      */
     Type := ""
 
     /**
      * @description An array of voicemeeter buses
-     * @type {Array} - An array of `VMRBus` objects.
+     * @property {Array} Bus - An array of {@link VMRBus|`VMRBus`} objects.
      */
     Bus := Array()
 
     /**
      * @description An array of voicemeeter strips
-     * @type {Array} - An array of `VMRStrip` objects.
+     * @property {Array} Strip - An array of {@link VMRStrip|`VMRStrip`} objects.
      */
     Strip := Array()
 
@@ -156,7 +158,9 @@ class VMR {
      * @description Registers a callback function to be called when the specified event is fired.
      * @param {String} p_event - The name of the event to listen for.
      * @param {Func} p_listener - The function to call when the event is fired.
-     * @see {VMRConsts.Events} for a list of available events.
+     * __________
+     * @example vm.On(VMRConsts.Events.ParametersChanged, () => MsgBox("Parameters changed!"))
+     * @see {@link VMRConsts.Events|`VMRConsts.Events`} for a list of available events.
      * __________
      * @throws {VMRError} If the specified event is invalid, or if the listener is not a valid `Func` object.
      */
@@ -176,15 +180,22 @@ class VMR {
     /**
      * @description Removes a callback function from the specified event.
      * @param {String} p_event - The name of the event.
-     * @param {Func} p_listener - The function to remove.
-     * @see {VMRConsts.Events} for a list of available events.
+     * @param {Func} p_listener - (Optional) The function to remove, if omitted, all listeners for the specified event will be removed.
+     * __________
+     * @example vm.Off("parametersChanged", myListener)
+     * @see {@link VMRConsts.Events|`VMRConsts.Events`} for a list of available events.
      * __________
      * @returns {Boolean} Whether the listener was removed.
      * @throws {VMRError} If the specified event is invalid, or if the listener is not a valid `Func` object.
      */
-    Off(p_event, p_listener) {
+    Off(p_event, p_listener?) {
         if (!this._eventListeners.Has(p_event))
             throw VMRError("Invalid event: " p_event, this.Off.Name)
+
+        if (!IsSet(p_listener)) {
+            this._eventListeners[p_event] := Array()
+            return true
+        }
 
         if !(p_listener is Func)
             throw VMRError("Invalid listener: " String(p_listener), this.Off.Name)
@@ -201,7 +212,7 @@ class VMR {
 
     /**
      * @description Syncronizes the VMR instance with Voicemeeter.
-     * Normally this is called automatically on a timer, and doesn't need to be manually called/checked.
+     * ##### Note: This is called automatically on a timer, and doesn't need to be manually called/checked.
      * __________
      * @returns {Boolean} - Whether voicemeeter state has changed since the last sync.
      */
@@ -228,7 +239,8 @@ class VMR {
                 if (midiMessages && midiMessages.Length > 0)
                     SetTimer(() => this._DispatchEvent(VMRConsts.Events.MidiMessage, midiMessages), -10)
             }
-        } catch Error as err {
+        }
+        catch Error as err {
             if (ignoreMsg)
                 return false
 
@@ -245,7 +257,7 @@ class VMR {
                     ignore_msg := true
             }
 
-            sleep 1000
+            Sleep(1000)
             return false
         }
     }
@@ -269,7 +281,7 @@ class VMR {
 
     /**
      * @description Updates the list of strip/bus devices.
-     * @param {Number} p_wParam - (Optional) If passed, must be equal to `VMRConsts.WM_DEVICE_CHANGE_PARAM` to update the device arrays.
+     * @param {Number} p_wParam - (Optional) If passed, must be equal to {@link VMRConsts.WM_DEVICE_CHANGE_PARAM|`VMRConsts.WM_DEVICE_CHANGE_PARAM`} to update the device arrays.
      * __________
      * @throws {VMRError} If an internal error occurs.
      */
@@ -293,17 +305,8 @@ class VMR {
 
         if (this.Type) {
             value .= "Logged into " . this.Type.name . " in (" . VBVMR.DLL_PATH . ")"
-
-            value .= "`n`nBuses:`n"
-            for bus in this.Bus {
-                value .= "`t" . bus.ToString()
-            }
-
-            value .= "`n`nStrips:`n"
-            for strip in this.Strip {
-                value .= "`t" . strip.ToString()
-            }
-        } else {
+        }
+        else {
             value .= "Not logged in"
         }
 
@@ -356,6 +359,7 @@ class VMR {
      * @description Updates the levels of all buses/strips.
      */
     _UpdateLevels() {
+        local bus, strip
         for (bus in this.Bus) {
             bus._UpdateLevels()
         }
