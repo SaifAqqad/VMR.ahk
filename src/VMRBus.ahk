@@ -14,8 +14,7 @@ class VMRBus extends VMRAudioIO {
     static Devices := Array()
 
     /**
-     * @description Creates a new VMRBus object.
-     * 
+     * Creates a new VMRBus object.
      * @param {Number} p_index - The zero-based index of the bus.
      * @param {Number} p_vmrType - The type of the running voicemeeter.
      */

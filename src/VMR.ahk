@@ -216,6 +216,9 @@ class VMR {
     Sync() {
         static ignoreMsg := false
         try {
+            ; Prevent multiple syncs from running at the same time
+            Critical("On")
+
             local dirtyParameters := VBVMR.IsParametersDirty()
                 , dirtyMacroButtons := VBVMR.MacroButton_IsDirty()
 
@@ -223,10 +226,10 @@ class VMR {
             ignoreMsg := false
 
             if (dirtyParameters > 0)
-                SetTimer(() => this._DispatchEvent(VMRConsts.Events.ParametersChanged), -10)
+                this._DispatchEvent(VMRConsts.Events.ParametersChanged)
 
             if (dirtyMacroButtons > 0)
-                SetTimer(() => this._DispatchEvent(VMRConsts.Events.MacroButtonsChanged), -10)
+                this._DispatchEvent(VMRConsts.Events.MacroButtonsChanged)
 
             ; Check if there are any listeners for midi messages
             local midiListeners := this._eventListeners[VMRConsts.Events.MidiMessage]
@@ -234,10 +237,15 @@ class VMR {
                 ; Get new midi messages and dispatch event if there's any
                 local midiMessages := VBVMR.GetMidiMessage()
                 if (midiMessages && midiMessages.Length > 0)
-                    SetTimer(() => this._DispatchEvent(VMRConsts.Events.MidiMessage, midiMessages), -10)
+                    this._DispatchEvent(VMRConsts.Events.MidiMessage, midiMessages)
             }
+
+            Critical("Off")
+            return dirtyParameters || dirtyMacroButtons
         }
         catch Error as err {
+            Critical("Off")
+
             if (ignoreMsg)
                 return false
 
@@ -322,12 +330,16 @@ class VMR {
         if (eventListeners.Length == 0)
             return
 
-        for (listener in eventListeners) {
-            if (p_args.Length == 0 || listener.MaxParams < p_args.Length)
-                listener()
-            else
-                listener(p_args*)
+        _eventDispatcher() {
+            for (listener in eventListeners) {
+                if (p_args.Length == 0 || listener.MaxParams < p_args.Length)
+                    listener()
+                else
+                    listener(p_args*)
+            }
         }
+
+        SetTimer(_eventDispatcher, -1)
     }
 
     /**
@@ -372,7 +384,7 @@ class VMR {
      * @private - Internal method
      * @description Prepares the VMR instance for deletion (turns off timers, etc..) and logs out of Voicemeeter.
      */
-    __Delete() {
+    __Delete(*) {
         if (!this.Type)
             return
         this.Type := ""
