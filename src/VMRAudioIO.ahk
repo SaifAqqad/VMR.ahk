@@ -6,7 +6,7 @@
 #Include VMRDevice.ahk
 
 /**
- * A base class for `VMRBus` and `VMRStrip`
+ * A base class for {@link VMRBus|`VMRBus`} and {@link VMRStrip|`VMRStrip`}
  */
 class VMRAudioIO {
     static IS_CLASS_INIT := false
@@ -118,6 +118,23 @@ class VMRAudioIO {
     }
 
     /**
+     * Gets/Sets the gain as a percentage
+     * @type {Number} - The gain as a percentage (e.g. `0.40` = 40%)
+     * 
+     * @example
+     * local gain := vm.Bus[1].GainPercentage ; get the gain as a percentage
+     * vm.Bus[1].GainPercentage += 0.05 ; increases the gain by 5%
+     */
+    GainPercentage {
+        get {
+            return VMRUtils.DbToPercentage(this.GetParameter("gain"))
+        }
+        set {
+            return this.SetParameter("gain", VMRUtils.PercentageToDb(Value)) ? Value : ""
+        }
+    }
+
+    /**
      * Returns `true` if the bus/strip is a physical (hardware) one.
      * __________
      * @returns {Boolean}
@@ -193,29 +210,6 @@ class VMRAudioIO {
         }
 
         return vmrFunc.Call(this.Id, p_name)
-    }
-
-    /**
-     * Returns the gain as a percentage
-     * __________
-     * @returns {Number} - The gain as a percentage (`0.40` = 40%)
-     * @throws {VMRError} - If an internal error occurs.
-     */
-    GetGainPercentage() {
-        return VMRUtils.DbToPercentage(this.GetParameter("gain"))
-    }
-
-    /**
-     * Sets the gain as a percentage
-     * @example local gain := vm.Bus[1].SetGainPercentage(0.75) ; sets the gain to 75%
-     * 
-     * @param {Number} p_percentage - The gain as a percentage (float between 0 and 1)
-     * __________
-     * @returns {Boolean} - `true` if the gain was set successfully.
-     * @throws {VMRError} - If an internal error occurs.
-     */
-    SetGainPercentage(p_percentage) {
-        return this.SetParameter("gain", VMRUtils.PercentageToDb(p_percentage))
     }
 
     static _IsValidDriver(p_driver) => VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, p_driver) > 0
