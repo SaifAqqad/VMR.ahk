@@ -6,7 +6,7 @@
 #Include VMRUtils.ahk
 
 /**
- * @description A wrapper class for voicemeeter strips.
+ * A wrapper class for voicemeeter strips.
  * @extends {VMRAudioIO}
  */
 class VMRStrip extends VMRAudioIO {
@@ -36,7 +36,6 @@ class VMRStrip extends VMRAudioIO {
         this._channelCount := this.IsPhysical() ? 2 : 8
 
         ; Setup the strip's levels array
-        this.Level := Array()
         this.Level.Length := this._channelCount
 
         ; A strip's level index starts at the current total count

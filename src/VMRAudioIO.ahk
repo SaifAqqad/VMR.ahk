@@ -6,20 +6,38 @@
 #Include VMRDevice.ahk
 
 /**
- * @description A base class for `VMRBus` and `VMRStrip`
+ * A base class for `VMRBus` and `VMRStrip`
  */
 class VMRAudioIO {
     static IS_CLASS_INIT := false
 
     /**
-     * @description Creates a new `VMRAudioIO` object.
+     * The object's upper gain limit
+     * @type {Number}
+     * 
+     * Setting the gain above the limit will reset it to this value.
+     */
+    GainLimit := 12
+
+    /**
+     * An array of the object's channel levels
+     * @type {Array}
+     * 
+     * Physical (hardware) strips have 2 channels (left, right), Buses and virtual strips have 8 channels
+     * __________
+     * @example <caption>Get the current peak level of a bus</caption>
+     * local peakLevel := Max(vm.Bus[1].Level*)
+     */
+    Level := Array()
+
+    /**
+     * Creates a new `VMRAudioIO` object.
      * @param {Number} p_index - The zero-based index of the bus/strip.
      * @param {String} p_ioType - The type of the object. (`Bus` or `Strip`)
      */
     __New(p_index, p_ioType) {
         this._index := p_index
         this._isPhysical := false
-        this.GainLimit := 12
         this.Id := p_ioType "[" p_index "]"
     }
 
@@ -75,7 +93,7 @@ class VMRAudioIO {
     }
 
     /**
-     * @description Implements a default indexer.
+     * Implements a default indexer.
      * this is invoked when using the bracket access syntax.
      * @example
      * MsgBox(strip["mute"])
@@ -100,14 +118,14 @@ class VMRAudioIO {
     }
 
     /**
-     * @description Returns `true` if the bus/strip is a physical (hardware) one.
+     * Returns `true` if the bus/strip is a physical (hardware) one.
      * __________
      * @returns {Boolean}
      */
     IsPhysical() => this._isPhysical
 
     /**
-     * @description Sets the value of a parameter.
+     * Sets the value of a parameter.
      * 
      * @param {String} p_name - The name of the parameter.
      * @param {Any} p_value - The value of the parameter.
@@ -154,7 +172,7 @@ class VMRAudioIO {
     }
 
     /**
-     * @description Returns the value of a parameter.
+     * Returns the value of a parameter.
      * 
      * @param {String} p_name - The name of the parameter.
      * __________
@@ -178,7 +196,7 @@ class VMRAudioIO {
     }
 
     /**
-     * @description Returns the gain as a percentage
+     * Returns the gain as a percentage
      * __________
      * @returns {Number} - The gain as a percentage (`0.40` = 40%)
      * @throws {VMRError} - If an internal error occurs.
@@ -188,7 +206,7 @@ class VMRAudioIO {
     }
 
     /**
-     * @description Sets the gain as a percentage
+     * Sets the gain as a percentage
      * @example local gain := vm.Bus[1].SetGainPercentage(0.75) ; sets the gain to 75%
      * 
      * @param {Number} p_percentage - The gain as a percentage (float between 0 and 1)

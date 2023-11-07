@@ -6,7 +6,7 @@
 #Include VMRUtils.ahk
 
 /**
- * @description A wrapper class for voicemeeter buses.
+ * A wrapper class for voicemeeter buses.
  * @extends {VMRAudioIO}
  */
 class VMRBus extends VMRAudioIO {
@@ -34,7 +34,6 @@ class VMRBus extends VMRAudioIO {
         }
 
         ; Setup the bus's levels array
-        this.Level := Array()
         this.Level.Length := this._channelCount
 
         ; A bus's level index starts at the current total count

@@ -4,9 +4,9 @@
 #Include VMRDevice.ahk
 
 /**
- * @description A static wrapper class for the Voicemeeter Remote DLL.
+ * A static wrapper class for the Voicemeeter Remote DLL.
  * 
- * Must be initialized by calling `VBVMR.Init()` before using any of its static methods.
+ * Must be initialized by calling {@link VBVMR.Init|`Init()`} before using any of its static methods.
  */
 class VBVMR {
     static FUNC := {
@@ -33,7 +33,7 @@ class VBVMR {
     static DLL := "", DLL_PATH := ""
 
     /**
-     * @description Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
+     * Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
      * If the DLL is already loaded, it returns immediately.
      * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, it will be looked up in the registry.
      * __________
@@ -76,7 +76,7 @@ class VBVMR {
     }
 
     /**
-     * @description Opens a Communication Pipe With Voicemeeter.
+     * Opens a Communication Pipe With Voicemeeter.
      * __________
      * @returns {Number}
      * - `0` : OK (no error).
@@ -97,7 +97,7 @@ class VBVMR {
     }
 
     /**
-     * @description Closes the Communication Pipe With Voicemeeter.
+     * Closes the Communication Pipe With Voicemeeter.
      * __________
      * @returns {Number}
      * - `0` : OK (no error).
@@ -117,8 +117,8 @@ class VBVMR {
     }
 
     /**
-     * @description Sets the value of a float (numeric) parameter.
-     * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
+     * Sets the value of a float (numeric) parameter.
+     * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[0]`).
      * @param {String} p_parameter - The name of the parameter (ex: `gain`).
      * @param {Number} p_value - The value to set.
      * __________
@@ -140,7 +140,7 @@ class VBVMR {
     }
 
     /**
-     * @description Sets the value of a string parameter.
+     * Sets the value of a string parameter.
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
      * @param {String} p_parameter - The name of the parameter (ex: `name`).
      * @param {String} p_value - The value to set.
@@ -163,7 +163,7 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the value of a float (numeric) parameter.
+     * Returns the value of a float (numeric) parameter.
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
      * @param {String} p_parameter - The name of the parameter (ex: `gain`).
      * __________
@@ -185,7 +185,7 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the value of a string parameter.
+     * Returns the value of a string parameter.
      * @param {String} p_prefix - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
      * @param {String} p_parameter - The name of the parameter (ex: `name`).
      * __________
@@ -206,11 +206,15 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the level of a single bus/strip channel.
-     * @param {Number} p_type - The type of the returned level (`0`: pre-fader, `1`: post-fader, `2`: post-mute, `3`: output-levels).
-     * @param {Number} p_channel - The channel index (ex: `1`).
-     * - Channel Indices are dependant on the type of voiceemeeter running.
-     * - Channel Indices are incremented from the left to right (On the Voicemeeter UI), starting at `0`, Buses and Strips have separate Indices.
+     * Returns the level of a single bus/strip channel.
+     * @param {Number} p_type - The type of the returned level 
+     * - `0`: pre-fader
+     * - `1`: post-fader
+     * - `2`: post-mute
+     * - `3`: output-levels
+     * @param {Number} p_channel - The channel's zero-based index.
+     * - Channel Indices depend on the type of voiceemeeter running.
+     * - Channel Indices are incremented from the left to right (On the Voicemeeter UI), starting at `0`, Buses and Strips have separate Indices (see `p_type`).
      * - Physical (hardware) strips have 2 channels (left, right), Buses and virtual strips have 8 channels.
      * __________
      * @returns {Number} - The level of the requested channel.
@@ -230,7 +234,7 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the type of voicemeeter running.
+     * Returns the type of voicemeeter running.
      * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for possible values.
      * __________
      * @returns {Number} - The type of voicemeeter running.
@@ -250,7 +254,7 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the number of Output Devices available on the system.
+     * Returns the number of Output Devices available on the system.
      * __________
      * @returns {Number} - The number of output devices.
      * @throws {VMRError} - If an internal error occurs.
@@ -269,7 +273,7 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the Descriptor of an output device.
+     * Returns the Descriptor of an output device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
      * @returns {VMRDevice} - An object containing the `name` and `driver` of the device.
@@ -290,7 +294,7 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the number of Input Devices available on the system.
+     * Returns the number of Input Devices available on the system.
      * __________
      * @returns {Number} - The number of input devices.
      * @throws {VMRError} - If an internal error occurs.
@@ -309,7 +313,7 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the Descriptor of an input device.
+     * Returns the Descriptor of an input device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
      * @returns {VMRDevice} - An object containing the `name` and `driver` of the device.
@@ -330,7 +334,7 @@ class VBVMR {
     }
 
     /**
-     * @description Checks if any parameters have changed.
+     * Checks if any parameters have changed.
      * __________
      * @returns {Number}
      * - `0` : No change
@@ -351,9 +355,12 @@ class VBVMR {
     }
 
     /**
-     * @description Returns the current status of a given button.
+     * Returns the current status of a given button.
      * @param {Number} p_logicalButton - The index of the button (zero-based).
-     * @param {Number} p_bitMode - The type of the returned value (`0`: button-state, `2`: displayed-state, `3`: trigger-state).
+     * @param {Number} p_bitMode - The type of the returned value.
+     * - `0`: button-state
+     * - `2`: displayed-state
+     * - `3`: trigger-state
      * __________
      * @returns {Number} - The status of the button
      * - `0`: Off
@@ -374,10 +381,15 @@ class VBVMR {
     }
 
     /**
-     * @description Sets the status of a given button.
+     * Sets the status of a given button.
      * @param {Number} p_logicalButton - The index of the button (zero-based).
-     * @param {Number} p_value - The value to set (`0`: Off, `1`: On).
-     * @param {Number} p_bitMode - The type of the returned value (`0`: button-state, `2`: displayed-state, `3`: trigger-state).
+     * @param {Number} p_value - The value to set.
+     * - `0`: Off
+     * - `1`: On
+     * @param {Number} p_bitMode - The type of the returned value.
+     * - `0`: button-state
+     * - `2`: displayed-state
+     * - `3`: trigger-state
      * __________
      * @returns {Number} - The status of the button
      * - `0`: Off
@@ -398,7 +410,7 @@ class VBVMR {
     }
 
     /**
-     * @description Checks if any Macro Buttons states have changed.
+     * Checks if any Macro Buttons states have changed.
      * __________
      * @returns {Number} 
      *  - `0` : No change 
@@ -419,9 +431,9 @@ class VBVMR {
     }
 
     /**
-     * @description Returns any available MIDI messages from Voicemeeter's MIDI mapping.
+     * Returns any available MIDI messages from Voicemeeter's MIDI mapping.
      * __________
-     * @returns {Array | String} - `[0xF0, 0xFF, ...]` An array of hex-formatted bytes that compose one or more MIDI messages, or an empty string `""` if no messages are available.
+     * @returns {Array} - `[0xF0, 0xFF, ...]` An array of hex-formatted bytes that compose one or more MIDI messages, or an empty string `""` if no messages are available.
      * - A single message is usually 2 or 3 bytes long
      * - The returned array will contain at most `1024` bytes.
      * @throws {VMRError} - If an internal error occurs.
@@ -448,7 +460,7 @@ class VBVMR {
     }
 
     /**
-     * @description Sets one or more parameters using a voicemeeter script.
+     * Sets one or more parameters using a voicemeeter script.
      * @param {String} p_script - The script to execute (must be less than `48kb`).
      * - Scripts can contain one or more parameter changes
      * - Changes can be seperated by a new line, `;` or `,`.

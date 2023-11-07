@@ -8,33 +8,31 @@
 #Include VMRStrip.ahk
 
 /**
- * @description A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.
- * Must be initialized by calling `Login()` after creating the VMR instance.
+ * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
+ * Must be initialized by calling {@link @VMR.Login|`Login()`} after creating the VMR instance.
  */
 class VMR {
     /**
-     * @description The type of Voicemeeter that is currently running.
-     * @property {VMRType} Type - An object containing information about the current Voicemeeter type.
-     * __________
-     * @typedef {{ id, name, executable, busCount, stripCount, vbanCount }} VMRType
+     * The type of Voicemeeter that is currently running.
+     * @type {Object} Type - An object containing information about the current Voicemeeter type.
      * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for a list of available types.
      */
     Type := ""
 
     /**
-     * @description An array of voicemeeter buses
-     * @property {Array} Bus - An array of {@link VMRBus|`VMRBus`} objects.
+     * An array of voicemeeter buses
+     * @type {Array} - An array of {@link VMRBus|`VMRBus`} objects.
      */
     Bus := Array()
 
     /**
-     * @description An array of voicemeeter strips
-     * @property {Array} Strip - An array of {@link VMRStrip|`VMRStrip`} objects.
+     * An array of voicemeeter strips
+     * @type {Array} - An array of {@link VMRStrip|`VMRStrip`} objects.
      */
     Strip := Array()
 
     /**
-     * @description Creates a new VMR instance, and initializes the VBVMR class.
+     * Creates a new VMR instance, and initializes the {@link VBVMR|`VBVMR`} class.
      * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, VBVMR will attempt to find it in the registry.
      * __________
      * @throws {VMRError} - If the DLL is not found in the specified path or if voicemeeter is not installed.
@@ -49,10 +47,10 @@ class VMR {
     }
 
     /**
-     * @description Initializes the VMR instance and opens the communication pipe with Voicemeeter.
+     * Initializes the VMR instance and opens the communication pipe with Voicemeeter.
      * @param {Boolean} p_launchVoicemeeter - (Optional) Whether to launch Voicemeeter if it's not already running. Defaults to `true`.
      * __________
-     * @returns {VMR} The VMR instance.
+     * @returns {VMR} The {@link VMR|`VMR`} instance.
      * @throws {VMRError} - If an internal error occurs.
      */
     Login(p_launchVoicemeeter := true) {
@@ -65,7 +63,7 @@ class VMR {
             Sleep(2000)
         }
 
-        this.Type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()]
+        this.Type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()].Clone()
         if (!this.Type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name)
 
@@ -77,8 +75,8 @@ class VMR {
         ; Setup timers
         this._syncTimer := this.Sync.Bind(this)
         this._levelsTimer := this._UpdateLevels.Bind(this)
-        SetTimer(this._syncTimer, 20)
-        SetTimer(this._levelsTimer, 50)
+        SetTimer(this._syncTimer, VMRConsts.SYNC_TIMER_INTERVAL)
+        SetTimer(this._levelsTimer, VMRConsts.LEVELS_TIMER_INTERVAL)
 
         ; Listen for device changes to update the device arrays
         this._updateDevicesCallback := this.UpdateDevices.Bind(this)
@@ -89,7 +87,7 @@ class VMR {
     }
 
     /**
-     * @description Attempts to run Voicemeeter.
+     * Attempts to run Voicemeeter.
      * When passing a `p_type`, it will only attempt to run the specified Voicemeeter type,
      * otherwise it will attempt to run every voicemeeter type descendingly until one is successfully launched.
      * 
@@ -123,7 +121,7 @@ class VMR {
     }
 
     /**
-     * @description Retrieves a strip (input) device by its name/driver.
+     * Retrieves a strip (input) device by its name/driver.
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
@@ -132,14 +130,14 @@ class VMR {
     GetStripDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRStrip.Devices, p_name, p_driver?)
 
     /**
-     * @description Retrieves all strip devices (input devices).
+     * Retrieves all strip devices (input devices).
      * __________
      * @returns {Array} An array of `VMRDevice` objects.
      */
     GetStripDevices() => VMRStrip.Devices
 
     /**
-     * @description Retrieves a bus (output) device by its name/driver.
+     * Retrieves a bus (output) device by its name/driver.
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
@@ -148,14 +146,14 @@ class VMR {
     GetBusDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRBus.Devices, p_name, p_driver?)
 
     /**
-     * @description Retrieves all bus devices (output devices).
+     * Retrieves all bus devices (output devices).
      * __________
      * @returns {Array} An array of `VMRDevice` objects.
      */
     GetBusDevices() => VMRBus.Devices
 
     /**
-     * @description Registers a callback function to be called when the specified event is fired.
+     * Registers a callback function to be called when the specified event is fired.
      * @param {String} p_event - The name of the event to listen for.
      * @param {Func} p_listener - The function to call when the event is fired.
      * __________
@@ -178,7 +176,7 @@ class VMR {
     }
 
     /**
-     * @description Removes a callback function from the specified event.
+     * Removes a callback function from the specified event.
      * @param {String} p_event - The name of the event.
      * @param {Func} p_listener - (Optional) The function to remove, if omitted, all listeners for the specified event will be removed.
      * __________
@@ -211,8 +209,7 @@ class VMR {
     }
 
     /**
-     * @description Syncronizes the VMR instance with Voicemeeter.
-     * ##### Note: This is called automatically on a timer, and doesn't need to be manually called/checked.
+     * Synchronizes the VMR instance with Voicemeeter.
      * __________
      * @returns {Boolean} - Whether voicemeeter state has changed since the last sync.
      */
@@ -263,7 +260,7 @@ class VMR {
     }
 
     /**
-     * @description Executes a Voicemeeter script (*Not* an AutoHotkey script).
+     * Executes a Voicemeeter script (**not** an AutoHotkey script).
      * - Scripts can contain one or more parameter changes
      * - Changes can be seperated by a new line, `;` or `,`.
      * - Indices in the script are zero-based.
@@ -280,7 +277,7 @@ class VMR {
     }
 
     /**
-     * @description Updates the list of strip/bus devices.
+     * Updates the list of strip/bus devices.
      * @param {Number} p_wParam - (Optional) If passed, must be equal to {@link VMRConsts.WM_DEVICE_CHANGE_PARAM|`VMRConsts.WM_DEVICE_CHANGE_PARAM`} to update the device arrays.
      * __________
      * @throws {VMRError} If an internal error occurs.
@@ -379,6 +376,8 @@ class VMR {
         if (!this.Type)
             return
         this.Type := ""
+        this.Bus := ""
+        this.Strip := ""
 
         if (this._syncTimer)
             SetTimer(this._syncTimer, 0)
