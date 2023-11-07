@@ -14,13 +14,16 @@ class VMRUtils {
     }
 
     static DbToPercentage(p_dB) {
-        min_s := 10 ** (-60 / 20), max_s := 10 ** (0 / 20)
-        return Format("{:.2f}", ((10 ** (p_dB / 20)) - min_s) / (max_s - min_s))
+        local min_s := 10 ** (-60 / 20), max_s := 10 ** (0 / 20)
+        local percentage := ((10 ** (p_dB / 20)) - min_s) / (max_s - min_s)
+        return percentage < 0 ? 0 : percentage
     }
 
     static PercentageToDb(p_percentage) {
-        min_s := 10 ** (-60 / 20), max_s := 10 ** (0 / 20)
-        return Format("{:.1f}", 20 * Log(min_s + p_percentage / (max_s - min_s)))
+        if (p_percentage < 0)
+            p_percentage := 0
+        local min_s := 10 ** (-60 / 20), max_s := 10 ** (0 / 20)
+        return 20 * Log(min_s + p_percentage / (max_s - min_s))
     }
 
     static EnsureBetween(p_value, p_min, p_max) => Max(p_min, Min(p_max, p_value))

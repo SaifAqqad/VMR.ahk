@@ -101,7 +101,7 @@ class VMRAudioIO {
      * 
      * @param {String} p_key - The name of the parameter.
      * __________
-     * @returns {Any} The value of the parameter.
+     * @type {Any} -  The value of the parameter.
      * @throws {VMRError} - If an internal error occurs.
      */
     __Item[p_key] {
@@ -113,7 +113,7 @@ class VMRAudioIO {
         set {
             if (!VMRAudioIO.IS_CLASS_INIT)
                 return ""
-            return this.SetParameter(p_key, Value) ? Value : ""
+            this.SetParameter(p_key, Value)
         }
     }
 
@@ -127,10 +127,10 @@ class VMRAudioIO {
      */
     GainPercentage {
         get {
-            return VMRUtils.DbToPercentage(this.GetParameter("gain"))
+            return Format("{:.4f}", VMRUtils.DbToPercentage(this.GetParameter("gain")))
         }
         set {
-            return this.SetParameter("gain", VMRUtils.PercentageToDb(Value)) ? Value : ""
+            this.SetParameter("gain", VMRUtils.PercentageToDb(Value))
         }
     }
 
@@ -204,7 +204,7 @@ class VMRAudioIO {
 
         switch p_name {
             case "gain", "limit":
-                return Format("{:.1f}", vmrFunc.Call(this.Id, p_name))
+                return Format("{:.2f}", vmrFunc.Call(this.Id, p_name))
             case "device":
                 p_name := "device.name"
         }
