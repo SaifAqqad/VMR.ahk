@@ -14,7 +14,7 @@
 class VMR {
     /**
      * The type of Voicemeeter that is currently running.
-     * @type {Object} Type - An object containing information about the current Voicemeeter type.
+     * @type {Object} - An object containing information about the current Voicemeeter type.
      * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for a list of available types.
      */
     Type := ""
@@ -32,7 +32,7 @@ class VMR {
     Strip := Array()
 
     /**
-     * Creates a new VMR instance, and initializes the {@link VBVMR|`VBVMR`} class.
+     * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
      * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, VBVMR will attempt to find it in the registry.
      * __________
      * @throws {VMRError} - If the DLL is not found in the specified path or if voicemeeter is not installed.
@@ -132,7 +132,7 @@ class VMR {
     /**
      * Retrieves all strip devices (input devices).
      * __________
-     * @returns {Array} An array of `VMRDevice` objects.
+     * @returns {Array} An array of {@link VMRDevice|`VMRDevice`} objects.
      */
     GetStripDevices() => VMRStrip.Devices
 
@@ -148,7 +148,7 @@ class VMR {
     /**
      * Retrieves all bus devices (output devices).
      * __________
-     * @returns {Array} An array of `VMRDevice` objects.
+     * @returns {Array} An array of {@link VMRDevice|`VMRDevice`} objects.
      */
     GetBusDevices() => VMRBus.Devices
 

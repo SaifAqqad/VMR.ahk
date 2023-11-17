@@ -72,7 +72,7 @@ class VMRConsts {
      * Known string parameters
      * @type {Array}
      */
-    static STRING_PARAMETERS := [
+    static IO_STRING_PARAMETERS := [
         "Device",
         "Device.name",
         "Device.wdm",

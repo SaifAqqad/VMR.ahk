@@ -119,15 +119,15 @@ class VMRAudioIO {
 
     /**
      * Gets/Sets the gain as a percentage
-     * @type {Number} - The gain as a percentage (e.g. `0.40` = 40%)
+     * @type {Number} - The gain as a percentage (e.g. `44` = 44%)
      * 
      * @example
      * local gain := vm.Bus[1].GainPercentage ; get the gain as a percentage
-     * vm.Bus[1].GainPercentage += 0.05 ; increases the gain by 5%
+     * vm.Bus[1].GainPercentage++ ; increases the gain by 1%
      */
     GainPercentage {
         get {
-            return Format("{:.4f}", VMRUtils.DbToPercentage(this.GetParameter("gain")))
+            return VMRUtils.DbToPercentage(this.GetParameter("gain"))
         }
         set {
             this.SetParameter("gain", VMRUtils.PercentageToDb(Value))
@@ -212,9 +212,39 @@ class VMRAudioIO {
         return vmrFunc.Call(this.Id, p_name)
     }
 
+    /**
+     * Increments a parameter by a specific amount.  
+     * - If the incremented value is not needed, it's recommended to use this method instead of incrementing the parameter directly (`vm.Bus[1].Gain++`).
+     * - Since this method doesn't fetch the current value of the parameter, {@link @VMRAudioIO.GainLimit|`GainLimit`} doesn't apply here.
+     * 
+     * @example <caption>usage</caption>
+     * vm.Bus[1].Increment("gain", 1) ; increases the gain by 1dB
+     * vm.Bus[1].Increment("gain", -5) ; decreases the gain by 5dB
+     * 
+     * @param {String} p_param - The name of the parameter, must be a numeric parameter (see {@link VMRConsts.IO_STRING_PARAMETERS|`VMRConsts.IO_STRING_PARAMETERS`}).
+     * @param {Number} p_amount - The amount to increment the parameter by, can be set to a negative value to decrement instead.
+     * __________
+     * @returns {Boolean} - `true` if the parameter was incremented successfully.
+     * __________
+     */
+    Increment(p_param, p_amount) {
+        if (!VMRAudioIO.IS_CLASS_INIT)
+            return false
+
+        if (!IsNumber(p_amount))
+            throw VMRError("p_amount must be a number", this.Increment.Name)
+
+        if (VMRAudioIO._IsStringParam(p_param))
+            throw VMRError("p_param must be a numeric parameter", this.Increment.Name)
+
+        local script := Format("{}.{} {} {}", this.Id, p_param, p_amount < 0 ? "-=" : "+=", Abs(p_amount))
+
+        return VBVMR.SetParameters(script) == 0
+    }
+
     static _IsValidDriver(p_driver) => VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, p_driver) > 0
 
-    static _IsStringParam(p_param) => VMRUtils.IndexOf(VMRConsts.STRING_PARAMETERS, p_param) > 0
+    static _IsStringParam(p_param) => VMRUtils.IndexOf(VMRConsts.IO_STRING_PARAMETERS, p_param) > 0
 
     /**
      * @private - Internal method
