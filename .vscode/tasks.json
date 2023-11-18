@@ -1,0 +1,42 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build VMR",
+            "type": "process",
+            "command": "${config:AutoHotkey2.InterpreterPath}",
+            "options": {
+                "cwd": "${workspaceFolder}\\src"
+            },
+            "args": [
+                {
+                    "value": ".\\Build.ahk",
+                    "quoting": "strong"
+                },
+                {
+                    "value": ".\\VMR.ahk",
+                    "quoting": "strong"
+                },
+                {
+                    "value": "..\\dist\\VMR.ahk",
+                    "quoting": "strong"
+                },
+                {
+                    "value": "${input:buildVersion}",
+                    "quoting": "strong"
+                }
+            ],
+            "problemMatcher": [],
+        }
+    ],
+    "inputs": [
+        {
+            "id": "buildVersion",
+            "description": "Please enter the build version",
+            "type": "promptString",
+            "default": "1.0.0"
+        }
+    ],
+}

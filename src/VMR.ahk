@@ -1,4 +1,12 @@
+/**
+ * VMR.ahk <buildVersion>
+ * - Build timestamp <buildTimestamp>
+ * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
+ * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
+ */
+
 #Requires AutoHotkey >=2.0
+
 #Include VMRUtils.ahk
 #Include VMRError.ahk
 #Include VMRConsts.ahk

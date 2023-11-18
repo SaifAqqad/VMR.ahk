@@ -1,4 +1,5 @@
 #Requires AutoHotkey >=2.0
+
 #Include VBVMR.ahk
 #Include VMRError.ahk
 #Include VMRAudioIO.ahk

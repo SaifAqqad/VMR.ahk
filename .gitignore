@@ -2,5 +2,5 @@
 *.exe
 _site
 .jekyll-cache
-.vscode
+.vscode/launch.json
 src/v1

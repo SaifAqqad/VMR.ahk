@@ -1,3 +1,5 @@
+#Requires AutoHotkey >=2.0
+
 class VMRConsts {
     /**
      * Events fired by the {@link VMR|`VMR`} object.  
