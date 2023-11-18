@@ -214,7 +214,7 @@ class VMRAudioIO {
 
     /**
      * Increments a parameter by a specific amount.  
-     * - If the incremented value is not needed, it's recommended to use this method instead of incrementing the parameter directly (`vm.Bus[1].Gain++`).
+     * - If the incremented value is not needed, it's recommended to use this method instead of incrementing the parameter directly (`++vm.Bus[1].Gain`).
      * - Since this method doesn't fetch the current value of the parameter, {@link @VMRAudioIO.GainLimit|`GainLimit`} doesn't apply here.
      * 
      * @example <caption>usage</caption>
@@ -225,7 +225,6 @@ class VMRAudioIO {
      * @param {Number} p_amount - The amount to increment the parameter by, can be set to a negative value to decrement instead.
      * __________
      * @returns {Boolean} - `true` if the parameter was incremented successfully.
-     * __________
      */
     Increment(p_param, p_amount) {
         if (!VMRAudioIO.IS_CLASS_INIT)

@@ -14,6 +14,16 @@ class VMRBus extends VMRAudioIO {
     static Devices := Array()
 
     /**
+     * The bus's name (as shown in voicemeeter's UI)
+     * 
+     * @type {String}
+     * 
+     * @example
+     * local busName := VMRBus.Bus[1].Name ; "A1" or "A" depending on voicemeeter's type
+     */
+    Name := ""
+
+    /**
      * Creates a new VMRBus object.
      * @param {Number} p_index - The zero-based index of the bus.
      * @param {Number} p_vmrType - The type of the running voicemeeter.

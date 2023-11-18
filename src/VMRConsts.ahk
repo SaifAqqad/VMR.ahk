@@ -7,7 +7,8 @@ class VMRConsts {
      * @event `LevelsUpdated` - Called when the {@link @VMRAudioIO.Level|`Level`} arrays for bus/strips are updated
      * @event `DevicesUpdated` - Called when the list of available devices is updated
      * @event `MacroButtonsChanged` - Called when macro-buttons's states change
-     * @event `MidiMessage` - Called when a midi message is received
+     * @event `MidiMessage` - Called when a midi message is received  
+     * - The `MidiMessage` callback will be passed an array with the hex-formatted bytes of the message
      */
     static Events := {
         ParametersChanged: "ParametersChanged",
@@ -69,7 +70,7 @@ class VMRConsts {
     ]
 
     /**
-     * Known string parameters
+     * Known string parameters for {@link VMRAudioIO|`VMRAudioIO`} 
      * @type {Array}
      */
     static IO_STRING_PARAMETERS := [

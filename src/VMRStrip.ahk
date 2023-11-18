@@ -14,6 +14,17 @@ class VMRStrip extends VMRAudioIO {
     static Devices := Array()
 
     /**
+     * The strip's name (as shown in voicemeeter's UI)
+     * 
+     * @example
+     * local stripName := VMRBus.Strip[1].Name ; "Input #1"
+     * 
+     * @readonly
+     * @type {String}
+     */
+    Name := ""
+
+    /**
      * Creates a new VMRStrip object.
      * @param {Number} p_index - The zero-based index of the strip.
      * @param {Number} p_vmrType - The type of the running voicemeeter.
