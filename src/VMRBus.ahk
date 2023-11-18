@@ -1,6 +1,5 @@
 #Requires AutoHotkey >=2.0
 #Include VBVMR.ahk
-#Include VMRError.ahk
 #Include VMRAudioIO.ahk
 #Include VMRConsts.ahk
 #Include VMRUtils.ahk
@@ -22,6 +21,24 @@ class VMRBus extends VMRAudioIO {
      * local busName := VMRBus.Bus[1].Name ; "A1" or "A" depending on voicemeeter's type
      */
     Name := ""
+
+    /**
+     * Set/Get the bus's EQ parameters.
+     * 
+     * @param {Number} p_channel - The zero-based index of the channel.
+     * @param {Number} p_cell - The zero-based index of the cell.
+     * @param {String} p_type - The EQ parameter to get/set.
+     * 
+     * @example
+     * vm.Bus[1].EQ[1, 1, "gain"] := -6
+     * vm.Bus[1].EQ[1, 1, "q"] := 90
+     * __________
+     * @returns {Number} - The EQ parameter's value.
+     */
+    EQ[p_channel, p_cell, p_param] {
+        get => this.GetParameter("EQ.channel[" p_channel "].cell[" p_cell "]." p_param)
+        set => this.SetParameter("EQ.channel[" p_channel "].cell[" p_cell "]." p_param, Value)
+    }
 
     /**
      * Creates a new VMRBus object.

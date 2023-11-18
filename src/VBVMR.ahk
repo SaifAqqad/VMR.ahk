@@ -48,7 +48,7 @@ class VBVMR {
         local dllPath := VBVMR.DLL_PATH "\" VMRConsts.DLL_FILE
 
         if (!FileExist(dllPath))
-            throw VMRError("Voicemeeter is not installed in the path :`n" . dllPath, VBVMR.Init.Name)
+            throw VMRError("Voicemeeter is not installed in the path :`n" . dllPath, VBVMR.Init.Name, p_path)
 
         ; Load the voicemeeter DLL
         VBVMR.DLL := DllCall("LoadLibrary", "Str", dllPath, "Ptr")
@@ -132,10 +132,10 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.SetParameterFloat, "AStr", p_prefix . "." . p_parameter, "Float", p_value, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.SetParameterFloat.Name)
+            throw VMRError(err, VBVMR.SetParameterFloat.Name, p_prefix, p_parameter, p_value)
 
         if (result < 0)
-            throw VMRError(result, VBVMR.SetParameterFloat.Name)
+            throw VMRError(result, VBVMR.SetParameterFloat.Name, p_prefix, p_parameter, p_value)
 
         return result
     }
@@ -155,10 +155,10 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.SetParameterStringW, "AStr", p_prefix . "." . p_parameter, "WStr", p_value, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.SetParameterString.Name)
+            throw VMRError(err, VBVMR.SetParameterString.Name, p_prefix, p_parameter, p_value)
 
         if (result < 0)
-            throw VMRError(result, VBVMR.SetParameterString.Name)
+            throw VMRError(result, VBVMR.SetParameterString.Name, p_prefix, p_parameter, p_value)
 
         return result
     }
@@ -176,10 +176,10 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.GetParameterFloat, "AStr", p_prefix . "." . p_parameter, "Ptr", value, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.GetParameterFloat.Name)
+            throw VMRError(err, VBVMR.GetParameterFloat.Name, p_prefix, p_parameter)
 
         if (result < 0)
-            throw VMRError(result, VBVMR.GetParameterFloat.Name)
+            throw VMRError(result, VBVMR.GetParameterFloat.Name, p_prefix, p_parameter)
 
         value := NumGet(value, 0, "Float")
         return value
@@ -198,10 +198,10 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.GetParameterStringW, "AStr", p_prefix . "." . p_parameter, "Ptr", value, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.GetParameterString.Name)
+            throw VMRError(err, VBVMR.GetParameterString.Name, p_prefix, p_parameter)
 
         if (result < 0)
-            throw VMRError(result, VBVMR.GetParameterString.Name)
+            throw VMRError(result, VBVMR.GetParameterString.Name, p_prefix, p_parameter)
 
         return StrGet(value, 512)
     }
@@ -226,7 +226,7 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.GetLevel, "Int", p_type, "Int", p_channel, "Ptr", level)
         catch Error as err
-            throw VMRError(err, VBVMR.GetLevel.Name)
+            throw VMRError(err, VBVMR.GetLevel.Name, p_type, p_channel)
 
         if (result < 0)
             return 0
@@ -286,10 +286,10 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.Output_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", 0, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.Output_GetDeviceDesc.Name)
+            throw VMRError(err, VBVMR.Output_GetDeviceDesc.Name, p_index)
 
         if (result < 0)
-            throw VMRError(result, VBVMR.Output_GetDeviceDesc.Name)
+            throw VMRError(result, VBVMR.Output_GetDeviceDesc.Name, p_index)
 
         return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"))
     }
@@ -326,10 +326,10 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.Input_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", 0, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.Input_GetDeviceDesc.Name)
+            throw VMRError(err, VBVMR.Input_GetDeviceDesc.Name, p_index)
 
         if (result < 0)
-            throw VMRError(result, VBVMR.Input_GetDeviceDesc.Name)
+            throw VMRError(result, VBVMR.Input_GetDeviceDesc.Name, p_index)
 
         return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"))
     }
@@ -373,10 +373,10 @@ class VBVMR {
 
         try errLevel := DllCall(VBVMR.FUNC.MacroButton_GetStatus, "Int", p_logicalButton, "Ptr", pValue, "Int", p_bitMode, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.MacroButton_GetStatus.Name)
+            throw VMRError(err, VBVMR.MacroButton_GetStatus.Name, p_logicalButton, p_bitMode)
 
         if (errLevel < 0)
-            throw VMRError(errLevel, VBVMR.MacroButton_GetStatus.Name)
+            throw VMRError(errLevel, VBVMR.MacroButton_GetStatus.Name, p_logicalButton, p_bitMode)
 
         return NumGet(pValue, 0, "Float")
     }
@@ -402,10 +402,10 @@ class VBVMR {
 
         try result := DllCall(VBVMR.FUNC.MacroButton_SetStatus, "Int", p_logicalButton, "Float", p_value, "Int", p_bitMode, "Int")
         catch Error as err
-            throw VMRError(err, VBVMR.MacroButton_SetStatus.Name)
+            throw VMRError(err, VBVMR.MacroButton_SetStatus.Name, p_logicalButton, p_value, p_bitMode)
 
         if (result < 0)
-            throw VMRError(result, VBVMR.MacroButton_SetStatus.Name)
+            throw VMRError(result, VBVMR.MacroButton_SetStatus.Name, p_logicalButton, p_value, p_bitMode)
 
         return p_value
     }

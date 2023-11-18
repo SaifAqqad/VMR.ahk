@@ -1,5 +1,6 @@
 /**
- * VMR.ahk <buildVersion>
+ * VMR.ahk - A wrapper for Voicemeeter's Remote API
+ * - Version <buildVersion>
  * - Build timestamp <buildTimestamp>
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
@@ -73,7 +74,7 @@ class VMR {
 
         this.Type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()].Clone()
         if (!this.Type)
-            throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name)
+            throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name, p_launchVoicemeeter)
 
         OnExit(this.__Delete.Bind(this))
 
@@ -109,7 +110,7 @@ class VMR {
         if (IsSet(p_type)) {
             local vmInfo := VMRConsts.VOICEMEETER_TYPES[p_type]
             if (!vmInfo)
-                throw VMRError("Invalid Voicemeeter type: " . p_type, this.RunVoicemeeter.Name)
+                throw VMRError("Invalid Voicemeeter type: " . p_type, this.RunVoicemeeter.Name, p_type)
 
             local vmPath := VBVMR.DLL_PATH . "\" . vmInfo.executable
             Run(vmPath, VBVMR.DLL_PATH, "Hide", &vmPID)
@@ -172,10 +173,10 @@ class VMR {
      */
     On(p_event, p_listener) {
         if (!this._eventListeners.Has(p_event))
-            throw VMRError("Invalid event: " p_event, this.On.Name)
+            throw VMRError("Invalid event: " p_event, this.On.Name, p_event, p_listener)
 
         if !(p_listener is Func)
-            throw VMRError("Invalid listener: " String(p_listener), this.On.Name)
+            throw VMRError("Invalid listener: " String(p_listener), this.On.Name, p_event, p_listener)
 
         local eventListeners := this._eventListeners[p_event]
 
@@ -196,7 +197,7 @@ class VMR {
      */
     Off(p_event, p_listener?) {
         if (!this._eventListeners.Has(p_event))
-            throw VMRError("Invalid event: " p_event, this.Off.Name)
+            throw VMRError("Invalid event: " p_event, this.Off.Name, p_event, p_listener)
 
         if (!IsSet(p_listener)) {
             this._eventListeners[p_event] := Array()
@@ -204,7 +205,7 @@ class VMR {
         }
 
         if !(p_listener is Func)
-            throw VMRError("Invalid listener: " String(p_listener), this.Off.Name)
+            throw VMRError("Invalid listener: " String(p_listener), this.Off.Name, p_event, p_listener)
 
         local eventListeners := this._eventListeners[p_event]
         local listenerIndex := VMRUtils.IndexOf(eventListeners, p_listener)
@@ -289,7 +290,7 @@ class VMR {
         local result := VBVMR.SetParameters(p_script)
 
         if (result > 0)
-            throw VMRError("An error occurred while executing the script at line: " . result, this.Exec.Name)
+            throw VMRError("An error occurred while executing the script at line: " . result, this.Exec.Name, p_script)
     }
 
     /**

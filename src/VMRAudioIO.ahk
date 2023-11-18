@@ -21,6 +21,19 @@ class VMRAudioIO {
     GainLimit := 12
 
     /**
+     * Gets/Sets the gain as a percentage
+     * @type {Number} - The gain as a percentage (e.g. `44` = 44%)
+     * 
+     * @example
+     * local gain := vm.Bus[1].GainPercentage ; get the gain as a percentage
+     * vm.Bus[1].GainPercentage++ ; increases the gain by 1%
+     */
+    GainPercentage {
+        get => VMRUtils.DbToPercentage(this.GetParameter("gain"))
+        set => this.SetParameter("gain", VMRUtils.PercentageToDb(Value))
+    }
+
+    /**
      * An array of the object's channel levels
      * @type {Array}
      * 
@@ -60,8 +73,9 @@ class VMRAudioIO {
             return ""
 
         if (p_params.Length > 0) {
-            local param := p_params[1]
-            p_key .= IsNumber(param) ? "[" param "]" : "." param
+            for param in p_params {
+                p_key .= IsNumber(param) ? "[" param "]" : "." param
+            }
         }
 
         return this.GetParameter(p_key)
@@ -86,8 +100,9 @@ class VMRAudioIO {
             return ""
 
         if (p_params.Length > 0) {
-            local param := p_params[1]
-            p_key .= IsNumber(param) ? "[" param "]" : "." param
+            for param in p_params {
+                p_key .= IsNumber(param) ? "[" param "]" : "." param
+            }
         }
 
         return this.SetParameter(p_key, p_value) ? p_value : ""
@@ -106,41 +121,9 @@ class VMRAudioIO {
      * @throws {VMRError} - If an internal error occurs.
      */
     __Item[p_key] {
-        get {
-            if (!VMRAudioIO.IS_CLASS_INIT)
-                return ""
-            return this.GetParameter(p_key)
-        }
-        set {
-            if (!VMRAudioIO.IS_CLASS_INIT)
-                return ""
-            this.SetParameter(p_key, Value)
-        }
+        get => this.GetParameter(p_key)
+        set => this.SetParameter(p_key, Value)
     }
-
-    /**
-     * Gets/Sets the gain as a percentage
-     * @type {Number} - The gain as a percentage (e.g. `44` = 44%)
-     * 
-     * @example
-     * local gain := vm.Bus[1].GainPercentage ; get the gain as a percentage
-     * vm.Bus[1].GainPercentage++ ; increases the gain by 1%
-     */
-    GainPercentage {
-        get {
-            return VMRUtils.DbToPercentage(this.GetParameter("gain"))
-        }
-        set {
-            this.SetParameter("gain", VMRUtils.PercentageToDb(Value))
-        }
-    }
-
-    /**
-     * Returns `true` if the bus/strip is a physical (hardware) one.
-     * __________
-     * @returns {Boolean}
-     */
-    IsPhysical() => this._isPhysical
 
     /**
      * Sets the value of a parameter.
@@ -180,7 +163,7 @@ class VMRAudioIO {
             }
 
             if (!VMRAudioIO._IsValidDriver(deviceDriver))
-                throw VMRError(deviceDriver " is not a valid device driver", this.SetParameter.Name)
+                throw VMRError(deviceDriver " is not a valid device driver", this.SetParameter.Name, p_name, p_value)
 
             p_name := "device." deviceDriver
             p_value := deviceName
@@ -232,15 +215,22 @@ class VMRAudioIO {
             return false
 
         if (!IsNumber(p_amount))
-            throw VMRError("p_amount must be a number", this.Increment.Name)
+            throw VMRError("p_amount must be a number", this.Increment.Name, p_param, p_amount)
 
         if (VMRAudioIO._IsStringParam(p_param))
-            throw VMRError("p_param must be a numeric parameter", this.Increment.Name)
+            throw VMRError("p_param must be a numeric parameter", this.Increment.Name, p_param, p_amount)
 
         local script := Format("{}.{} {} {}", this.Id, p_param, p_amount < 0 ? "-=" : "+=", Abs(p_amount))
 
         return VBVMR.SetParameters(script) == 0
     }
+
+    /**
+     * Returns `true` if the bus/strip is a physical (hardware) one.
+     * __________
+     * @returns {Boolean}
+     */
+    IsPhysical() => this._isPhysical
 
     static _IsValidDriver(p_driver) => VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, p_driver) > 0
 

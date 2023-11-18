@@ -8,19 +8,19 @@
             "type": "process",
             "command": "${config:AutoHotkey2.InterpreterPath}",
             "options": {
-                "cwd": "${workspaceFolder}\\src"
+                "cwd": "${workspaceFolder}"
             },
             "args": [
                 {
-                    "value": ".\\Build.ahk",
+                    "value": ".\\src\\Build.ahk",
                     "quoting": "strong"
                 },
                 {
-                    "value": ".\\VMR.ahk",
+                    "value": ".\\src\\VMR.ahk",
                     "quoting": "strong"
                 },
                 {
-                    "value": "..\\dist\\VMR.ahk",
+                    "value": ".\\dist\\VMR.ahk",
                     "quoting": "strong"
                 },
                 {
@@ -36,7 +36,7 @@
             "id": "buildVersion",
             "description": "Please enter the build version",
             "type": "promptString",
-            "default": "1.0.0"
+            "default": "ahkpm"
         }
     ],
 }

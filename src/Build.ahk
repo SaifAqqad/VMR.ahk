@@ -3,43 +3,53 @@
 ; Set default encoding to UTF-8 (without BOM)
 FileEncoding("UTF-8-RAW")
 lineEnding := "`r`n" ; CRLF
+SetWorkingDir(A_InitialWorkingDir)
 
 ; Only supports a normal #include with a file path (no Lib or IncludeAgain)
 includeRegex := "im)^\s*#include\s+(.+?)\s*$"
 
-; Run command: Build.ahk <entry file> <output file> <version number> [<docs url>]
+; Run command: Build.ahk <entry file> <output file> <version number>
 arg_entryFile := A_Args[1]
 arg_outputFile := A_Args[2]
 arg_version := A_Args[3]
 
-currentPath := A_WorkingDir
-entryFileFullPath := currentPath . "\" . arg_entryFile
-entryFileName := "", entryFileDir := ""
-SplitPath(entryFileFullPath, &entryFileName, &entryFileDir)
-
-if (!FileExist(entryFileFullPath)) {
-    throw Error("Entry file not found: " . entryFileFullPath)
+; Check if we should use the version from ahkpm.json
+if (arg_version = "ahkpm") {
+    ahkpmJson := FileRead("./ahkpm.json")
+    RegExMatch(ahkpmJson, 'i)"version": "(.+?)"', &versionMatch)
+    arg_version := versionMatch[1]
 }
 
+currentPath := A_WorkingDir
+entryFileFullPath := currentPath . "\" . arg_entryFile
+SplitPath(entryFileFullPath, &entryFileName, &entryFileDir)
 
+outputContent := FileRead(entryFileFullPath)
 includedFiles := Map()
-entryFileContent := FileRead(entryFileFullPath)
-outputFileContent := ""
 
 ; Recursively include all files
+currentPos := 0
 loop {
-    currentMatch := ""
-    currentPos := RegExMatch(entryFileContent, includeRegex, &currentMatch, currentPos)
+    currentPos := RegExMatch(outputContent, includeRegex, &currentMatch, currentPos)
     if (currentPos == 0)
         break
 
+    SplitPath(currentMatch[1], &fileName, &fileDir)
+    ; Check if the file has already been included
+    if (includedFiles.Has(fileName)) {
+        outputContent := RegExReplace(outputContent, "\Q" currentMatch[0] "\E\n", "")
+    }
+    else {
+
+    }
+
 
 }
 
-SubstituteVariable(&outputFileContent, "buildVersion", arg_version)
-SubstituteVariable(&outputFileContent, "buildTimestamp", A_NowUTC)
+SubstituteVariable(&outputContent, "buildVersion", arg_version)
+SubstituteVariable(&outputContent, "buildTimestamp", A_NowUTC)
 
-SanitizeScript(content) {
+ProcessScript(content) {
     return Trim(content, " `t`r`n")
 }
 
