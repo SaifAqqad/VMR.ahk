@@ -226,6 +226,50 @@ class VMRAudioIO {
     }
 
     /**
+     * Sets the gain to a specific value with a progressive fade.
+     * 
+     * @param {Number} p_db - The gain value in dBs.
+     * @param {Number} p_duration - The duration of the fade in milliseconds.
+     * __________
+     * @returns {Boolean} - `true` if the gain was set successfully.
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     */
+    FadeTo(p_db, p_duration) {
+        if (!VMRAudioIO.IS_CLASS_INIT)
+            return false
+
+        if (!IsNumber(p_db))
+            throw VMRError("p_db must be a number", this.FadeTo.Name, p_db, p_duration)
+
+        if (!IsNumber(p_duration))
+            throw VMRError("p_duration must be a number", this.FadeTo.Name, p_db, p_duration)
+
+        return this.SetParameter("FadeTo", "(" p_db ", " p_duration ")")
+    }
+
+    /**
+     * Fades the gain by a specific amount.
+     * 
+     * @param {Number} p_dbAmount - The amount to fade the gain by in dBs.
+     * @param {Number} p_duration - The duration of the fade in milliseconds.
+     * _________
+     * @returns {Boolean} - `true` if the gain was set successfully.
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     */
+    FadeBy(p_dbAmount, p_duration) {
+        if (!VMRAudioIO.IS_CLASS_INIT)
+            return false
+
+        if (!IsNumber(p_dbAmount))
+            throw VMRError("p_dbAmount must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
+
+        if (!IsNumber(p_duration))
+            throw VMRError("p_duration must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
+
+        return this.SetParameter("FadeBy", "(" p_dbAmount ", " p_duration ")")
+    }
+
+    /**
      * Returns `true` if the bus/strip is a physical (hardware) one.
      * __________
      * @returns {Boolean}

@@ -25,6 +25,34 @@ class VMRStrip extends VMRAudioIO {
     Name := ""
 
     /**
+     * Sets an application's gain on the strip.
+     * 
+     * @param {String} p_name - The name of the application.
+     * @type {Number} - The application's gain (`0.0` to `1.0`).
+     * __________
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     */
+    AppGain[p_name] {
+        set {
+            VBVMR.SetParameter("AppGain", "(" p_name ", " Value ")")
+        }
+    }
+
+    /**
+     * Sets an application's mute state on the strip.
+     * 
+     * @param {String} p_name - The name of the application.
+     * @type {Boolean} - The application's mute state.
+     * __________
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     */
+    AppMute[p_name] {
+        set {
+            VBVMR.SetParameter("AppGain", "(" p_name ", " Value ")")
+        }
+    }
+
+    /**
      * Creates a new VMRStrip object.
      * @param {Number} p_index - The zero-based index of the strip.
      * @param {Number} p_vmrType - The type of the running voicemeeter.
