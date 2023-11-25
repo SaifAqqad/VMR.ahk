@@ -1,35 +1,39 @@
-#Include, %A_ScriptDir%\..\dist\VMR.ahk
-#Persistent
+#Requires AutoHotkey >=2.0
+#Include %A_ScriptDir%\..\dist\VMR.ahk
 
-global voicemeeter := (new VMR).login()
+Persistent(true)
+
+voicemeeter := VMR().login()
 AhkScript()
-;VoiceMeeterScript()
-ExitApp
+VoiceMeeterScript()
+ExitApp()
 
 AhkScript(){
+    global voicemeeter
     ; this is an AHK script
-    ; indexes are one-based
-    voicemeeter.strip[1].A1 := 1
-    voicemeeter.strip[1].B1 := 0
-    voicemeeter.bus[2].gain := -6.0
-    voicemeeter.strip[3].gain := 12.0
-    voicemeeter.recorder.A1 := 1
-    voicemeeter.vban.outstream[4].name := "stream example"
+    ; indices are one-based
+    voicemeeter.Strip[1].A1 := true
+    voicemeeter.Strip[1].B1 := false
+    voicemeeter.Bus[2].gain := -6.0
+    voicemeeter.Strip[3].gain := 12.0
+    ; Not Supported yet
+    ; voicemeeter.recorder.A1 := 1
+    ; voicemeeter.vban.outstream[4].name := "stream example"
 }
 
 ; OR
 
 VoiceMeeterScript(){
-    script =
+    local script := "
     ( LTrim Comments
         ; this is a voicemeeter script (not AHK)
-        ; indexes are zero-based
+        ; indices are zero-based
         Strip[0].A1 = 1
         Strip[0].B1 = 0
         Bus[1].gain = -6.0
         Strip[2].gain = 12.0
         Recorder.A1 = 1
         vban.outstream[3].name = "stream example"
-    )
-    voicemeeter.exec(script)
+    )"
+    voicemeeter.Exec(script)
 }

@@ -1,54 +1,77 @@
-#Include, %A_ScriptDir%\..\dist\VMR.ahk
+#Requires AutoHotkey >=2.0
 
-voicemeeter := new VMR().login()
-vol := 0.5
-voicemeeter.strip[6].AppGain := Format("(""Spotify"", {:.1f})", vol) ;set initial Spotify volume
-voicemeeter.bus[1].gain_limit:=0
+#Include %A_ScriptDir%\..\dist\VMR.ahk
 
-for i, bus in voicemeeter.bus {
-    bus.gain:=0 ; set gain to 0 for all busses at startup
+voicemeeter := VMR().login()
+
+; Set the gain to 0 for all busses at startup
+for (bus in voicemeeter.Bus) {
+    bus.gain := 0
 }
 
-Volume_Up::voicemeeter.bus[1].gain++ ;bind volume up key to increase bus[1] gain
-Volume_Down::voicemeeter.bus[1].gain--
+; jsdoc type annotations are not needed, but might allow your editor to offer relevant suggestions (see vscode-autohotkey2-lsp plugin)
+/** @type {VMRBus} */
+mainOutput := voicemeeter.Bus[1]
+mainOutput.GainLimit := 0
 
-^M::voicemeeter.bus[1].mute-- ; bind ctrl+M to toggle mute bus[1]
+/** @type {VMRStrip} */
+auxInput := voicemeeter.Strip[6]
 
-^Volume_Up::ToolTip, % voicemeeter.strip[5].gain+=5
-^Volume_Down::ToolTip, % voicemeeter.strip[5].gain-=5
+; Set initial Spotify volume
+spotifyVol := 0.5
+auxInput.AppGain["Spotify"] := spotifyVol
 
-F6::voicemeeter.bus[1].device:= "LG" ; set bus[1] to the first device with "LG" in its name using wdm driver
-F7::voicemeeter.strip[2].device["mme"]:= "amazonbasics"
+; Bind volume keys to increase/decrease bus[1] gain
+Volume_Up:: mainOutput.gain++
+Volume_Down:: mainOutput.gain--
 
-^G::
-MsgBox, % "bus[1] gain:" . voicemeeter.bus[1].gain . " dB"
-MsgBox, % "bus[1] gain percentage:" . voicemeeter.bus[1].getGainPercentage() . "%"
-MsgBox, % "bus[1] " . (voicemeeter.bus[1].mute ? "Muted" : "Unmuted")
-return
+; Bind ctrl+M to toggle mute bus[1]
+^M:: mainOutput.mute := -1
 
-^Y::voicemeeter.command.show()
+^Volume_Up:: ToolTip(auxInput.gain += 5)
+^Volume_Down:: ToolTip(auxInput.gain -= 5)
 
-^K::voicemeeter.bus[1].FadeTo:="(-18.0, 2000)" ;set any parameter for a bus/strip
+F6:: mainOutput.device := voicemeeter.GetBusDevice("LG") ; Sets bus[1] to the first device with "LG" in its name using the default driver (wdm)
+F7:: voicemeeter.Strip[2].device := voicemeeter.GetStripDevice("amazonbasics", "mme")
 
-^T::MsgBox, % "Bus[1] Level: " . voicemeeter.bus[1].level[1]
+^G:: {
+    MsgBox(mainOutput.Name " gain:" . mainOutput.gain . " dB")
+    MsgBox(mainOutput.Name " gain percentage:" mainOutput.GainPercentage "%")
+    MsgBox(mainOutput.Name " " (mainOutput.mute ? "Muted" : "Unmuted"))
+}
 
-!r::
-voicemeeter.recorder.ArmStrip(4,1)
-voicemeeter.recorder["mode.Loop"]:=1
-voicemeeter.recorder.record:=1
-return
+; Not Supported yet
+; ^Y:: voicemeeter.Commands.Show()
 
-!s::
-voicemeeter.recorder.stop:=1
-voicemeeter.command.eject(1)
-return
+^K:: mainOutput.FadeTo(-18.0, 2000)
+; Or using a normal parameter setter:
+; ^K:: mainOutput.FadeTo := "(-18.0, 2000)"
 
-^A::
-vol -= 0.1
-voicemeeter.strip[6].AppGain := Format("(""Spotify"", {:.1f})", vol) ;increase Spotify volume by 0.1
-return
+^T:: MsgBox(mainOutput.Name " Level: " . mainOutput.Level[1])
 
-^D::
-vol += 0.1
-voicemeeter.strip[6].AppGain := Format("(""Spotify"", {:.1f})", vol) ;decrease Spotify volume by 0.1
-return
+; Not Supported yet
+; !r:: {
+;     voicemeeter.recorder.ArmStrip(4, 1)
+;     voicemeeter.recorder["mode.Loop"] := 1
+;     voicemeeter.recorder.record := 1
+; }
+
+; Not Supported yet
+; !s:: {
+;     voicemeeter.recorder.stop := 1
+;     voicemeeter.command.eject(1)
+; }
+
+; Decrease Spotify volume by 0.1
+^A:: {
+    global spotifyVol -= 0.1
+    auxInput.AppGain["Spotify"] := spotifyVol
+    ; Or using an index
+    ; auxInput.App[1, "Gain"] := spotifyVol
+}
+
+; Increase Spotify volume by 0.1
+^D:: {
+    global spotifyVol += 0.1
+    auxInput.AppGain["Spotify"] := spotifyVol
+}

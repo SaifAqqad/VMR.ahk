@@ -1,40 +1,52 @@
-#Include, %A_ScriptDir%\..\dist\VMR.ahk
-#Persistent
+#Requires AutoHotkey >=2.0
+#Include %A_ScriptDir%\..\dist\VMR.ahk
 
-; This is just an example to demo the `level` array
+Persistent(true)
+
+; This is just an example to demo the `Level` array
 ; It works best when the limits are set 20dBs apart
 
-global voicemeeter:= (new VMR).login()
-, device := voicemeeter.bus[1]
-, default_gain := device.gain
-, upper_limit := -20
-, lower_limit := -40
-voicemeeter.onUpdateLevels:= Func("levelStabilizer")
-OnExit("reset",-1)
+voicemeeter := VMR().Login()
 
-; stabilize the audio level by adjusting the gain
-levelStabilizer(){
-    static is_stable
-    lvl:= Max(device.level*) ; get the current peak level
-    if(lvl = -999) ; if there's no sound
-        device.gain:= default_gain
-    else if(lvl >= upper_limit){ ; if the level is higher than the upper_limit
-        device.FadeTo := "(" device.gain-5 ", 300)" ; lower the gain by 5dBs over 200 ms
-        is_stable:=0
-    }else if((device.gain < default_gain && !is_stable) || lvl <= lower_limit ){
-        ; raise the gain if the level is lower than the lower_limit
-        ; or if the level isn't stable and is lower than the default_limit
-        device.FadeTo := "(" device.gain+1 ", 200)"
-        if(lvl >= upper_limit)
-            device.FadeTo := "(" device.gain-1 ", 200)"
-        is_stable:=1
+/** @type {VMRBus} */
+device := voicemeeter.Bus[1]
+
+defaultGain := device.gain
+upperLimit := -20
+lowerLimit := -40
+
+voicemeeter.On(VMRConsts.Events.LevelsUpdated, levelStabilizer)
+OnExit(reset, -1)
+
+; stabilizes the audio level by adjusting the gain
+levelStabilizer() {
+    static isStable := false
+
+    ; get the current peak level
+    lvl := Max(device.Level*)
+    if (lvl = -999) { ; There's no sound
+        device.gain := defaultGain
+    }
+    else if (lvl >= upperLimit) { ; The level is higher than the upper limit
+        ; Lower the gain by 5dBs over 300 ms
+        device.FadeBy(-5, 300)
+        isStable := false
+    }
+    else if ((!isStable && device.gain < defaultGain) || lvl <= lowerLimit) {
+        ; Raise the gain if the level isn't stable and is lower than the default_limit
+        ; or if the level is lower than the lower_limit
+        device.FadeBy(1, 200)
+        if (lvl >= upperLimit)
+            device.FadeBy(-1, 200)
+        isStable := true
     }
 }
 
-reset(){
-    device.gain:= default_gain ; reset to default gain
-    Sleep, 100
+reset() {
+    ; Reset the bus's gain
+    device.gain := defaultGain
+    Sleep(100)
 }
 
-*<^<+Q:: ;bind LCtrl + LShift + Q to exit
-ExitApp
+; Bind LCtrl + LShift + Q to exit
+*<^<+Q:: ExitApp()
