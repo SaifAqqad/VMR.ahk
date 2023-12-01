@@ -27,28 +27,34 @@ class VMRStrip extends VMRAudioIO {
     /**
      * Sets an application's gain on the strip.
      * 
-     * @param {String} p_name - The name of the application.
+     * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Number} - The application's gain (`0.0` to `1.0`).
      * __________
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
-    AppGain[p_name] {
+    AppGain[p_app] {
         set {
-            VBVMR.SetParameter("AppGain", "(" p_name ", " Value ")")
+            if (IsNumber(p_app))
+                this.SetParameter("App[" p_app - 1 "].Gain", Value)
+            else
+                this.SetParameter("AppGain", "(" p_app ", " Value ")")
         }
     }
 
     /**
      * Sets an application's mute state on the strip.
      * 
-     * @param {String} p_name - The name of the application.
+     * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Boolean} - The application's mute state.
      * __________
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
-    AppMute[p_name] {
+    AppMute[p_app] {
         set {
-            VBVMR.SetParameter("AppGain", "(" p_name ", " Value ")")
+            if (IsNumber(p_app))
+                this.SetParameter("App[" p_app - 1 "].Mute", Value)
+            else
+                this.SetParameter("AppMute", "(" p_app ", " Value ")")
         }
     }
 

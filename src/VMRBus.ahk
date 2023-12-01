@@ -25,8 +25,8 @@ class VMRBus extends VMRAudioIO {
     /**
      * Set/Get the bus's EQ parameters.
      * 
-     * @param {Number} p_channel - The zero-based index of the channel.
-     * @param {Number} p_cell - The zero-based index of the cell.
+     * @param {Number} p_channel - The one-based index of the channel.
+     * @param {Number} p_cell - The one-based index of the cell.
      * @param {String} p_type - The EQ parameter to get/set.
      * 
      * @example
@@ -36,8 +36,8 @@ class VMRBus extends VMRAudioIO {
      * @returns {Number} - The EQ parameter's value.
      */
     EQ[p_channel, p_cell, p_param] {
-        get => this.GetParameter("EQ.channel[" p_channel "].cell[" p_cell "]." p_param)
-        set => this.SetParameter("EQ.channel[" p_channel "].cell[" p_cell "]." p_param, Value)
+        get => this.GetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param)
+        set => this.SetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param, Value)
     }
 
     /**

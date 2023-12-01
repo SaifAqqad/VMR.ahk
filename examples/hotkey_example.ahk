@@ -15,7 +15,7 @@ mainOutput := voicemeeter.Bus[1]
 mainOutput.GainLimit := 0
 
 /** @type {VMRStrip} */
-auxInput := voicemeeter.Strip[6]
+auxInput := voicemeeter.Strip[5]
 
 ; Set initial Spotify volume
 spotifyVol := 0.5
@@ -28,8 +28,15 @@ Volume_Down:: mainOutput.gain--
 ; Bind ctrl+M to toggle mute bus[1]
 ^M:: mainOutput.mute := -1
 
+; Both of the following methods work, but the first one will return invalid values if the gain has reached the upper/lower limit
 ^Volume_Up:: ToolTip(auxInput.gain += 5)
-^Volume_Down:: ToolTip(auxInput.gain -= 5)
+^Volume_Down:: {
+    auxInput.gain -= 5
+    ; Sleep(50) ; we need to sleep for a bit because the voicemeeter API is asynchronous (parameter changes don't take effect immediately)
+    ; ToolTip(auxInput.gain)
+    ; or alternatively (better approach because it won't block the hotkey)
+    SetTimer(() => ToolTip(auxInput.gain), -50)
+}
 
 F6:: mainOutput.device := voicemeeter.GetBusDevice("LG") ; Sets bus[1] to the first device with "LG" in its name using the default driver (wdm)
 F7:: voicemeeter.Strip[2].device := voicemeeter.GetStripDevice("amazonbasics", "mme")

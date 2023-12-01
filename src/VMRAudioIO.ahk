@@ -18,7 +18,7 @@ class VMRAudioIO {
      * 
      * Setting the gain above the limit will reset it to this value.
      */
-    GainLimit := 12
+    GainLimit := VMRConsts.AUDIO_IO_GAIN_MAX
 
     /**
      * Gets/Sets the gain as a percentage
@@ -141,10 +141,10 @@ class VMRAudioIO {
         local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.SetParameterString.Bind(VBVMR) : VBVMR.SetParameterFloat.Bind(VBVMR)
 
         if (p_name = "gain") {
-            p_value := VMRUtils.EnsureBetween(p_value, -60, this.GainLimit)
+            p_value := VMRUtils.EnsureBetween(p_value, VMRConsts.AUDIO_IO_GAIN_MIN, this.GainLimit)
         }
         else if (p_name = "limit") {
-            p_value := VMRUtils.EnsureBetween(p_value, -60, 12.0)
+            p_value := VMRUtils.EnsureBetween(p_value, VMRConsts.AUDIO_IO_LIMIT_MIN, VMRConsts.AUDIO_IO_LIMIT_MAX)
         }
         else if (p_name = "mute") {
             p_value := p_value < 0 ? !this.GetParameter("mute") : p_value
