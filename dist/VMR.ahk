@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
  * - Version 2.0.0-alpha
- * - Build timestamp 2023-11-25 10:59:30 UTC
+ * - Build timestamp 2023-12-02 07:31:36 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -207,6 +207,8 @@ class VMRConsts {
     static DLL_FILE := A_PtrSize == 8 ? "VoicemeeterRemote64.dll" : "VoicemeeterRemote.dll"
     static WM_DEVICE_CHANGE := 0x0219, WM_DEVICE_CHANGE_PARAM := 0x0007
     static SYNC_TIMER_INTERVAL := 10, LEVELS_TIMER_INTERVAL := 30
+    static AUDIO_IO_GAIN_MIN := -60.0, AUDIO_IO_GAIN_MAX := 12.0
+    static AUDIO_IO_LIMIT_MIN := -40.0, AUDIO_IO_LIMIT_MAX := 12.0
 }
 class VMRDevice {
     __New(name, driver) {
@@ -627,6 +629,119 @@ class VBVMR {
     }
 }
 /**
+ * A basic wrapper for an async operation.
+ */
+class VMRAsyncOp {
+    /**
+     * Creates a new async operation.
+     * 
+     * @param {() => Any} p_supplier - (Optional) Supplies the result of the async operation.
+     * @param {Number} p_autoResolveTimeout - (Optional) Automatically resolves the async operation after the specified number of milliseconds.
+     */
+    __New(p_supplier?, p_autoResolveTimeout?) {
+        if (IsSet(p_supplier)) {
+            if !(p_supplier is Func)
+                throw VMRError("p_supplier must be a function.", this.__New.Name, p_supplier)
+            this._supplier := p_supplier
+        }
+        this._value := ""
+        this._listeners := []
+        this.IsEmpty := false
+        this.Resolved := false
+        if (IsSet(p_autoResolveTimeout) && IsNumber(p_autoResolveTimeout)) {
+            if (p_autoResolveTimeout = 0)
+                this._Resolve()
+            else
+                SetTimer(this._Resolve.Bind(this), -Abs(p_autoResolveTimeout))
+        }
+    }
+    /**
+     * Creates an empty async operation that's already been resolved.
+     */
+    static Empty {
+        get {
+            local empty := VMRAsyncOp()
+            empty.IsEmpty := true
+            empty._Resolve()
+            return empty
+        }
+    }
+    /**
+     * Adds a listener to the async operation.
+     * 
+     * @param {(Any) => Any} p_listener - A function that will be called when the async operation is resolved.
+     * __________
+     * @returns {VMRAsyncOp} - a new async operation that will be resolved when the current operation is resolved and the listener is called.
+     * @throws {VMRError} - if `p_listener` is not a function or has an invalid number of parameters.
+     */
+    Then(p_listener) {
+        if !(p_listener is Func)
+            throw VMRError("p_listener must be a function.", this.Then.Name, p_listener)
+        if (p_listener.MinParams > 1)
+            throw VMRError("p_listener must require 0 or 1 parameters.", this.Then.Name, p_listener)
+        if (this.Resolved) {
+            local result := this._SafeCall(p_listener)
+            return VMRAsyncOp(() => result, 0)
+        }
+        else {
+            local innerOp := VMRAsyncOp(p_listener)
+            this._listeners.push(innerOp._Resolve.Bind(innerOp))
+            return innerOp
+        }
+    }
+    /**
+     * Waits for the async operation to be resolved.
+     * 
+     * @param {Number} p_timeoutMs - (Optional) The maximum number of milliseconds to wait before throwing an error.
+     * __________
+     * @returns {Any} - The result of the async operation.
+     */
+    Await(p_timeoutMs := 0) {
+        if (this.Resolved)
+            return this._value
+        currentMs := A_TickCount
+        while (!this.Resolved) {
+            if (p_timeoutMs > 0 && A_TickCount - currentMs > p_timeoutMs)
+                throw VMRError("The async operation timed out", this.Await.Name, p_timeoutMs)
+            Sleep(50)
+        }
+        return this._value
+    }
+    /**
+     * Resolves the async operation.
+     */
+    _Resolve() {
+        if (this.Resolved)
+            throw VMRError("This async operation has already been resolved.", this._Resolve.Name)
+        if (this._supplier is Func)
+            this._value := this._supplier.Call()
+        ; If the supplier returned another async operation, resolve to the actual value.
+        if (this._value is VMRAsyncOp)
+            this._value := this._value.Await()
+        this.Resolved := true
+        for (listener in this._listeners) {
+            this._SafeCall(listener)
+        }
+    }
+    /**
+     * Calls the listener with the appropriate number of parameters and catches any thrown errors.
+     * 
+     * @param {Func} p_listener - A function that will be called when the async operation is resolved.
+     * __________
+     * @returns {Any} - The result of the listener call.
+     */
+    _SafeCall(p_listener) {
+        try {
+            if (p_listener.MaxParams = 0) {
+                return p_listener.Call()
+            }
+            else if (p_listener.MinParams < 2) {
+                return p_listener.Call(this._value)
+            }
+        }
+    }
+}
+/**
  * A base class for {@link VMRBus|`VMRBus`} and {@link VMRStrip|`VMRStrip`}
  */
 class VMRAudioIO {
@@ -637,7 +752,7 @@ class VMRAudioIO {
      * 
      * Setting the gain above the limit will reset it to this value.
      */
-    GainLimit := 12
+    GainLimit := VMRConsts.AUDIO_IO_GAIN_MAX
     /**
      * Gets/Sets the gain as a percentage
      * @type {Number} - The gain as a percentage (e.g. `44` = 44%)
@@ -660,6 +775,13 @@ class VMRAudioIO {
      * local peakLevel := Max(vm.Bus[1].Level*)
      */
     Level := Array()
+    /**
+     * The object's identifier that's used when calling VMR's functions.    
+     * Like `Bus[0]` or `Strip[3]`
+     * 
+     * @type {String}
+     */
+    Id := ""
     /**
      * Creates a new `VMRAudioIO` object.
      * @param {Number} p_index - The zero-based index of the bus/strip.
@@ -704,18 +826,18 @@ class VMRAudioIO {
      * @param {Array} p_params - An extra param passed when using bracket syntax with a normal prop access. `bus.device["wdm"] := "Headset"`
      * @param {Any} p_value - The value of the parameter.
      * __________
-     * @returns {Any} - If the parameter was set successfully it returns `p_value`, otherwise it returns `""`.
+     * @returns {Boolean} - `true` if the parameter was set successfully.
      * @throws {VMRError} - If an internal error occurs.
      */
     _Set(p_key, p_params, p_value) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return ""
+            return false
         if (p_params.Length > 0) {
             for param in p_params {
                 p_key .= IsNumber(param) ? "[" param "]" : "." param
             }
         }
-        return this.SetParameter(p_key, p_value) ? p_value : ""
+        return !this.SetParameter(p_key, p_value).IsEmpty
     }
     /**
      * Implements a default indexer.
@@ -726,7 +848,7 @@ class VMRAudioIO {
      * 
      * @param {String} p_key - The name of the parameter.
      * __________
-     * @type {Any} -  The value of the parameter.
+     * @type {Any} - The value of the parameter.
      * @throws {VMRError} - If an internal error occurs.
      */
     __Item[p_key] {
@@ -739,18 +861,18 @@ class VMRAudioIO {
      * @param {String} p_name - The name of the parameter.
      * @param {Any} p_value - The value of the parameter.
      * __________
-     * @returns {Boolean} - `true` if the parameter was set successfully.
+     * @returns {VMRAsyncOp} - An async operation that resolves to `true` if the parameter was set successfully.
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     SetParameter(p_name, p_value) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return false
+            return VMRAsyncOp.Empty
         local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.SetParameterString.Bind(VBVMR) : VBVMR.SetParameterFloat.Bind(VBVMR)
         if (p_name = "gain") {
-            p_value := VMRUtils.EnsureBetween(p_value, -60, this.GainLimit)
+            p_value := VMRUtils.EnsureBetween(p_value, VMRConsts.AUDIO_IO_GAIN_MIN, this.GainLimit)
         }
         else if (p_name = "limit") {
-            p_value := VMRUtils.EnsureBetween(p_value, -60, 12.0)
+            p_value := VMRUtils.EnsureBetween(p_value, VMRConsts.AUDIO_IO_LIMIT_MIN, VMRConsts.AUDIO_IO_LIMIT_MAX)
         }
         else if (p_name = "mute") {
             p_value := p_value < 0 ? !this.GetParameter("mute") : p_value
@@ -770,7 +892,8 @@ class VMRAudioIO {
             p_name := "device." deviceDriver
             p_value := deviceName
         }
-        return vmrFunc.Call(this.Id, p_name, p_value) == 0
+        local result := vmrFunc.Call(this.Id, p_name, p_value)
+        return VMRAsyncOp(() => result == 0, 50)
     }
     /**
      * Returns the value of a parameter.
@@ -794,27 +917,28 @@ class VMRAudioIO {
     }
     /**
      * Increments a parameter by a specific amount.  
-     * - If the incremented value is not needed, it's recommended to use this method instead of incrementing the parameter directly (`++vm.Bus[1].Gain`).
-     * - Since this method doesn't fetch the current value of the parameter, {@link @VMRAudioIO.GainLimit|`GainLimit`} doesn't apply here.
+     * - It's recommended to use this method instead of incrementing the parameter directly (`++vm.Bus[1].Gain`).
+     * - Since this method doesn't fetch the current value of the parameter to update it, {@link @VMRAudioIO.GainLimit|`GainLimit`} cannot be applied here.
      * 
      * @example <caption>usage</caption>
-     * vm.Bus[1].Increment("gain", 1) ; increases the gain by 1dB
-     * vm.Bus[1].Increment("gain", -5) ; decreases the gain by 5dB
+     * vm.Bus[1].Increment("gain", 1).Then(val => Tooltip(val)) ; increases the gain by 1dB
+     * vm.Bus[1].Increment("gain", -5).Then(val => Tooltip(val)) ; decreases the gain by 5dB
      * 
      * @param {String} p_param - The name of the parameter, must be a numeric parameter (see {@link VMRConsts.IO_STRING_PARAMETERS|`VMRConsts.IO_STRING_PARAMETERS`}).
      * @param {Number} p_amount - The amount to increment the parameter by, can be set to a negative value to decrement instead.
      * __________
-     * @returns {Boolean} - `true` if the parameter was incremented successfully.
+     * @returns {VMRAsyncOp} - An async operation that resolves to the incremented value.
      */
     Increment(p_param, p_amount) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return false
+            return VMRAsyncOp.Empty
         if (!IsNumber(p_amount))
             throw VMRError("p_amount must be a number", this.Increment.Name, p_param, p_amount)
         if (VMRAudioIO._IsStringParam(p_param))
             throw VMRError("p_param must be a numeric parameter", this.Increment.Name, p_param, p_amount)
         local script := Format("{}.{} {} {}", this.Id, p_param, p_amount < 0 ? "-=" : "+=", Abs(p_amount))
-        return VBVMR.SetParameters(script) == 0
+        VBVMR.SetParameters(script)
+        return VMRAsyncOp(() => this.GetParameter(p_param), 50)
     }
     /**
      * Sets the gain to a specific value with a progressive fade.
@@ -822,17 +946,19 @@ class VMRAudioIO {
      * @param {Number} p_db - The gain value in dBs.
      * @param {Number} p_duration - The duration of the fade in milliseconds.
      * __________
-     * @returns {Boolean} - `true` if the gain was set successfully.
+     * @returns {VMRAsyncOp} - An async operation that resolves with the final gain value.
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     FadeTo(p_db, p_duration) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return false
+            return VMRAsyncOp.Empty
         if (!IsNumber(p_db))
             throw VMRError("p_db must be a number", this.FadeTo.Name, p_db, p_duration)
         if (!IsNumber(p_duration))
             throw VMRError("p_duration must be a number", this.FadeTo.Name, p_db, p_duration)
-        return this.SetParameter("FadeTo", "(" p_db ", " p_duration ")")
+        if (this.SetParameter("FadeTo", "(" p_db ", " p_duration ")").IsEmpty)
+            return VMRAsyncOp.Empty
+        return VMRAsyncOp(() => this.GetParameter("gain"), p_duration + 50)
     }
     /**
      * Fades the gain by a specific amount.
@@ -840,17 +966,19 @@ class VMRAudioIO {
      * @param {Number} p_dbAmount - The amount to fade the gain by in dBs.
      * @param {Number} p_duration - The duration of the fade in milliseconds.
      * _________
-     * @returns {Boolean} - `true` if the gain was set successfully.
+     * @returns {VMRAsyncOp} - An async operation that resolves with the final gain value.
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     FadeBy(p_dbAmount, p_duration) {
         if (!VMRAudioIO.IS_CLASS_INIT)
-            return false
+            return VMRAsyncOp.Empty
         if (!IsNumber(p_dbAmount))
             throw VMRError("p_dbAmount must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
         if (!IsNumber(p_duration))
             throw VMRError("p_duration must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
-        return this.SetParameter("FadeBy", "(" p_dbAmount ", " p_duration ")")
+        if (!this.SetParameter("FadeBy", "(" p_dbAmount ", " p_duration ")"))
+            return VMRAsyncOp.Empty
+        return VMRAsyncOp(() => this.GetParameter("gain"), p_duration + 50)
     }
     /**
      * Returns `true` if the bus/strip is a physical (hardware) one.
@@ -900,8 +1028,8 @@ class VMRBus extends VMRAudioIO {
     /**
      * Set/Get the bus's EQ parameters.
      * 
-     * @param {Number} p_channel - The zero-based index of the channel.
-     * @param {Number} p_cell - The zero-based index of the cell.
+     * @param {Number} p_channel - The one-based index of the channel.
+     * @param {Number} p_cell - The one-based index of the cell.
      * @param {String} p_type - The EQ parameter to get/set.
      * 
      * @example
@@ -911,8 +1039,8 @@ class VMRBus extends VMRAudioIO {
      * @returns {Number} - The EQ parameter's value.
      */
     EQ[p_channel, p_cell, p_param] {
-        get => this.GetParameter("EQ.channel[" p_channel "].cell[" p_cell "]." p_param)
-        set => this.SetParameter("EQ.channel[" p_channel "].cell[" p_cell "]." p_param, Value)
+        get => this.GetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param)
+        set => this.SetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param, Value)
     }
     /**
      * Creates a new VMRBus object.
@@ -967,27 +1095,33 @@ class VMRStrip extends VMRAudioIO {
     /**
      * Sets an application's gain on the strip.
      * 
-     * @param {String} p_name - The name of the application.
+     * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Number} - The application's gain (`0.0` to `1.0`).
      * __________
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
-    AppGain[p_name] {
+    AppGain[p_app] {
         set {
-            VBVMR.SetParameter("AppGain", "(" p_name ", " Value ")")
+            if (IsNumber(p_app))
+                this.SetParameter("App[" p_app - 1 "].Gain", Value)
+            else
+                this.SetParameter("AppGain", "(" p_app ", " Value ")")
         }
     }
     /**
      * Sets an application's mute state on the strip.
      * 
-     * @param {String} p_name - The name of the application.
+     * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Boolean} - The application's mute state.
      * __________
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
-    AppMute[p_name] {
+    AppMute[p_app] {
         set {
-            VBVMR.SetParameter("AppGain", "(" p_name ", " Value ")")
+            if (IsNumber(p_app))
+                this.SetParameter("App[" p_app - 1 "].Mute", Value)
+            else
+                this.SetParameter("AppMute", "(" p_app ", " Value ")")
         }
     }
     /**

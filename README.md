@@ -38,8 +38,11 @@ To use `VMR.ahk` in your script, follow one of the following methods:
 
 ## Build instructions
 
-To build `VMR.ahk`, either run the vscode task `Build VMR` or run the build script manually:
+To build `VMR.ahk`, either run the vscode task `Build VMR` or run the build script using ahkpm or manually:
 
 ```powershell
+# ahkpm
+ahkpm run build
+# Manually
 Autohotkey.exe ".\Build.ahk" ".\VMR.ahk" "..\dist\VMR.ahk" "<version number>"
 ```

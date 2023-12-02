@@ -21,25 +21,35 @@ auxInput := voicemeeter.Strip[5]
 spotifyVol := 0.5
 auxInput.AppGain["Spotify"] := spotifyVol
 
-; Bind volume keys to increase/decrease bus[1] gain
-Volume_Up:: mainOutput.gain++
-Volume_Down:: mainOutput.gain--
-
 ; Bind ctrl+M to toggle mute bus[1]
 ^M:: mainOutput.mute := -1
 
-; Both of the following methods work, but the first one will return invalid values if the gain has reached the upper/lower limit
-^Volume_Up:: ToolTip(auxInput.gain += 5)
-^Volume_Down:: {
-    auxInput.gain -= 5
-    ; Sleep(50) ; we need to sleep for a bit because the voicemeeter API is asynchronous (parameter changes don't take effect immediately)
-    ; ToolTip(auxInput.gain)
-    ; or alternatively (better approach because it won't block the hotkey)
-    SetTimer(() => ToolTip(auxInput.gain), -50)
-}
+; Bind volume keys to increase/decrease bus[1] gain
+Volume_Up:: mainOutput.Increment("gain", 1)
+Volume_Down:: mainOutput.Increment("gain", -1)
 
-F6:: mainOutput.device := voicemeeter.GetBusDevice("LG") ; Sets bus[1] to the first device with "LG" in its name using the default driver (wdm)
-F7:: voicemeeter.Strip[2].device := voicemeeter.GetStripDevice("amazonbasics", "mme")
+/**
+ * `Increment` and several other methods return a {@link VMRAsyncOp|`VMRAsyncOp`} object which allows you to pass a callback function that receives the result of the operation once it's done.    
+ * 
+ * While incrementing the gain directly (like `mainOutput.gain++`) and then getting the new value immediately might work, more often than not, the returned value will be wrong as the parameter has not been set yet
+ * this is because the voicemeeter API is asynchronous.
+ * 
+ * Functionally, VMRAsyncOp is kind of like a js promise, but it actually just uses a timer to resolve the operation which then calls all registered callbacks.
+ * @example <caption>Equivalent to the code below</caption>
+ *    auxInput.gain += 5
+ *    SetTimer(() => ToolTip(auxInput.gain), -50)
+ */
+^Volume_Up:: auxInput
+    .Increment("gain", 5)
+    .Then(g => ToolTip(g))
+^Volume_Down:: auxInput
+    .Increment("gain", -5)
+    .Then(g => ToolTip(g))
+
+monitorSpeakers := voicemeeter.GetBusDevice("LG") ; Get the first output device with "LG" in its name using the default driver (wdm)
+microphone := voicemeeter.GetStripDevice("amazonbasics", "mme") ; Get the first input device with "amazonbasics" in its name using the mme driver
+F6:: mainOutput.device := monitorSpeakers
+F7:: voicemeeter.Strip[2].device := microphone
 
 ^G:: {
     MsgBox(mainOutput.Name " gain:" . mainOutput.gain . " dB")
@@ -50,9 +60,10 @@ F7:: voicemeeter.Strip[2].device := voicemeeter.GetStripDevice("amazonbasics", "
 ; Not Supported yet
 ; ^Y:: voicemeeter.Commands.Show()
 
-^K:: mainOutput.FadeTo(-18.0, 2000)
+^K:: mainOutput.FadeBy(-3, 2000)
+    .Then(finalGain => ToolTip("Faded to " finalGain " dB"))
 ; Or using a normal parameter setter:
-; ^K:: mainOutput.FadeTo := "(-18.0, 2000)"
+; ^K:: mainOutput.FadeBy := "(-3.0, 2000)"
 
 ^T:: MsgBox(mainOutput.Name " Level: " . mainOutput.Level[1])
 
@@ -74,7 +85,7 @@ F7:: voicemeeter.Strip[2].device := voicemeeter.GetStripDevice("amazonbasics", "
     global spotifyVol -= 0.1
     auxInput.AppGain["Spotify"] := spotifyVol
     ; Or using an index
-    ; auxInput.App[1, "Gain"] := spotifyVol
+    ; auxInput.AppGain[1] := spotifyVol
 }
 
 ; Increase Spotify volume by 0.1
