@@ -3,8 +3,14 @@
 
 /**
  * A basic wrapper for an async operation.
+ * 
+ * This is needed because the VMR API is asynchronous which means that operations like `SetFloatParameter` do not take effect immediately,
+ * and so if the same parameter was fetched right after it was set, the old value would be returned (or sometimes it would return a completely invalid value).
+ * 
+ * And unfortunately, the VMR API does not provide any meaningful way to wait for a particular operation to complete (callbacks, synchronous api), and so this class (mostly) uses a normal timer to wait for the operation to complete.
  */
 class VMRAsyncOp {
+    static DEFAULT_DELAY := 50
 
     /**
      * Creates a new async operation.
@@ -50,11 +56,12 @@ class VMRAsyncOp {
      * Adds a listener to the async operation.
      * 
      * @param {(Any) => Any} p_listener - A function that will be called when the async operation is resolved.
+     * @param {Number} p_innerOpDelay - (Optional) If passed, the returned async operation will be delayed by the specified number of milliseconds.
      * __________
      * @returns {VMRAsyncOp} - a new async operation that will be resolved when the current operation is resolved and the listener is called.
      * @throws {VMRError} - if `p_listener` is not a function or has an invalid number of parameters.
      */
-    Then(p_listener) {
+    Then(p_listener, p_innerOpDelay := 0) {
         if !(p_listener is Func)
             throw VMRError("p_listener must be a function.", this.Then.Name, p_listener)
 
@@ -63,11 +70,11 @@ class VMRAsyncOp {
 
         if (this.Resolved) {
             local result := this._SafeCall(p_listener)
-            return VMRAsyncOp(() => result, 0)
+            return VMRAsyncOp(() => result, p_innerOpDelay)
         }
         else {
-            local innerOp := VMRAsyncOp(p_listener)
-            this._listeners.push(innerOp._Resolve.Bind(innerOp))
+            local innerOp := VMRAsyncOp()
+            this._listeners.push({ func: p_listener, op: innerOp, delay: Abs(p_innerOpDelay) })
             return innerOp
         }
     }
@@ -88,7 +95,7 @@ class VMRAsyncOp {
         while (!this.Resolved) {
             if (p_timeoutMs > 0 && A_TickCount - currentMs > p_timeoutMs)
                 throw VMRError("The async operation timed out", this.Await.Name, p_timeoutMs)
-            Sleep(50)
+            Sleep(VMRAsyncOp.DEFAULT_DELAY)
         }
 
         return this._value
@@ -96,12 +103,16 @@ class VMRAsyncOp {
 
     /**
      * Resolves the async operation.
+     * 
+     * @param {Any} p_value - (Optional) A value to resolve the async operation with, this will take precedence over the supplier.
      */
-    _Resolve() {
+    _Resolve(p_value?) {
         if (this.Resolved)
             throw VMRError("This async operation has already been resolved.", this._Resolve.Name)
 
-        if (this._supplier is Func)
+        if (IsSet(p_value))
+            this._value := p_value
+        else if (this._supplier is Func)
             this._value := this._supplier.Call()
 
         ; If the supplier returned another async operation, resolve to the actual value.
@@ -110,7 +121,10 @@ class VMRAsyncOp {
 
         this.Resolved := true
         for (listener in this._listeners) {
-            this._SafeCall(listener)
+            local value := this._SafeCall(listener.func)
+            if (listener.delay > 0)
+                Sleep(listener.delay)
+            listener.op._Resolve(value)
         }
     }
 
