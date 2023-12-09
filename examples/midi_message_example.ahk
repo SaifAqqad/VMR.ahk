@@ -1,5 +1,5 @@
 #Requires AutoHotkey >=2.0
-#Include %A_ScriptDir%\..\dist\VMR.ahk
+#Include %A_ScriptDir%\..\src\VMR.ahk
 
 Persistent(true)
 

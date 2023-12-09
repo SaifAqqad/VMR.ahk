@@ -1,6 +1,6 @@
 #Requires AutoHotkey >=2.0
 
-#Include %A_ScriptDir%\..\dist\VMR.ahk
+#Include %A_ScriptDir%\..\src\VMR.ahk
 
 voicemeeter := VMR().login()
 
@@ -41,10 +41,12 @@ Volume_Down:: mainOutput.Increment("gain", -1)
  */
 ^Volume_Up:: auxInput
     .Increment("gain", 5)
-    .Then(g => ToolTip(g))
+    .Then(gain => ToolTip(gain), 1000)
+    .Then(() => ToolTip())
 ^Volume_Down:: auxInput
     .Increment("gain", -5)
-    .Then(g => ToolTip(g))
+    .Then(gain => ToolTip(gain), 1000)
+    .Then(() => ToolTip())
 
 monitorSpeakers := voicemeeter.GetBusDevice("LG") ; Get the first output device with "LG" in its name using the default driver (wdm)
 microphone := voicemeeter.GetStripDevice("amazonbasics", "mme") ; Get the first input device with "amazonbasics" in its name using the mme driver
