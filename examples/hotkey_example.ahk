@@ -15,7 +15,7 @@ mainOutput := voicemeeter.Bus[1]
 mainOutput.GainLimit := 0
 
 /** @type {VMRStrip} */
-auxInput := voicemeeter.Strip[5]
+auxInput := voicemeeter.Strip[8]
 
 ; Set initial Spotify volume
 spotifyVol := 0.5
@@ -25,8 +25,11 @@ auxInput.AppGain["Spotify"] := spotifyVol
 ^M:: mainOutput.mute := -1
 
 ; Bind volume keys to increase/decrease bus[1] gain
-Volume_Up:: mainOutput.Increment("gain", 1)
-Volume_Down:: mainOutput.Increment("gain", -1)
+Volume_Up:: mainOutput.gain++
+Volume_Down:: mainOutput.gain--
+; Or using the increment method (check below for an explanation)
+; Volume_Up:: mainOutput.Increment("gain", 1).Then(DisplayTooltip)
+; Volume_Down:: mainOutput.Increment("gain", -1).Then(DisplayTooltip)
 
 /**
  * `Increment` and several other methods return a {@link VMRAsyncOp|`VMRAsyncOp`} object which allows you to pass a callback function that receives the result of the operation once it's done.    
@@ -63,7 +66,8 @@ F7:: voicemeeter.Strip[2].device := microphone
 ; ^Y:: voicemeeter.Commands.Show()
 
 ^K:: mainOutput.FadeBy(-3, 2000)
-    .Then(finalGain => ToolTip("Faded to " finalGain " dB"))
+    .Then(finalGain => ToolTip("Faded to " finalGain " dB"), 3000)
+    .Then(() => ToolTip())
 ; Or using a normal parameter setter:
 ; ^K:: mainOutput.FadeBy := "(-3.0, 2000)"
 
@@ -84,14 +88,25 @@ F7:: voicemeeter.Strip[2].device := microphone
 
 ; Decrease Spotify volume by 0.1
 ^A:: {
-    global spotifyVol -= 0.1
+    global spotifyVol := VMRUtils.EnsureBetween(spotifyVol - 0.1, 0, 1)
     auxInput.AppGain["Spotify"] := spotifyVol
+    DisplayTooltip("Spotify: " spotifyVol)
     ; Or using an index
     ; auxInput.AppGain[1] := spotifyVol
 }
 
 ; Increase Spotify volume by 0.1
 ^D:: {
-    global spotifyVol += 0.1
+    global spotifyVol := VMRUtils.EnsureBetween(spotifyVol + 0.1, 0, 1)
     auxInput.AppGain["Spotify"] := spotifyVol
+    DisplayTooltip("Spotify: " spotifyVol)
+}
+
+DisplayTooltip(txt) {
+    ToolTip(txt)
+    SetTimer(HideTooltip, -2000)
+
+    static HideTooltip() {
+        ToolTip()
+    }
 }

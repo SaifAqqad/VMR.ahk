@@ -38,9 +38,9 @@ class VMRStrip extends VMRAudioIO {
                 throw VMRError("Cannot set application gain on physical strips", "AppGain", p_app)
 
             if (IsNumber(p_app))
-                this.SetParameter("App[" p_app - 1 "].Gain", Value)
+                this.SetParameter("App[" p_app - 1 "].Gain", Round(Value, 2))
             else
-                this.SetParameter("AppGain", "(" p_app ", " Value ")")
+                this.SetParameter("AppGain", "(`"" p_app "`", " Round(Value, 2) ")")
         }
     }
 
@@ -60,7 +60,7 @@ class VMRStrip extends VMRAudioIO {
             if (IsNumber(p_app))
                 this.SetParameter("App[" p_app - 1 "].Mute", Value)
             else
-                this.SetParameter("AppMute", "(" p_app ", " Value ")")
+                this.SetParameter("AppMute", "(`"" p_app "`", " Value ")")
         }
     }
 

@@ -122,9 +122,8 @@ class VMRAsyncOp {
         this.Resolved := true
         for (listener in this._listeners) {
             local value := this._SafeCall(listener.func)
-            if (listener.delay > 0)
-                Sleep(listener.delay)
-            listener.op._Resolve(value)
+                , delay := listener.delay > 0 ? listener.delay : VMRAsyncOp.DEFAULT_DELAY
+            SetTimer(listener.op._Resolve.Bind(listener.op, value), -delay)
         }
     }
 
