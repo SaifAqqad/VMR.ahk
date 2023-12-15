@@ -50,6 +50,8 @@ class VMRUtils {
      * @returns {Number} The index of the first occurrence of the value in the array, or -1 if it's not found.
      */
     static IndexOf(p_array, p_value) {
+        local i, value
+
         if !(p_array is Array)
             throw Error("p_array: Expected an Array, got " Type(p_array))
 

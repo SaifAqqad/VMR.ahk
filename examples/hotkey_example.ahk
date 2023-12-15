@@ -31,13 +31,13 @@ Volume_Down:: mainOutput.Increment("gain", -1)
 /**
  * `Increment` and several other methods return a {@link VMRAsyncOp|`VMRAsyncOp`} object which allows you to pass a callback function that receives the result of the operation once it's done.    
  * 
- * While incrementing the gain directly (like `mainOutput.gain++`) and then getting the new value immediately might work, more often than not, the returned value will be wrong as the parameter has not been set yet
+ * While incrementing the gain directly (like `mainOutput.gain++`) and then getting the new value immediately might work, more often than not, the returned value will be wrong as the parameter has not been set yet,
  * this is because the voicemeeter API is asynchronous.
  * 
- * Functionally, VMRAsyncOp is kind of like a js promise, but it actually just uses a timer to resolve the operation which then calls all registered callbacks.
+ * Functionally, VMRAsyncOp is similar to a js promise, but it actually just uses a timer to resolve the operation which then calls all registered callbacks.
  * @example <caption>Equivalent to the code below</caption>
  *    auxInput.gain += 5
- *    SetTimer(() => ToolTip(auxInput.gain), -50)
+ *    SetTimer(() => ToolTip(auxInput.gain) && SetTimer(() => ToolTip(), -1000), -50)
  */
 ^Volume_Up:: auxInput
     .Increment("gain", 5)

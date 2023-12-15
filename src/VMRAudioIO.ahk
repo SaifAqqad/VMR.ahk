@@ -211,14 +211,21 @@ class VMRAudioIO {
      * - It's recommended to use this method instead of incrementing the parameter directly (`++vm.Bus[1].Gain`).
      * - Since this method doesn't fetch the current value of the parameter to update it, {@link @VMRAudioIO.GainLimit|`GainLimit`} cannot be applied here.
      * 
-     * @example <caption>usage</caption>
-     * vm.Bus[1].Increment("gain", 1).Then(val => Tooltip(val)) ; increases the gain by 1dB
-     * vm.Bus[1].Increment("gain", -5).Then(val => Tooltip(val)) ; decreases the gain by 5dB
-     * 
      * @param {String} p_param - The name of the parameter, must be a numeric parameter (see {@link VMRConsts.IO_STRING_PARAMETERS|`VMRConsts.IO_STRING_PARAMETERS`}).
      * @param {Number} p_amount - The amount to increment the parameter by, can be set to a negative value to decrement instead.
      * __________
-     * @returns {VMRAsyncOp} - An async operation that resolves to the incremented value.
+     * @returns {VMRAsyncOp} - An async operation that resolves with the incremented value.
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     * __________
+     * @example <caption>usage with callbacks</caption>
+     * vm.Bus[1].Increment("gain", 1).Then(val => Tooltip(val)) ; increases the gain by 1dB
+     * vm.Bus[1].Increment("gain", -5).Then(val => Tooltip(val)) ; decreases the gain by 5dB
+     * 
+     * @example <caption>"synchronous" usage</caption>
+     * ; increases the gain by 1dB and waits for the operation to complete
+     * ; this is equivalent to `vm.Bus[1].Gain++` followed by `Sleep(50)`
+     * gainValue := vm.Bus[1].Increment("gain", 1).Await()
+     * 
      */
     Increment(p_param, p_amount) {
         if (!VMRAudioIO.IS_CLASS_INIT)
@@ -309,6 +316,8 @@ class VMRAudioIO {
      * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
      */
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
+        local device, index
+
         if (!IsSet(p_driver))
             p_driver := VMRConsts.DEFAULT_DEVICE_DRIVER
 

@@ -7,7 +7,7 @@
  * This is needed because the VMR API is asynchronous which means that operations like `SetFloatParameter` do not take effect immediately,
  * and so if the same parameter was fetched right after it was set, the old value would be returned (or sometimes it would return a completely invalid value).
  * 
- * And unfortunately, the VMR API does not provide any meaningful way to wait for a particular operation to complete (callbacks, synchronous api), and so this class (mostly) uses a normal timer to wait for the operation to complete.
+ * And unfortunately, the VMR API does not provide any meaningful way to wait for a particular operation to complete (callbacks, synchronous api), and so this class uses a normal timer to wait for the operation to complete.
  */
 class VMRAsyncOp {
     static DEFAULT_DELAY := 50
@@ -90,7 +90,7 @@ class VMRAsyncOp {
         if (this.Resolved)
             return this._value
 
-        currentMs := A_TickCount
+        local currentMs := A_TickCount
 
         while (!this.Resolved) {
             if (p_timeoutMs > 0 && A_TickCount - currentMs > p_timeoutMs)
