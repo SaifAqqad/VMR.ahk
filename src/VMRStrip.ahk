@@ -30,13 +30,10 @@ class VMRStrip extends VMRAudioIO {
      * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Number} - The application's gain (`0.0` to `1.0`).
      * __________
-     * @throws {VMRError} - If the strip is a physical (hardware) strip or if an internal error occurs.
+     * @throws {VMRError} - If an internal error occurs.
      */
     AppGain[p_app] {
         set {
-            if (this.IsPhysical())
-                throw VMRError("Cannot set application gain on physical strips", "AppGain", p_app)
-
             if (IsNumber(p_app))
                 this.SetParameter("App[" p_app - 1 "].Gain", Round(Value, 2))
             else
@@ -50,13 +47,10 @@ class VMRStrip extends VMRAudioIO {
      * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Boolean} - The application's mute state.
      * __________
-     * @throws {VMRError} - If the strip is a physical (hardware) strip or if an internal error occurs.
+     * @throws {VMRError} - If an internal error occurs.
      */
     AppMute[p_app] {
         set {
-            if (this.IsPhysical())
-                throw VMRError("Cannot set application mute on physical strips", "AppGain", p_app)
-
             if (IsNumber(p_app))
                 this.SetParameter("App[" p_app - 1 "].Mute", Value)
             else

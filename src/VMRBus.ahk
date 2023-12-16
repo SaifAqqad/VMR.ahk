@@ -23,24 +23,6 @@ class VMRBus extends VMRAudioIO {
     Name := ""
 
     /**
-     * Set/Get the bus's EQ parameters.
-     * 
-     * @param {Number} p_channel - The one-based index of the channel.
-     * @param {Number} p_cell - The one-based index of the cell.
-     * @param {String} p_type - The EQ parameter to get/set.
-     * 
-     * @example
-     * vm.Bus[1].EQ[1, 1, "gain"] := -6
-     * vm.Bus[1].EQ[1, 1, "q"] := 90
-     * __________
-     * @returns {Number} - The EQ parameter's value.
-     */
-    EQ[p_channel, p_cell, p_param] {
-        get => this.GetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param)
-        set => this.SetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param, Value)
-    }
-
-    /**
      * Creates a new VMRBus object.
      * @param {Number} p_index - The zero-based index of the bus.
      * @param {Number} p_vmrType - The type of the running voicemeeter.

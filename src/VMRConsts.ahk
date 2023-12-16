@@ -43,7 +43,7 @@ class VMRConsts {
     }, {
         id: 3,
         name: "Voicemeeter Potato",
-        executable: Format("voicemeeter8{}.exe", A_Is64bitOS ? "x64" : ""),
+        executable: "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe",
         busCount: 8,
         vbanCount: 8,
         stripCount: 8

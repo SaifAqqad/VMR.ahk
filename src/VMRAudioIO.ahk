@@ -35,6 +35,37 @@ class VMRAudioIO {
     }
 
     /**
+     * Set/Get the object's EQ parameters.
+     * 
+     * @param {Array} p_params - An array containing the EQ parameter name and the channel/cell numbers.
+     * 
+     * - Bus EQ parameters `EQ[param] := value`
+     * - EQ channel/cells parameters `EQ[param, channel, cell] := value`
+     * 
+     * @example
+     * vm.Bus[1].EQ["gain", 1, 1] := -6
+     * vm.Bus[1].EQ["q", 1, 1] := 90
+     * vm.Bus[1].EQ["AB"] := true
+     * __________
+     * @returns {Number} - The EQ parameter's value.
+     */
+    EQ[p_params*] {
+        get {
+            if (p_params.Length == 3)
+                this.GetParameter("EQ.channel[" p_params[2] - 1 "].cell[" p_params[3] - 1 "]." p_params[1])
+            else
+                this.GetParameter("EQ." p_params[1])
+
+        }
+        set {
+            if (p_params.Length == 3)
+                this.SetParameter("EQ.channel[" p_params[2] - 1 "].cell[" p_params[3] - 1 "]." p_params[1], Value)
+            else
+                this.SetParameter("EQ." p_params[1], Value)
+        }
+    }
+
+    /**
      * An array of the object's channel levels
      * @type {Array}
      * 
