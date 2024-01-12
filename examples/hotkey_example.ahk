@@ -15,11 +15,14 @@ mainOutput := voicemeeter.Bus[1]
 mainOutput.GainLimit := 0
 
 /** @type {VMRStrip} */
-auxInput := voicemeeter.Strip[8]
+auxInput := voicemeeter.Strip[3]
 
-; Set initial Spotify volume
-spotifyVol := 0.5
-auxInput.AppGain["Spotify"] := spotifyVol
+; Check if we're running voicemeeter potato
+if (voicemeeter.Type.Id == 3) {
+    ; Set initial Spotify volume
+    spotifyVol := 0.5
+    auxInput.AppGain["Spotify"] := spotifyVol
+}
 
 ; Bind ctrl+M to toggle mute bus[1]
 ^M:: mainOutput.mute := -1
@@ -101,6 +104,10 @@ F7:: voicemeeter.Strip[2].device := microphone
     auxInput.AppGain["Spotify"] := spotifyVol
     DisplayTooltip("Spotify: " spotifyVol)
 }
+
+; Show/hide voicemeeter
+!S:: voicemeeter.Command.Show(true)
+^!S:: voicemeeter.Command.Show(false)
 
 DisplayTooltip(txt) {
     ToolTip(txt)

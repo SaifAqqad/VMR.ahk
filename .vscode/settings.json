@@ -13,6 +13,6 @@
         "switch_case_alignment": false,
         "symbol_with_same_case": true
     },
-    "AutoHotkey2.Warn.CallWithoutParentheses": true,
+    "AutoHotkey2.Warn.CallWithoutParentheses": "On",
     "AutoHotkey2.Warn.LocalSameAsGlobal": true,
 }

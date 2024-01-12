@@ -24,29 +24,29 @@ class VMRConsts {
      * Known Voicemeeter types
      * @type {Array} - Array of voiceemeeter type descriptors
      * __________
-     * @typedef {{id, name, executable, busCount, stripCount, vbanCount}} VoicemeeterType
+     * @typedef {{Id, Name, Executable, BusCount, StripCount, VbanCount}} VoicemeeterType
      */
     static VOICEMEETER_TYPES := [{
-        id: 1,
-        name: "Voicemeeter",
-        executable: "Voicemeeter.exe",
-        busCount: 2,
-        vbanCount: 4,
-        stripCount: 3
+        Id: 1,
+        Name: "Voicemeeter",
+        Executable: "Voicemeeter.exe",
+        BusCount: 2,
+        VbanCount: 4,
+        StripCount: 3
     }, {
-        id: 2,
-        name: "Voicemeeter Banana",
-        executable: "voicemeeterpro.exe",
-        busCount: 5,
-        vbanCount: 8,
-        stripCount: 5
+        Id: 2,
+        Name: "Voicemeeter Banana",
+        Executable: "voicemeeterpro.exe",
+        BusCount: 5,
+        VbanCount: 8,
+        StripCount: 5
     }, {
-        id: 3,
-        name: "Voicemeeter Potato",
-        executable: "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe",
-        busCount: 8,
-        vbanCount: 8,
-        stripCount: 8
+        Id: 3,
+        Name: "Voicemeeter Potato",
+        Executable: "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe",
+        BusCount: 8,
+        VbanCount: 8,
+        StripCount: 8
     }]
 
     /**

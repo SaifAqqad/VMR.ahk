@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
- * - Version 2.0.0-alpha
- * - Build timestamp 2023-12-02 07:31:36 UTC
+ * - Version 2.0.0-alpha-3
+ * - Build timestamp 2024-01-12 06:17:43 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -10,7 +10,7 @@ class VMRUtils {
     static _MIN_PERCENTAGE := 0.001
     static _MAX_PERCENTAGE := 1.0
     /**
-     * Covnerts a dB value to a percentage value.
+     * Converts a dB value to a percentage value.
      * 
      * @param {Number} p_dB The dB value to convert.
      * __________
@@ -31,7 +31,7 @@ class VMRUtils {
         if (p_percentage < 0)
             p_percentage := 0
         local value := 20 * Log(VMRUtils._MIN_PERCENTAGE + p_percentage / 100 * (VMRUtils._MAX_PERCENTAGE - VMRUtils._MIN_PERCENTAGE))
-        return Round(value, 2) + 0
+        return Round(value, 2)
     }
     /**
      * Applies an upper and a lower bound on a passed value.
@@ -42,7 +42,7 @@ class VMRUtils {
      * __________
      * @returns {Number} The value with the bounds applied.
      */
-    static EnsureBetween(p_value, p_min, p_max) => Max(p_min, Min(p_max, p_value))
+    static EnsureBetween(p_value, p_min, p_max) => Round(Max(p_min, Min(p_max, p_value)), 2)
     /**
      * Returns the index of the first occurrence of a value in an array, or -1 if it's not found.
      * 
@@ -52,6 +52,7 @@ class VMRUtils {
      * @returns {Number} The index of the first occurrence of the value in the array, or -1 if it's not found.
      */
     static IndexOf(p_array, p_value) {
+        local i, value
         if !(p_array is Array)
             throw Error("p_array: Expected an Array, got " Type(p_array))
         for (i, value in p_array) {
@@ -132,29 +133,29 @@ class VMRConsts {
      * Known Voicemeeter types
      * @type {Array} - Array of voiceemeeter type descriptors
      * __________
-     * @typedef {{id, name, executable, busCount, stripCount, vbanCount}} VoicemeeterType
+     * @typedef {{Id, Name, Executable, BusCount, StripCount, VbanCount}} VoicemeeterType
      */
     static VOICEMEETER_TYPES := [{
-        id: 1,
-        name: "Voicemeeter",
-        executable: "Voicemeeter.exe",
-        busCount: 2,
-        vbanCount: 4,
-        stripCount: 3
+        Id: 1,
+        Name: "Voicemeeter",
+        Executable: "Voicemeeter.exe",
+        BusCount: 2,
+        VbanCount: 4,
+        StripCount: 3
     }, {
-        id: 2,
-        name: "Voicemeeter Banana",
-        executable: "voicemeeterpro.exe",
-        busCount: 5,
-        vbanCount: 8,
-        stripCount: 5
+        Id: 2,
+        Name: "Voicemeeter Banana",
+        Executable: "voicemeeterpro.exe",
+        BusCount: 5,
+        VbanCount: 8,
+        StripCount: 5
     }, {
-        id: 3,
-        name: "Voicemeeter Potato",
-        executable: Format("voicemeeter8{}.exe", A_Is64bitOS ? "x64" : ""),
-        busCount: 8,
-        vbanCount: 8,
-        stripCount: 8
+        Id: 3,
+        Name: "Voicemeeter Potato",
+        Executable: "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe",
+        BusCount: 8,
+        VbanCount: 8,
+        StripCount: 8
     }]
     /**
      * Default names for Voicemeeter buses
@@ -630,8 +631,14 @@ class VBVMR {
 }
 /**
  * A basic wrapper for an async operation.
+ * 
+ * This is needed because the VMR API is asynchronous which means that operations like `SetFloatParameter` do not take effect immediately,
+ * and so if the same parameter was fetched right after it was set, the old value would be returned (or sometimes it would return a completely invalid value).
+ * 
+ * And unfortunately, the VMR API does not provide any meaningful way to wait for a particular operation to complete (callbacks, synchronous api), and so this class uses a normal timer to wait for the operation to complete.
  */
 class VMRAsyncOp {
+    static DEFAULT_DELAY := 50
     /**
      * Creates a new async operation.
      * 
@@ -670,22 +677,23 @@ class VMRAsyncOp {
      * Adds a listener to the async operation.
      * 
      * @param {(Any) => Any} p_listener - A function that will be called when the async operation is resolved.
+     * @param {Number} p_innerOpDelay - (Optional) If passed, the returned async operation will be delayed by the specified number of milliseconds.
      * __________
      * @returns {VMRAsyncOp} - a new async operation that will be resolved when the current operation is resolved and the listener is called.
      * @throws {VMRError} - if `p_listener` is not a function or has an invalid number of parameters.
      */
-    Then(p_listener) {
+    Then(p_listener, p_innerOpDelay := 0) {
         if !(p_listener is Func)
             throw VMRError("p_listener must be a function.", this.Then.Name, p_listener)
         if (p_listener.MinParams > 1)
             throw VMRError("p_listener must require 0 or 1 parameters.", this.Then.Name, p_listener)
         if (this.Resolved) {
             local result := this._SafeCall(p_listener)
-            return VMRAsyncOp(() => result, 0)
+            return VMRAsyncOp(() => result, p_innerOpDelay)
         }
         else {
-            local innerOp := VMRAsyncOp(p_listener)
-            this._listeners.push(innerOp._Resolve.Bind(innerOp))
+            local innerOp := VMRAsyncOp()
+            this._listeners.push({ func: p_listener, op: innerOp, delay: Abs(p_innerOpDelay) })
             return innerOp
         }
     }
@@ -699,28 +707,34 @@ class VMRAsyncOp {
     Await(p_timeoutMs := 0) {
         if (this.Resolved)
             return this._value
-        currentMs := A_TickCount
+        local currentMs := A_TickCount
         while (!this.Resolved) {
             if (p_timeoutMs > 0 && A_TickCount - currentMs > p_timeoutMs)
                 throw VMRError("The async operation timed out", this.Await.Name, p_timeoutMs)
-            Sleep(50)
+            Sleep(VMRAsyncOp.DEFAULT_DELAY)
         }
         return this._value
     }
     /**
      * Resolves the async operation.
+     * 
+     * @param {Any} p_value - (Optional) A value to resolve the async operation with, this will take precedence over the supplier.
      */
-    _Resolve() {
+    _Resolve(p_value?) {
         if (this.Resolved)
             throw VMRError("This async operation has already been resolved.", this._Resolve.Name)
-        if (this._supplier is Func)
+        if (IsSet(p_value))
+            this._value := p_value
+        else if (this._supplier is Func)
             this._value := this._supplier.Call()
         ; If the supplier returned another async operation, resolve to the actual value.
         if (this._value is VMRAsyncOp)
             this._value := this._value.Await()
         this.Resolved := true
         for (listener in this._listeners) {
-            this._SafeCall(listener)
+            local value := this._SafeCall(listener.func)
+                , delay := listener.delay > 0 ? listener.delay : VMRAsyncOp.DEFAULT_DELAY
+            SetTimer(listener.op._Resolve.Bind(listener.op, value), -delay)
         }
     }
     /**
@@ -764,6 +778,35 @@ class VMRAudioIO {
     GainPercentage {
         get => VMRUtils.DbToPercentage(this.GetParameter("gain"))
         set => this.SetParameter("gain", VMRUtils.PercentageToDb(Value))
+    }
+    /**
+     * Set/Get the object's EQ parameters.
+     * 
+     * @param {Array} p_params - An array containing the EQ parameter name and the channel/cell numbers.
+     * 
+     * - Bus EQ parameters `EQ[param] := value`
+     * - EQ channel/cells parameters `EQ[param, channel, cell] := value`
+     * 
+     * @example
+     * vm.Bus[1].EQ["gain", 1, 1] := -6
+     * vm.Bus[1].EQ["q", 1, 1] := 90
+     * vm.Bus[1].EQ["AB"] := true
+     * __________
+     * @returns {Number} - The EQ parameter's value.
+     */
+    EQ[p_params*] {
+        get {
+            if (p_params.Length == 3)
+                this.GetParameter("EQ.channel[" p_params[2] - 1 "].cell[" p_params[3] - 1 "]." p_params[1])
+            else
+                this.GetParameter("EQ." p_params[1])
+        }
+        set {
+            if (p_params.Length == 3)
+                this.SetParameter("EQ.channel[" p_params[2] - 1 "].cell[" p_params[3] - 1 "]." p_params[1], Value)
+            else
+                this.SetParameter("EQ." p_params[1], Value)
+        }
     }
     /**
      * An array of the object's channel levels
@@ -920,14 +963,21 @@ class VMRAudioIO {
      * - It's recommended to use this method instead of incrementing the parameter directly (`++vm.Bus[1].Gain`).
      * - Since this method doesn't fetch the current value of the parameter to update it, {@link @VMRAudioIO.GainLimit|`GainLimit`} cannot be applied here.
      * 
-     * @example <caption>usage</caption>
-     * vm.Bus[1].Increment("gain", 1).Then(val => Tooltip(val)) ; increases the gain by 1dB
-     * vm.Bus[1].Increment("gain", -5).Then(val => Tooltip(val)) ; decreases the gain by 5dB
-     * 
      * @param {String} p_param - The name of the parameter, must be a numeric parameter (see {@link VMRConsts.IO_STRING_PARAMETERS|`VMRConsts.IO_STRING_PARAMETERS`}).
      * @param {Number} p_amount - The amount to increment the parameter by, can be set to a negative value to decrement instead.
      * __________
-     * @returns {VMRAsyncOp} - An async operation that resolves to the incremented value.
+     * @returns {VMRAsyncOp} - An async operation that resolves with the incremented value.
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     * __________
+     * @example <caption>usage with callbacks</caption>
+     * vm.Bus[1].Increment("gain", 1).Then(val => Tooltip(val)) ; increases the gain by 1dB
+     * vm.Bus[1].Increment("gain", -5).Then(val => Tooltip(val)) ; decreases the gain by 5dB
+     * 
+     * @example <caption>"synchronous" usage</caption>
+     * ; increases the gain by 1dB and waits for the operation to complete
+     * ; this is equivalent to `vm.Bus[1].Gain++` followed by `Sleep(50)`
+     * gainValue := vm.Bus[1].Increment("gain", 1).Await()
+     * 
      */
     Increment(p_param, p_amount) {
         if (!VMRAudioIO.IS_CLASS_INIT)
@@ -1000,6 +1050,7 @@ class VMRAudioIO {
      * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
      */
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
+        local device, index
         if (!IsSet(p_driver))
             p_driver := VMRConsts.DEFAULT_DEVICE_DRIVER
         for (index, device in p_devicesArr) {
@@ -1025,23 +1076,6 @@ class VMRBus extends VMRAudioIO {
      * local busName := VMRBus.Bus[1].Name ; "A1" or "A" depending on voicemeeter's type
      */
     Name := ""
-    /**
-     * Set/Get the bus's EQ parameters.
-     * 
-     * @param {Number} p_channel - The one-based index of the channel.
-     * @param {Number} p_cell - The one-based index of the cell.
-     * @param {String} p_type - The EQ parameter to get/set.
-     * 
-     * @example
-     * vm.Bus[1].EQ[1, 1, "gain"] := -6
-     * vm.Bus[1].EQ[1, 1, "q"] := 90
-     * __________
-     * @returns {Number} - The EQ parameter's value.
-     */
-    EQ[p_channel, p_cell, p_param] {
-        get => this.GetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param)
-        set => this.SetParameter("EQ.channel[" p_channel - 1 "].cell[" p_cell - 1 "]." p_param, Value)
-    }
     /**
      * Creates a new VMRBus object.
      * @param {Number} p_index - The zero-based index of the bus.
@@ -1098,14 +1132,14 @@ class VMRStrip extends VMRAudioIO {
      * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Number} - The application's gain (`0.0` to `1.0`).
      * __________
-     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     * @throws {VMRError} - If an internal error occurs.
      */
     AppGain[p_app] {
         set {
             if (IsNumber(p_app))
-                this.SetParameter("App[" p_app - 1 "].Gain", Value)
+                this.SetParameter("App[" p_app - 1 "].Gain", Round(Value, 2))
             else
-                this.SetParameter("AppGain", "(" p_app ", " Value ")")
+                this.SetParameter("AppGain", "(`"" p_app "`", " Round(Value, 2) ")")
         }
     }
     /**
@@ -1114,14 +1148,14 @@ class VMRStrip extends VMRAudioIO {
      * @param {String|Number} p_app - The name of the application, or its one-based index.
      * @type {Boolean} - The application's mute state.
      * __________
-     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     * @throws {VMRError} - If an internal error occurs.
      */
     AppMute[p_app] {
         set {
             if (IsNumber(p_app))
                 this.SetParameter("App[" p_app - 1 "].Mute", Value)
             else
-                this.SetParameter("AppMute", "(" p_app ", " Value ")")
+                this.SetParameter("AppMute", "(`"" p_app "`", " Value ")")
         }
     }
     /**
@@ -1159,6 +1193,145 @@ class VMRStrip extends VMRAudioIO {
     }
 }
 /**
+ * Write-only actions that control voicemeeter
+ */
+class VMRCommands {
+    /**
+     * Restarts the Audio Engine
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Restart() => VBVMR.SetParameterFloat("Command", "Restart", 1) == 0
+    /**
+     * Shuts down Voicemeeter
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Shutdown() => VBVMR.SetParameterFloat("Command", "Shutdown", 1) == 0
+    /**
+     * Shows the Voicemeeter window
+     * 
+     * @param {Boolean} p_open - (Optional) `true` to show the window, `false` to hide it
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Show(p_open := true) => VBVMR.SetParameterFloat("Command", "Show", p_open) == 0
+    /**
+     * Locks the Voicemeeter UI
+     * 
+     * @param {number} p_state - (Optional) `true` to lock the UI, `false` to unlock it
+     * _________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Lock(p_state := true) => VBVMR.SetParameterFloat("Command", "Lock", p_state) == 0
+    /**
+     * Ejects the recorder's cassette
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Eject() => VBVMR.SetParameterFloat("Command", "Eject", 1) == 0
+    /**
+     * Resets all voicemeeeter configuration
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Reset() => VBVMR.SetParameterFloat("Command", "Reset", 1) == 0
+    /**
+     * Saves the current configuration to a file
+     * 
+     * @param {String} p_filePath - The path to save the configuration to
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Save(p_filePath) => VBVMR.SetParameterString("Command", "Save", p_filePath) == 0
+    /**
+     * Loads configuration from a file
+     * 
+     * @param {String} p_filePath - The path to load the configuration from
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    Load(p_filePath) => VBVMR.SetParameterString("Command", "Load", p_filePath) == 0
+    /**
+     * Shows the VBAN chat dialog
+     * 
+     * @param {Boolean} p_show - (Optional) `true` to show the dialog, `false` to hide it
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    ShowVBANChat(p_show := 1) => VBVMR.SetParameterFloat("Command", "dialogshow.VBANCHAT", p_show) == 0
+    /**
+     * Sets a macro button's parameter
+     * 
+     * @param {Array} p_params - An array containing the button's one-based index and parameter name.
+     * @example
+     * vm.Command.Button[1, "State"] := 1
+     * vm.Command.Button[1, "Trigger"] := false
+     * vm.Command.Button[1, "Color"] := 8
+     */
+    Button[p_params*] {
+        set {
+            if (p_params.length() != 2)
+                throw VMRError("Invalid number of parameters for Command.Button[]", "Command.Button[]", p_params*)
+            return VBVMR.SetParameterFloat("Command.Button[" . (p_params[1] - 1) . "]", p_params[2], Value) == 0
+        }
+    }
+    /**
+     * Saves a bus's EQ settings to a file
+     * 
+     * @param {Number} p_busIndex - The one-based index of the bus to save
+     * @param {String} p_filePath - The path to save the EQ settings to
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    SaveBusEQ(p_busIndex, p_filePath) {
+        return VBVMR.SetParameterFloat("Command", "SaveBUSEQ[" p_busIndex - 1 "]", p_filePath) == 0
+    }
+    /**
+     * Loads a bus's EQ settings from a file
+     * 
+     * @param {Number} p_busIndex - The one-based index of the bus to load
+     * @param {String} p_filePath - The path to load the EQ settings from
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    LoadBusEQ(p_busIndex, p_filePath) {
+        return VBVMR.SetParameterFloat("Command", "LoadBUSEQ[" p_busIndex - 1 "]", p_filePath) == 0
+    }
+    /**
+     * Saves a strip's EQ settings to a file
+     * 
+     * @param {Number} p_stripIndex - The one-based index of the strip to save
+     * @param {String} p_filePath - The path to save the EQ settings to
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    SaveStripEQ(p_stripIndex, p_filePath) {
+        return VBVMR.SetParameterFloat("Command", "SaveStripEQ[" p_stripIndex - 1 "]", p_filePath) == 0
+    }
+    /**
+     * Loads a strip's EQ settings from a file
+     * 
+     * @param {Number} p_stripIndex - The one-based index of the strip to load
+     * @param {String} p_filePath - The path to load the EQ settings from
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    LoadStripEQ(p_stripIndex, p_filePath) {
+        return VBVMR.SetParameterFloat("Command", "LoadStripEQ[" p_stripIndex - 1 "]", p_filePath) == 0
+    }
+    /**
+     * Recalls a Preset Scene
+     * 
+     * @param {Number} p_presetIndex - The one-based index of the preset
+     * __________
+     * @returns {Boolean} - true if the command was successful
+     */
+    RecallPreset(p_presetIndex) {
+        return VBVMR.SetParameterFloat("Command", "Preset[" p_presetIndex - 1 "].Recall", 1) == 0
+    }
+}
+/**
  * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
  * Must be initialized by calling {@link @VMR.Login|`Login()`} after creating the VMR instance.
  */
@@ -1179,6 +1352,12 @@ class VMR {
      * @type {Array} - An array of {@link VMRStrip|`VMRStrip`} objects.
      */
     Strip := Array()
+    /**
+     * Write-only actions that control voicemeeter
+     * @type {VMRCommands}
+     * @see {@link VMRCommands|`VMRCommands`} for a list of available commands.
+     */
+    Command := VMRCommands()
     /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
      * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, VBVMR will attempt to find it in the registry.

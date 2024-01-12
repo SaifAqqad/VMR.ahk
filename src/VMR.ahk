@@ -15,6 +15,7 @@
 #Include VMRAudioIO.ahk
 #Include VMRBus.ahk
 #Include VMRStrip.ahk
+#Include VMRCommands.ahk
 
 /**
  * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
@@ -39,6 +40,13 @@ class VMR {
      * @type {Array} - An array of {@link VMRStrip|`VMRStrip`} objects.
      */
     Strip := Array()
+
+    /**
+     * Write-only actions that control voicemeeter
+     * @type {VMRCommands}
+     * @see {@link VMRCommands|`VMRCommands`} for a list of available commands.
+     */
+    Command := VMRCommands()
 
     /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
