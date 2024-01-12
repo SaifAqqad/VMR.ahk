@@ -16,6 +16,7 @@
 #Include VMRBus.ahk
 #Include VMRStrip.ahk
 #Include VMRCommands.ahk
+#Include VMRControllerBase.ahk
 
 /**
  * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
@@ -47,6 +48,25 @@ class VMR {
      * @see {@link VMRCommands|`VMRCommands`} for a list of available commands.
      */
     Command := VMRCommands()
+
+    /**
+     * Controls Voicemeeter Potato's FX settings
+     * - If the running Voicemeeter type is not Potato, this property will be an empty string.
+     * @type {VMRControllerBase}
+     */
+    Fx := ""
+
+    /**
+     * Controls Voicemeeter's Patch parameters
+     * @type {VMRControllerBase}
+     */
+    Patch := VMRControllerBase("Patch", (*) => false)
+
+    /**
+     * Controls Voicemeeter's System Settings
+     * @type {VMRControllerBase}
+     */
+    Option := VMRControllerBase("Option", (*) => false)
 
     /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
@@ -374,7 +394,10 @@ class VMR {
             this.Strip.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
 
-        ; TODO: Initialize macro buttons, recorder, vban, command, fx, option, patch
+        ; TODO: Initialize macro buttons, recorder, vban
+
+        if (this.Type.id == 3)
+            this.Fx := VMRControllerBase("Fx", (*) => false)
 
         this.UpdateDevices()
         VMRAudioIO.IS_CLASS_INIT := true
