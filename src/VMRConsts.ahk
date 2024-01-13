@@ -21,35 +21,6 @@ class VMRConsts {
     }
 
     /**
-     * Known Voicemeeter types
-     * @type {Array} - Array of voiceemeeter type descriptors
-     * __________
-     * @typedef {{Id, Name, Executable, BusCount, StripCount, VbanCount}} VoicemeeterType
-     */
-    static VOICEMEETER_TYPES := [{
-        Id: 1,
-        Name: "Voicemeeter",
-        Executable: "Voicemeeter.exe",
-        BusCount: 2,
-        VbanCount: 4,
-        StripCount: 3
-    }, {
-        Id: 2,
-        Name: "Voicemeeter Banana",
-        Executable: "voicemeeterpro.exe",
-        BusCount: 5,
-        VbanCount: 8,
-        StripCount: 5
-    }, {
-        Id: 3,
-        Name: "Voicemeeter Potato",
-        Executable: "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe",
-        BusCount: 8,
-        VbanCount: 8,
-        StripCount: 8
-    }]
-
-    /**
      * Default names for Voicemeeter buses
      * @type {Array}
      */

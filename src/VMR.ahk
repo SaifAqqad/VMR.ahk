@@ -26,7 +26,7 @@ class VMR {
     /**
      * The type of Voicemeeter that is currently running.
      * @type {Object} - An object containing information about the current Voicemeeter type.
-     * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for a list of available types.
+     * @see {@link VMR.Types|`VMR.Types`} for a list of available types.
      */
     Type := ""
 
@@ -51,7 +51,7 @@ class VMR {
 
     /**
      * Controls Voicemeeter Potato's FX settings
-     * - If the running Voicemeeter type is not Potato, this property will be an empty string.
+     * #### If the running Voicemeeter type is not Potato (`Type.Id == 3`), this property will be an empty string.
      * @type {VMRControllerBase}
      */
     Fx := ""
@@ -100,7 +100,7 @@ class VMR {
             Sleep(2000)
         }
 
-        this.Type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()].Clone()
+        this.Type := VMR.Types.GetType(VBVMR.GetVoicemeeterType()).Clone()
         if (!this.Type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name, p_launchVoicemeeter)
 
@@ -136,17 +136,17 @@ class VMR {
     RunVoicemeeter(p_type?) {
         local vmPID := ""
         if (IsSet(p_type)) {
-            local vmInfo := VMRConsts.VOICEMEETER_TYPES[p_type]
+            local vmInfo := VMR.Types.GetType(p_type)
             if (!vmInfo)
                 throw VMRError("Invalid Voicemeeter type: " . p_type, this.RunVoicemeeter.Name, p_type)
 
-            local vmPath := VBVMR.DLL_PATH . "\" . vmInfo.executable
+            local vmPath := VBVMR.DLL_PATH . "\" . vmInfo.Executable
             Run(vmPath, VBVMR.DLL_PATH, "Hide", &vmPID)
 
             return vmPID
         }
 
-        local vmTypeCount := VMRConsts.VOICEMEETER_TYPES.Length
+        local vmTypeCount := VMR.Types.Count
         loop vmTypeCount {
             try {
                 vmPID := this.RunVoicemeeter((vmTypeCount + 1) - A_Index)
@@ -162,14 +162,14 @@ class VMR {
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
-     * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
+     * @returns {VMR.DeviceObject} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */
     GetStripDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRStrip.Devices, p_name, p_driver?)
 
     /**
      * Retrieves all strip devices (input devices).
      * __________
-     * @returns {Array} An array of {@link VMRDevice|`VMRDevice`} objects.
+     * @returns {Array} An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
      */
     GetStripDevices() => VMRStrip.Devices
 
@@ -178,14 +178,14 @@ class VMR {
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
-     * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
+     * @returns {VMR.DeviceObject} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */
     GetBusDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRBus.Devices, p_name, p_driver?)
 
     /**
      * Retrieves all bus devices (output devices).
      * __________
-     * @returns {Array} An array of {@link VMRDevice|`VMRDevice`} objects.
+     * @returns {Array} An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
      */
     GetBusDevices() => VMRBus.Devices
 
@@ -446,5 +446,60 @@ class VMR {
         ; Make sure all commands finish executing before logging out
         Sleep(100)
         VBVMR.Logout()
+    }
+
+    class DeviceObject {
+        __New(name, driver) {
+            this.name := name
+
+            if (IsNumber(driver)) {
+                switch driver {
+                    case 3:
+                        driver := "wdm"
+                    case 4:
+                        driver := "ks"
+                    case 5:
+                        driver := "asio"
+                    default:
+                        driver := "mme"
+                }
+            }
+            this.driver := driver
+        }
+    }
+
+    /**
+     * Known Voicemeeter types info
+     */
+    class Types {
+        static Count := 3
+        static Standard := VMR.Types(1, "Voicemeeter", "voicemeeter.exe", 2, 3, 4)
+        static Banana := VMR.Types(2, "Voicemeeter Banana", "voicemeeterpro.exe", 5, 5, 8)
+        static Potato := VMR.Types(3, "Voicemeeter Potato", "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe", 8, 8, 8)
+
+        __New(id, name, executable, busCount, stripCount, vbanCount) {
+            this.Id := id
+            this.Name := name
+            this.Executable := executable
+            this.BusCount := busCount
+            this.StripCount := stripCount
+            this.VbanCount := vbanCount
+        }
+
+        /**
+         * Returns the voicemeeter type with the specified id.
+         * @param {Number} p_id - The id of the type.
+         * @returns {VMR.Types} 
+         */
+        static GetType(p_id) {
+            switch (p_id) {
+                case 1:
+                    return VMR.Types.Standard
+                case 2:
+                    return VMR.Types.Banana
+                case 3:
+                    return VMR.Types.Potato
+            }
+        }
     }
 }

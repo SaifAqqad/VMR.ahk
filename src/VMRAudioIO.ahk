@@ -4,7 +4,7 @@
 #Include VMRError.ahk
 #Include VMRUtils.ahk
 #Include VMRConsts.ahk
-#Include VMRDevice.ahk
+#Include VMR.ahk
 #Include VMRAsyncOp.ahk
 
 /**
@@ -39,8 +39,8 @@ class VMRAudioIO {
      * 
      * @param {Array} p_params - An array containing the EQ parameter name and the channel/cell numbers.
      * 
-     * - Bus EQ parameters `EQ[param] := value`
-     * - EQ channel/cells parameters `EQ[param, channel, cell] := value`
+     * - Bus EQ parameters: `EQ[param] := value`
+     * - EQ channel/cells parameters: `EQ[param, channel, cell] := value`
      * 
      * @example
      * vm.Bus[1].EQ["gain", 1, 1] := -6
@@ -55,7 +55,6 @@ class VMRAudioIO {
                 this.GetParameter("EQ.channel[" p_params[2] - 1 "].cell[" p_params[3] - 1 "]." p_params[1])
             else
                 this.GetParameter("EQ." p_params[1])
-
         }
         set {
             if (p_params.Length == 3)
@@ -114,7 +113,7 @@ class VMRAudioIO {
 
         if (p_params.Length > 0) {
             for param in p_params {
-                p_key .= IsNumber(param) ? "[" param "]" : "." param
+                p_key .= IsNumber(param) ? "[" param - 1 "]" : "." param
             }
         }
 
@@ -141,7 +140,7 @@ class VMRAudioIO {
 
         if (p_params.Length > 0) {
             for param in p_params {
-                p_key .= IsNumber(param) ? "[" param "]" : "." param
+                p_key .= IsNumber(param) ? "[" param - 1 "]" : "." param
             }
         }
 
@@ -202,7 +201,7 @@ class VMRAudioIO {
                 deviceName := deviceName.name
             }
 
-            if (!VMRAudioIO._IsValidDriver(deviceDriver))
+            if (VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, deviceDriver) == -1)
                 throw VMRError(deviceDriver " is not a valid device driver", this.SetParameter.Name, p_name, p_value)
 
             p_name := "device." deviceDriver
@@ -287,12 +286,6 @@ class VMRAudioIO {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return VMRAsyncOp.Empty
 
-        if (!IsNumber(p_db))
-            throw VMRError("p_db must be a number", this.FadeTo.Name, p_db, p_duration)
-
-        if (!IsNumber(p_duration))
-            throw VMRError("p_duration must be a number", this.FadeTo.Name, p_db, p_duration)
-
         if (this.SetParameter("FadeTo", "(" p_db ", " p_duration ")").IsEmpty)
             return VMRAsyncOp.Empty
 
@@ -312,12 +305,6 @@ class VMRAudioIO {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return VMRAsyncOp.Empty
 
-        if (!IsNumber(p_dbAmount))
-            throw VMRError("p_dbAmount must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
-
-        if (!IsNumber(p_duration))
-            throw VMRError("p_duration must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
-
         if (!this.SetParameter("FadeBy", "(" p_dbAmount ", " p_duration ")"))
             return VMRAsyncOp.Empty
 
@@ -331,20 +318,25 @@ class VMRAudioIO {
      */
     IsPhysical() => this._isPhysical
 
-    static _IsValidDriver(p_driver) => VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, p_driver) > 0
-
+    /**
+     * @private - Internal method
+     * @description Returns `true` if the parameter is a string parameter.
+     * 
+     * @param {String} p_param - The name of the parameter.
+     * @returns {Boolean}
+     */
     static _IsStringParam(p_param) => VMRUtils.IndexOf(VMRConsts.IO_STRING_PARAMETERS, p_param) > 0
 
     /**
      * @private - Internal method
      * @description Returns a device object.
      * 
-     * @param {Array} p_devicesArr - An array of {@link VMRDevice|`VMRDevice`} objects.
+     * @param {Array} p_devicesArr - An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
      * @param {String} p_name - The name of the device.
      * @param {String} p_driver - The driver of the device.
      * @see {@link VMRConsts.DEVICE_DRIVERS|`VMRConsts.DEVICE_DRIVERS`} for a list of valid drivers.
      * __________
-     * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
+     * @returns {VMR.DeviceObject} - A device object, or an empty string `""` if the device was not found.
      */
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
         local device, index

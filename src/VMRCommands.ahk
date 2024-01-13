@@ -11,14 +11,14 @@ class VMRCommands {
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Restart() => VBVMR.SetParameterFloat("Command", "Restart", 1) == 0
+    Restart() => VBVMR.SetParameterFloat("Command", "Restart", true) == 0
 
     /**
      * Shuts down Voicemeeter
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Shutdown() => VBVMR.SetParameterFloat("Command", "Shutdown", 1) == 0
+    Shutdown() => VBVMR.SetParameterFloat("Command", "Shutdown", true) == 0
 
     /**
      * Shows the Voicemeeter window
@@ -43,14 +43,14 @@ class VMRCommands {
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Eject() => VBVMR.SetParameterFloat("Command", "Eject", 1) == 0
+    Eject() => VBVMR.SetParameterFloat("Command", "Eject", true) == 0
 
     /**
      * Resets all voicemeeeter configuration
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Reset() => VBVMR.SetParameterFloat("Command", "Reset", 1) == 0
+    Reset() => VBVMR.SetParameterFloat("Command", "Reset", true) == 0
 
     /**
      * Saves the current configuration to a file
@@ -77,7 +77,7 @@ class VMRCommands {
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    ShowVBANChat(p_show := 1) => VBVMR.SetParameterFloat("Command", "dialogshow.VBANCHAT", p_show) == 0
+    ShowVBANChat(p_show := true) => VBVMR.SetParameterFloat("Command", "dialogshow.VBANCHAT", p_show) == 0
 
     /**
      * Sets a macro button's parameter

@@ -18,7 +18,7 @@ mainOutput.GainLimit := 0
 auxInput := voicemeeter.Strip[3]
 
 ; Check if we're running voicemeeter potato
-if (voicemeeter.Type.Id == 3) {
+if (voicemeeter.Type.Id == VMR.Types.Potato.Id) {
     ; Set initial Spotify volume
     spotifyVol := 0.5
     auxInput.AppGain["Spotify"] := spotifyVol

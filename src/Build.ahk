@@ -30,6 +30,9 @@ SplitPath(arg_outputFile, &outputFileName, &outputFileDir)
 outputContent := FileRead(entryFileFullPath)
 includedFiles := Map()
 
+; Avoid infinite recursion by adding the entry file to the list of included files
+includedFiles.Set(entryFileName, true)
+
 ; Recursively include all files
 currentPos := 1
 loop {

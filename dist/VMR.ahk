@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
  * - Version 2.0.0-alpha-3
- * - Build timestamp 2024-01-12 07:22:50 UTC
+ * - Build timestamp 2024-01-13 07:10:52 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -130,34 +130,6 @@ class VMRConsts {
         MidiMessage: "MidiMessage"
     }
     /**
-     * Known Voicemeeter types
-     * @type {Array} - Array of voiceemeeter type descriptors
-     * __________
-     * @typedef {{Id, Name, Executable, BusCount, StripCount, VbanCount}} VoicemeeterType
-     */
-    static VOICEMEETER_TYPES := [{
-        Id: 1,
-        Name: "Voicemeeter",
-        Executable: "Voicemeeter.exe",
-        BusCount: 2,
-        VbanCount: 4,
-        StripCount: 3
-    }, {
-        Id: 2,
-        Name: "Voicemeeter Banana",
-        Executable: "voicemeeterpro.exe",
-        BusCount: 5,
-        VbanCount: 8,
-        StripCount: 5
-    }, {
-        Id: 3,
-        Name: "Voicemeeter Potato",
-        Executable: "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe",
-        BusCount: 8,
-        VbanCount: 8,
-        StripCount: 8
-    }]
-    /**
      * Default names for Voicemeeter buses
      * @type {Array}
      */
@@ -210,24 +182,6 @@ class VMRConsts {
     static SYNC_TIMER_INTERVAL := 10, LEVELS_TIMER_INTERVAL := 30
     static AUDIO_IO_GAIN_MIN := -60.0, AUDIO_IO_GAIN_MAX := 12.0
     static AUDIO_IO_LIMIT_MIN := -40.0, AUDIO_IO_LIMIT_MAX := 12.0
-}
-class VMRDevice {
-    __New(name, driver) {
-        this.name := name
-        if (IsNumber(driver)) {
-            switch driver {
-                case 3:
-                    driver := "wdm"
-                case 4:
-                    driver := "ks"
-                case 5:
-                    driver := "asio"
-                default:
-                    driver := "mme"
-            }
-        }
-        this.driver := driver
-    }
 }
 /**
  * A static wrapper class for the Voicemeeter Remote DLL.
@@ -425,7 +379,7 @@ class VBVMR {
     }
     /**
      * Returns the type of voicemeeter running.
-     * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for possible values.
+     * @see {@link VMR.Types|`VMR.Types`} for possible values.
      * __________
      * @returns {Number} - The type of voicemeeter running.
      * @throws {VMRError} - If an internal error occurs.
@@ -458,7 +412,7 @@ class VBVMR {
      * Returns the Descriptor of an output device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
-     * @returns {VMRDevice} - An object containing the `name` and `driver` of the device.
+     * @returns {VMR.DeviceObject} - An object containing the `name` and `driver` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Output_GetDeviceDesc(p_index) {
@@ -469,7 +423,7 @@ class VBVMR {
             throw VMRError(err, VBVMR.Output_GetDeviceDesc.Name, p_index)
         if (result < 0)
             throw VMRError(result, VBVMR.Output_GetDeviceDesc.Name, p_index)
-        return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"))
+        return VMR.DeviceObject(StrGet(name, 512), NumGet(driver, 0, "UInt"))
     }
     /**
      * Returns the number of Input Devices available on the system.
@@ -490,7 +444,7 @@ class VBVMR {
      * Returns the Descriptor of an input device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
-     * @returns {VMRDevice} - An object containing the `name` and `driver` of the device.
+     * @returns {VMR.DeviceObject} - An object containing the `name` and `driver` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Input_GetDeviceDesc(p_index) {
@@ -501,7 +455,7 @@ class VBVMR {
             throw VMRError(err, VBVMR.Input_GetDeviceDesc.Name, p_index)
         if (result < 0)
             throw VMRError(result, VBVMR.Input_GetDeviceDesc.Name, p_index)
-        return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"))
+        return VMR.DeviceObject(StrGet(name, 512), NumGet(driver, 0, "UInt"))
     }
     /**
      * Checks if any parameters have changed.
@@ -784,8 +738,8 @@ class VMRAudioIO {
      * 
      * @param {Array} p_params - An array containing the EQ parameter name and the channel/cell numbers.
      * 
-     * - Bus EQ parameters `EQ[param] := value`
-     * - EQ channel/cells parameters `EQ[param, channel, cell] := value`
+     * - Bus EQ parameters: `EQ[param] := value`
+     * - EQ channel/cells parameters: `EQ[param, channel, cell] := value`
      * 
      * @example
      * vm.Bus[1].EQ["gain", 1, 1] := -6
@@ -853,7 +807,7 @@ class VMRAudioIO {
             return ""
         if (p_params.Length > 0) {
             for param in p_params {
-                p_key .= IsNumber(param) ? "[" param "]" : "." param
+                p_key .= IsNumber(param) ? "[" param - 1 "]" : "." param
             }
         }
         return this.GetParameter(p_key)
@@ -877,7 +831,7 @@ class VMRAudioIO {
             return false
         if (p_params.Length > 0) {
             for param in p_params {
-                p_key .= IsNumber(param) ? "[" param "]" : "." param
+                p_key .= IsNumber(param) ? "[" param - 1 "]" : "." param
             }
         }
         return !this.SetParameter(p_key, p_value).IsEmpty
@@ -930,7 +884,7 @@ class VMRAudioIO {
                 deviceDriver := deviceName.driver
                 deviceName := deviceName.name
             }
-            if (!VMRAudioIO._IsValidDriver(deviceDriver))
+            if (VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, deviceDriver) == -1)
                 throw VMRError(deviceDriver " is not a valid device driver", this.SetParameter.Name, p_name, p_value)
             p_name := "device." deviceDriver
             p_value := deviceName
@@ -1002,10 +956,6 @@ class VMRAudioIO {
     FadeTo(p_db, p_duration) {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return VMRAsyncOp.Empty
-        if (!IsNumber(p_db))
-            throw VMRError("p_db must be a number", this.FadeTo.Name, p_db, p_duration)
-        if (!IsNumber(p_duration))
-            throw VMRError("p_duration must be a number", this.FadeTo.Name, p_db, p_duration)
         if (this.SetParameter("FadeTo", "(" p_db ", " p_duration ")").IsEmpty)
             return VMRAsyncOp.Empty
         return VMRAsyncOp(() => this.GetParameter("gain"), p_duration + 50)
@@ -1022,10 +972,6 @@ class VMRAudioIO {
     FadeBy(p_dbAmount, p_duration) {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return VMRAsyncOp.Empty
-        if (!IsNumber(p_dbAmount))
-            throw VMRError("p_dbAmount must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
-        if (!IsNumber(p_duration))
-            throw VMRError("p_duration must be a number", this.FadeBy.Name, p_dbAmount, p_duration)
         if (!this.SetParameter("FadeBy", "(" p_dbAmount ", " p_duration ")"))
             return VMRAsyncOp.Empty
         return VMRAsyncOp(() => this.GetParameter("gain"), p_duration + 50)
@@ -1036,18 +982,24 @@ class VMRAudioIO {
      * @returns {Boolean}
      */
     IsPhysical() => this._isPhysical
-    static _IsValidDriver(p_driver) => VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, p_driver) > 0
+    /**
+     * @private - Internal method
+     * @description Returns `true` if the parameter is a string parameter.
+     * 
+     * @param {String} p_param - The name of the parameter.
+     * @returns {Boolean}
+     */
     static _IsStringParam(p_param) => VMRUtils.IndexOf(VMRConsts.IO_STRING_PARAMETERS, p_param) > 0
     /**
      * @private - Internal method
      * @description Returns a device object.
      * 
-     * @param {Array} p_devicesArr - An array of {@link VMRDevice|`VMRDevice`} objects.
+     * @param {Array} p_devicesArr - An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
      * @param {String} p_name - The name of the device.
      * @param {String} p_driver - The driver of the device.
      * @see {@link VMRConsts.DEVICE_DRIVERS|`VMRConsts.DEVICE_DRIVERS`} for a list of valid drivers.
      * __________
-     * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
+     * @returns {VMR.DeviceObject} - A device object, or an empty string `""` if the device was not found.
      */
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
         local device, index
@@ -1137,9 +1089,9 @@ class VMRStrip extends VMRAudioIO {
     AppGain[p_app] {
         set {
             if (IsNumber(p_app))
-                this.SetParameter("App[" p_app - 1 "].Gain", Round(Value, 2))
+                this.SetParameter("App[" p_app - 1 "].Gain", VMRUtils.EnsureBetween(Round(Value, 2), 0.0, 1.0))
             else
-                this.SetParameter("AppGain", "(`"" p_app "`", " Round(Value, 2) ")")
+                this.SetParameter("AppGain", "(`"" p_app "`", " VMRUtils.EnsureBetween(Round(Value, 2), 0.0, 1.0) ")")
         }
     }
     /**
@@ -1201,13 +1153,13 @@ class VMRCommands {
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Restart() => VBVMR.SetParameterFloat("Command", "Restart", 1) == 0
+    Restart() => VBVMR.SetParameterFloat("Command", "Restart", true) == 0
     /**
      * Shuts down Voicemeeter
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Shutdown() => VBVMR.SetParameterFloat("Command", "Shutdown", 1) == 0
+    Shutdown() => VBVMR.SetParameterFloat("Command", "Shutdown", true) == 0
     /**
      * Shows the Voicemeeter window
      * 
@@ -1229,13 +1181,13 @@ class VMRCommands {
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Eject() => VBVMR.SetParameterFloat("Command", "Eject", 1) == 0
+    Eject() => VBVMR.SetParameterFloat("Command", "Eject", true) == 0
     /**
      * Resets all voicemeeeter configuration
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    Reset() => VBVMR.SetParameterFloat("Command", "Reset", 1) == 0
+    Reset() => VBVMR.SetParameterFloat("Command", "Reset", true) == 0
     /**
      * Saves the current configuration to a file
      * 
@@ -1259,7 +1211,7 @@ class VMRCommands {
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    ShowVBANChat(p_show := 1) => VBVMR.SetParameterFloat("Command", "dialogshow.VBANCHAT", p_show) == 0
+    ShowVBANChat(p_show := true) => VBVMR.SetParameterFloat("Command", "dialogshow.VBANCHAT", p_show) == 0
     /**
      * Sets a macro button's parameter
      * 
@@ -1420,7 +1372,7 @@ class VMR {
     /**
      * The type of Voicemeeter that is currently running.
      * @type {Object} - An object containing information about the current Voicemeeter type.
-     * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for a list of available types.
+     * @see {@link VMR.Types|`VMR.Types`} for a list of available types.
      */
     Type := ""
     /**
@@ -1441,7 +1393,7 @@ class VMR {
     Command := VMRCommands()
     /**
      * Controls Voicemeeter Potato's FX settings
-     * - If the running Voicemeeter type is not Potato, this property will be an empty string.
+     * #### If the running Voicemeeter type is not Potato (`Type.Id == 3`), this property will be an empty string.
      * @type {VMRControllerBase}
      */
     Fx := ""
@@ -1483,7 +1435,7 @@ class VMR {
             WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID)
             Sleep(2000)
         }
-        this.Type := VMRConsts.VOICEMEETER_TYPES[VBVMR.GetVoicemeeterType()].Clone()
+        this.Type := VMR.Types.GetType(VBVMR.GetVoicemeeterType()).Clone()
         if (!this.Type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name, p_launchVoicemeeter)
         OnExit(this.__Delete.Bind(this))
@@ -1513,14 +1465,14 @@ class VMR {
     RunVoicemeeter(p_type?) {
         local vmPID := ""
         if (IsSet(p_type)) {
-            local vmInfo := VMRConsts.VOICEMEETER_TYPES[p_type]
+            local vmInfo := VMR.Types.GetType(p_type)
             if (!vmInfo)
                 throw VMRError("Invalid Voicemeeter type: " . p_type, this.RunVoicemeeter.Name, p_type)
-            local vmPath := VBVMR.DLL_PATH . "\" . vmInfo.executable
+            local vmPath := VBVMR.DLL_PATH . "\" . vmInfo.Executable
             Run(vmPath, VBVMR.DLL_PATH, "Hide", &vmPID)
             return vmPID
         }
-        local vmTypeCount := VMRConsts.VOICEMEETER_TYPES.Length
+        local vmTypeCount := VMR.Types.Count
         loop vmTypeCount {
             try {
                 vmPID := this.RunVoicemeeter((vmTypeCount + 1) - A_Index)
@@ -1534,13 +1486,13 @@ class VMR {
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
-     * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
+     * @returns {VMR.DeviceObject} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */
     GetStripDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRStrip.Devices, p_name, p_driver?)
     /**
      * Retrieves all strip devices (input devices).
      * __________
-     * @returns {Array} An array of {@link VMRDevice|`VMRDevice`} objects.
+     * @returns {Array} An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
      */
     GetStripDevices() => VMRStrip.Devices
     /**
@@ -1548,13 +1500,13 @@ class VMR {
      * @param {String} p_name - The name of the device, or any substring of it.
      * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
      * __________
-     * @returns {VMRDevice} The device object `{name, driver}`, or an empty string `""` if no device was found.
+     * @returns {VMR.DeviceObject} The device object `{name, driver}`, or an empty string `""` if no device was found.
      */
     GetBusDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRBus.Devices, p_name, p_driver?)
     /**
      * Retrieves all bus devices (output devices).
      * __________
-     * @returns {Array} An array of {@link VMRDevice|`VMRDevice`} objects.
+     * @returns {Array} An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
      */
     GetBusDevices() => VMRBus.Devices
     /**
@@ -1768,5 +1720,55 @@ class VMR {
         ; Make sure all commands finish executing before logging out
         Sleep(100)
         VBVMR.Logout()
+    }
+    class DeviceObject {
+        __New(name, driver) {
+            this.name := name
+            if (IsNumber(driver)) {
+                switch driver {
+                    case 3:
+                        driver := "wdm"
+                    case 4:
+                        driver := "ks"
+                    case 5:
+                        driver := "asio"
+                    default:
+                        driver := "mme"
+                }
+            }
+            this.driver := driver
+        }
+    }
+    /**
+     * Known Voicemeeter types info
+     */
+    class Types {
+        static Count := 3
+        static Standard := VMR.Types(1, "Voicemeeter", "voicemeeter.exe", 2, 3, 4)
+        static Banana := VMR.Types(2, "Voicemeeter Banana", "voicemeeterpro.exe", 5, 5, 8)
+        static Potato := VMR.Types(3, "Voicemeeter Potato", "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe", 8, 8, 8)
+        __New(id, name, executable, busCount, stripCount, vbanCount) {
+            this.Id := id
+            this.Name := name
+            this.Executable := executable
+            this.BusCount := busCount
+            this.StripCount := stripCount
+            this.VbanCount := vbanCount
+        }
+        /**
+         * Returns the voicemeeter type with the specified id.
+         * @param {Number} p_id - The id of the type.
+         * @returns {VMR.Types} 
+         */
+        static GetType(p_id) {
+            switch (p_id) {
+                case 1:
+                    return VMR.Types.Standard
+                case 2:
+                    return VMR.Types.Banana
+                case 3:
+                    return VMR.Types.Potato
+            }
+        }
     }
 }

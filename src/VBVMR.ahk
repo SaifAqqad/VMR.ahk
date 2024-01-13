@@ -2,7 +2,7 @@
 
 #Include VMRError.ahk
 #Include VMRConsts.ahk
-#Include VMRDevice.ahk
+#Include VMR.ahk
 
 /**
  * A static wrapper class for the Voicemeeter Remote DLL.
@@ -236,7 +236,7 @@ class VBVMR {
 
     /**
      * Returns the type of voicemeeter running.
-     * @see {@link VMRConsts.VOICEMEETER_TYPES|`VMRConsts.VOICEMEETER_TYPES`} for possible values.
+     * @see {@link VMR.Types|`VMR.Types`} for possible values.
      * __________
      * @returns {Number} - The type of voicemeeter running.
      * @throws {VMRError} - If an internal error occurs.
@@ -277,7 +277,7 @@ class VBVMR {
      * Returns the Descriptor of an output device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
-     * @returns {VMRDevice} - An object containing the `name` and `driver` of the device.
+     * @returns {VMR.DeviceObject} - An object containing the `name` and `driver` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Output_GetDeviceDesc(p_index) {
@@ -291,7 +291,7 @@ class VBVMR {
         if (result < 0)
             throw VMRError(result, VBVMR.Output_GetDeviceDesc.Name, p_index)
 
-        return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"))
+        return VMR.DeviceObject(StrGet(name, 512), NumGet(driver, 0, "UInt"))
     }
 
     /**
@@ -317,7 +317,7 @@ class VBVMR {
      * Returns the Descriptor of an input device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
-     * @returns {VMRDevice} - An object containing the `name` and `driver` of the device.
+     * @returns {VMR.DeviceObject} - An object containing the `name` and `driver` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Input_GetDeviceDesc(p_index) {
@@ -331,7 +331,7 @@ class VBVMR {
         if (result < 0)
             throw VMRError(result, VBVMR.Input_GetDeviceDesc.Name, p_index)
 
-        return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"))
+        return VMR.DeviceObject(StrGet(name, 512), NumGet(driver, 0, "UInt"))
     }
 
     /**

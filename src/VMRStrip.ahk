@@ -35,9 +35,9 @@ class VMRStrip extends VMRAudioIO {
     AppGain[p_app] {
         set {
             if (IsNumber(p_app))
-                this.SetParameter("App[" p_app - 1 "].Gain", Round(Value, 2))
+                this.SetParameter("App[" p_app - 1 "].Gain", VMRUtils.EnsureBetween(Round(Value, 2), 0.0, 1.0))
             else
-                this.SetParameter("AppGain", "(`"" p_app "`", " Round(Value, 2) ")")
+                this.SetParameter("AppGain", "(`"" p_app "`", " VMRUtils.EnsureBetween(Round(Value, 2), 0.0, 1.0) ")")
         }
     }
 
