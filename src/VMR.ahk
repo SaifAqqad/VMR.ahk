@@ -18,6 +18,7 @@
 #Include VMRCommands.ahk
 #Include VMRControllerBase.ahk
 #Include VMRMacroButton.ahk
+#Include VMRRecorder.ahk
 
 /**
  * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
@@ -26,7 +27,7 @@
 class VMR {
     /**
      * The type of Voicemeeter that is currently running.
-     * @type {Object} - An object containing information about the current Voicemeeter type.
+     * @type {VMR.Types} - An object containing information about the current Voicemeeter type.
      * @see {@link VMR.Types|`VMR.Types`} for a list of available types.
      */
     Type := ""
@@ -52,7 +53,7 @@ class VMR {
 
     /**
      * Controls Voicemeeter Potato's FX settings
-     * #### If the running Voicemeeter type is not Potato (`Type.Id == 3`), this property will be an empty string.
+     * #### This property is only available when running Voicemeeter Potato (`VMR.Type.Id == 3`).
      * @type {VMRControllerBase}
      */
     Fx := ""
@@ -74,6 +75,13 @@ class VMR {
      * @type {VMRMacroButton}
      */
     MacroButton := VMRMacroButton()
+
+    /**
+     * Controls Voicemeeter's Recorder
+     * #### This property is only available when running Voicemeeter Banana or Potato (`VMR.Type.Id == 2 || VMR.Type.Id == 3`).
+     * @type {VMRRecorder}
+     */
+    Recorder := ""
 
     /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
@@ -401,9 +409,12 @@ class VMR {
             this.Strip.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
 
-        ; TODO: Initialize macro buttons, recorder, vban
+        ; TODO: Initialize vban
 
-        if (this.Type.id == 3)
+        if (this.Type.Id > 1)
+            this.Recorder := VMRRecorder(this.Type)
+
+        if (this.Type.Id == 3)
             this.Fx := VMRControllerBase("Fx", (*) => false)
 
         this.UpdateDevices()

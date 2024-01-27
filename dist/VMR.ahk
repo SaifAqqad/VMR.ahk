@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
  * - Version 2.0.0-alpha-3
- * - Build timestamp 2024-01-13 07:10:52 UTC
+ * - Build timestamp 2024-01-27 12:27:49 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -864,7 +864,9 @@ class VMRAudioIO {
     SetParameter(p_name, p_value) {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return VMRAsyncOp.Empty
-        local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.SetParameterString.Bind(VBVMR) : VBVMR.SetParameterFloat.Bind(VBVMR)
+        local vmrFunc := VMRAudioIO._IsStringParam(p_name)
+            ? VBVMR.SetParameterString.Bind(VBVMR)
+            : VBVMR.SetParameterFloat.Bind(VBVMR)
         if (p_name = "gain") {
             p_value := VMRUtils.EnsureBetween(p_value, VMRConsts.AUDIO_IO_GAIN_MIN, this.GainLimit)
         }
@@ -1344,12 +1346,15 @@ class VMRControllerBase {
      * @param {String} p_name - The name of the parameter.
      * @param {Any} p_value - The value of the parameter.
      * __________
-     * @returns {Boolean} - True if the parameter was set successfully.
+     * @returns {VMRAsyncOp} - An async operation that resolves to `true` if the parameter was set successfully.
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     SetParameter(p_name, p_value) {
-        local vmrFunc := this.StringParamChecker(p_name) ? VBVMR.SetParameterString.Bind(VBVMR) : VBVMR.SetParameterFloat.Bind(VBVMR)
-        return vmrFunc.Call(this.Id, p_name, p_value) == 0
+        local vmrFunc := this.StringParamChecker(p_name)
+            ? VBVMR.SetParameterString.Bind(VBVMR)
+            : VBVMR.SetParameterFloat.Bind(VBVMR)
+        local result := vmrFunc.Call(this.Id, p_name, p_value)
+        return VMRAsyncOp(() => result == 0, 50)
     }
     /**
      * Returns the value of a parameter.
@@ -1364,6 +1369,118 @@ class VMRControllerBase {
         return vmrFunc.Call(this.Id, p_name) == 0
     }
 }
+class VMRMacroButton {
+    static EXECUTABLE := "VoicemeeterMacroButtons.exe"
+    /**
+     * Run the Voicemeeter Macro Buttons application.
+     * 
+     * @returns {void} 
+     */
+    Run() => Run(VBVMR.DLL_PATH "\" VMRMacroButton.EXECUTABLE, VBVMR.DLL_PATH)
+    /**
+     * Shows/Hides the Voicemeeter Macro Buttons application.
+     */
+    Show(p_show := true) {
+        if (p_show) {
+            if (!WinExist("ahk_exe " VMRMacroButton.EXECUTABLE))
+                this.Run(), Sleep(500)
+            WinShow("ahk_exe " VMRMacroButton.EXECUTABLE)
+        }
+        else {
+            WinHide("ahk_exe " VMRMacroButton.EXECUTABLE)
+        }
+    }
+    /**
+     * Sets the status of a given button.
+     * @param {Number} p_logicalButton - The one-based index of the button
+     * @param {Number} p_value - The value to set
+     * - `0`: Off
+     * - `1`: On
+     * @param {Number} p_bitMode - The type of the returned value
+     * - `0`: button-state
+     * - `2`: displayed-state
+     * - `3`: trigger-state
+     * __________
+     * @returns {Number} - The status of the button
+     * - `0`: Off
+     * - `1`: On
+     * @throws {VMRError} - If an internal error occurs
+     */
+    SetStatus(p_index, p_status, p_bitMode := 0) => VBVMR.MacroButton_SetStatus(p_index - 1, p_status, p_bitMode)
+    /**
+     * Gets the status of a given button.
+     * @param {Number} p_logicalButton - The one-based index of the button
+     * @param {Number} p_bitMode - The type of the returned value
+     * - `0`: button-state
+     * - `2`: displayed-state
+     * - `3`: trigger-state
+     * __________
+     * @returns {Number} - The status of the button
+     * - `0`: Off
+     * - `1`: On
+     * @throws {VMRError} - If an internal error occurs
+     */
+    GetStatus(p_index, p_bitMode := 0) => VBVMR.MacroButton_GetStatus(p_index - 1, p_bitMode)
+}
+class VMRRecorder extends VMRControllerBase {
+    static _stringParameters := ["load"]
+    __New(p_type) {
+        super.__New("recorder", (p) => VMRUtils.IndexOf(VMRRecorder._stringParameters, p) != -1)
+        this.DefineProp("TypeInfo", { Get: (*) => p_type })
+    }
+    /**
+     * Arms the specified bus for recording, switching the recording mode to `1` (bus).
+     * Or returns the state of the specified bus (whether it's armed or not).
+     * @param {number} p_index - The bus's one-based index.
+     * __________
+     * @type {boolean} - Whether the bus is armed or not.
+     * 
+     * @example <caption>Arm the first bus for recording.</caption>
+     * VMR.Recorder.ArmBus[1] := true
+     */
+    ArmBus[p_index] {
+        get {
+            return this.GetParameter("ArmBus(" (p_index - 1) ")")
+        }
+        set {
+            this.SetParameter("mode.recbus", true)
+            this.SetParameter("ArmBus(" . (p_index - 1) . ")", Value)
+        }
+    }
+    /**
+     * Arms the specified strip for recording, switching the recording mode to `0` (strip).
+     * Or returns the state of the specified strip (whether it's armed or not).
+     * @param {number} p_index - The strip's one-based index.
+     * __________
+     * @type {boolean} - Whether the strip is armed or not.
+     * 
+     * @example <caption>Arm a strip for recording.</caption>
+     * VMR.Recorder.ArmStrip[4] := true
+     */
+    ArmStrip[p_index] {
+        get {
+            return this.GetParameter("ArmStrip(" (p_index - 1) ")")
+        }
+        set {
+            this.SetParameter("mode.recbus", false)
+            this.SetParameter("ArmStrip(" . (p_index - 1) . ")", Value)
+        }
+    }
+    /**
+     * Arms the specified strips for recording, switching the recording mode to `0` (strip) and disarming any armed strips.
+     * @param {Array} p_strips - The strips' one-based indices.
+     * 
+     * @example <caption>Arm strips 1, 2, and 4 for recording.</caption>
+     * VMR.Recorder.ArmStrips(1, 2, 4)
+     */
+    ArmStrips(p_strips*) {
+        loop this.TypeInfo.StripCount
+            this.ArmStrip[A_Index] := false
+        for i in p_strips
+            this.ArmStrip[i] := true
+    }
+    Load(p_path) => this.SetParameter("load", p_path)
+}
 /**
  * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
  * Must be initialized by calling {@link @VMR.Login|`Login()`} after creating the VMR instance.
@@ -1371,7 +1488,7 @@ class VMRControllerBase {
 class VMR {
     /**
      * The type of Voicemeeter that is currently running.
-     * @type {Object} - An object containing information about the current Voicemeeter type.
+     * @type {VMR.Types} - An object containing information about the current Voicemeeter type.
      * @see {@link VMR.Types|`VMR.Types`} for a list of available types.
      */
     Type := ""
@@ -1393,7 +1510,7 @@ class VMR {
     Command := VMRCommands()
     /**
      * Controls Voicemeeter Potato's FX settings
-     * #### If the running Voicemeeter type is not Potato (`Type.Id == 3`), this property will be an empty string.
+     * #### This property is only available when running Voicemeeter Potato (`VMR.Type.Id == 3`).
      * @type {VMRControllerBase}
      */
     Fx := ""
@@ -1407,6 +1524,17 @@ class VMR {
      * @type {VMRControllerBase}
      */
     Option := VMRControllerBase("Option", (*) => false)
+    /**
+     * Controls Voicemeeter's Macro Buttons app
+     * @type {VMRMacroButton}
+     */
+    MacroButton := VMRMacroButton()
+    /**
+     * Controls Voicemeeter's Recorder
+     * #### This property is only available when running Voicemeeter Banana or Potato (`VMR.Type.Id == 2 || VMR.Type.Id == 3`).
+     * @type {VMRRecorder}
+     */
+    Recorder := ""
     /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
      * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, VBVMR will attempt to find it in the registry.
@@ -1679,8 +1807,10 @@ class VMR {
         loop this.Type.stripCount {
             this.Strip.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
-        ; TODO: Initialize macro buttons, recorder, vban
-        if (this.Type.id == 3)
+        ; TODO: Initialize vban
+        if (this.Type.Id > 1)
+            this.Recorder := VMRRecorder(this.Type)
+        if (this.Type.Id == 3)
             this.Fx := VMRControllerBase("Fx", (*) => false)
         this.UpdateDevices()
         VMRAudioIO.IS_CLASS_INIT := true
@@ -1714,7 +1844,7 @@ class VMR {
         if (this._levelsTimer)
             SetTimer(this._levelsTimer, 0)
         if (this._updateDevicesCallback)
-            OnMessage(VMRConsts.WM_DEVICE_CHANGE, this._updateDevicesCallback)
+            OnMessage(VMRConsts.WM_DEVICE_CHANGE, this._updateDevicesCallback, 0)
         while (this.Sync()) {
         }
         ; Make sure all commands finish executing before logging out

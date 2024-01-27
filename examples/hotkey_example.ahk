@@ -37,11 +37,12 @@ Volume_Down:: mainOutput.gain--
 /**
  * `Increment` and several other methods return a {@link VMRAsyncOp|`VMRAsyncOp`} object which allows you to pass a callback function that receives the result of the operation once it's done.    
  * 
- * While incrementing the gain directly (like `mainOutput.gain++`) and then getting the new value immediately might work, more often than not, the returned value will be wrong as the parameter has not been set yet,
+ * Although incrementing the gain directly (like this: `mainOutput.gain++`) and then getting the new value immediately might work, more often than not, the returned value will be wrong as the parameter has not been set yet,
  * this is because the voicemeeter API is asynchronous.
  * 
- * Functionally, VMRAsyncOp is similar to a js promise, but it actually just uses a timer to resolve the operation which then calls all registered callbacks.
- * @example <caption>Equivalent to the code below</caption>
+ * Functionally, VMRAsyncOp is similar to a javascript promise, but it actually just uses a timer to resolve the operation which then calls all registered callbacks.
+ * 
+ * @example <caption>Equivalent to the code below but without VMRAsyncOp</caption>
  *    auxInput.gain += 5
  *    SetTimer(() => ToolTip(auxInput.gain) && SetTimer(() => ToolTip(), -1000), -50)
  */
@@ -65,8 +66,7 @@ F7:: voicemeeter.Strip[2].device := microphone
     MsgBox(mainOutput.Name " " (mainOutput.mute ? "Muted" : "Unmuted"))
 }
 
-; Not Supported yet
-; ^Y:: voicemeeter.Commands.Show()
+^Y:: voicemeeter.Command.Show()
 
 ^K:: mainOutput.FadeBy(-3, 2000)
     .Then(finalGain => ToolTip("Faded to " finalGain " dB"), 3000)
@@ -76,18 +76,16 @@ F7:: voicemeeter.Strip[2].device := microphone
 
 ^T:: MsgBox(mainOutput.Name " Level: " . mainOutput.Level[1])
 
-; Not Supported yet
-; !r:: {
-;     voicemeeter.recorder.ArmStrip(4, 1)
-;     voicemeeter.recorder["mode.Loop"] := 1
-;     voicemeeter.recorder.record := 1
-; }
+!r:: {
+    voicemeeter.Recorder.ArmStrip[4] := true
+    voicemeeter.Recorder.mode["loop"] := 1 ; Or voicemeeter.Recorder.SetParameter("mode.loop", 1)
+    voicemeeter.Recorder.record := true
+}
 
-; Not Supported yet
-; !s:: {
-;     voicemeeter.recorder.stop := 1
-;     voicemeeter.command.eject(1)
-; }
+!s:: {
+    voicemeeter.Recorder.stop := true
+    voicemeeter.Command.Eject()
+}
 
 ; Decrease Spotify volume by 0.1
 ^A:: {
