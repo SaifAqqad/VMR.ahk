@@ -19,6 +19,7 @@
 #Include VMRControllerBase.ahk
 #Include VMRMacroButton.ahk
 #Include VMRRecorder.ahk
+#Include VMRVBAN.ahk
 
 /**
  * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
@@ -82,6 +83,12 @@ class VMR {
      * @type {VMRRecorder}
      */
     Recorder := ""
+
+    /**
+     * Controls Voicemeeter's VBAN interface
+     * @type {VMRVBAN}
+     */
+    VBAN := ""
 
     /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
@@ -409,14 +416,13 @@ class VMR {
             this.Strip.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
 
-        ; TODO: Initialize vban
-
         if (this.Type.Id > 1)
             this.Recorder := VMRRecorder(this.Type)
 
         if (this.Type.Id == 3)
             this.Fx := VMRControllerBase("Fx", (*) => false)
 
+        this.VBAN := VMRVBAN(this.Type)
         this.UpdateDevices()
         VMRAudioIO.IS_CLASS_INIT := true
     }
