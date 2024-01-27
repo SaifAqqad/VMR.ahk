@@ -17,6 +17,7 @@
 #Include VMRStrip.ahk
 #Include VMRCommands.ahk
 #Include VMRControllerBase.ahk
+#Include VMRMacroButton.ahk
 
 /**
  * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
@@ -67,6 +68,12 @@ class VMR {
      * @type {VMRControllerBase}
      */
     Option := VMRControllerBase("Option", (*) => false)
+
+    /**
+     * Controls Voicemeeter's Macro Buttons app
+     * @type {VMRMacroButton}
+     */
+    MacroButton := VMRMacroButton()
 
     /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
@@ -438,7 +445,7 @@ class VMR {
             SetTimer(this._levelsTimer, 0)
 
         if (this._updateDevicesCallback)
-            OnMessage(VMRConsts.WM_DEVICE_CHANGE, this._updateDevicesCallback)
+            OnMessage(VMRConsts.WM_DEVICE_CHANGE, this._updateDevicesCallback, 0)
 
         while (this.Sync()) {
         }
