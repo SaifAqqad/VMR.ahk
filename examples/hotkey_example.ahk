@@ -82,7 +82,7 @@ F7:: voicemeeter.Strip[2].device := microphone
     voicemeeter.Recorder.record := true
 }
 
-!s:: {
+!e:: {
     voicemeeter.Recorder.stop := true
     voicemeeter.Command.Eject()
 }

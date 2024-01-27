@@ -29,7 +29,7 @@ class VMRVBAN extends VMRControllerBase {
         this.DefineProp("TypeInfo", { Get: (*) => p_type })
 
         local stringParams := ["name", "ip"]
-        local streamStringParamChecker := (p) => VMRUtils.IndexOf(stringParams, p) != -1
+        local streamStringParamChecker := (_, p) => VMRUtils.IndexOf(stringParams, p) != -1
 
         local instreams := Array(), outstreams := Array()
         loop p_type.VbanCount {

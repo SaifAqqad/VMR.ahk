@@ -7,7 +7,7 @@ class VMRRecorder extends VMRControllerBase {
     static _stringParameters := ["load"]
 
     __New(p_type) {
-        super.__New("recorder", (p) => VMRUtils.IndexOf(VMRRecorder._stringParameters, p) != -1)
+        super.__New("recorder", (_, p) => VMRUtils.IndexOf(VMRRecorder._stringParameters, p) != -1)
         this.DefineProp("TypeInfo", { Get: (*) => p_type })
     }
 
