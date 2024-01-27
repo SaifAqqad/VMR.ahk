@@ -177,7 +177,9 @@ class VMRAudioIO {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return VMRAsyncOp.Empty
 
-        local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.SetParameterString.Bind(VBVMR) : VBVMR.SetParameterFloat.Bind(VBVMR)
+        local vmrFunc := VMRAudioIO._IsStringParam(p_name)
+            ? VBVMR.SetParameterString.Bind(VBVMR)
+            : VBVMR.SetParameterFloat.Bind(VBVMR)
 
         if (p_name = "gain") {
             p_value := VMRUtils.EnsureBetween(p_value, VMRConsts.AUDIO_IO_GAIN_MIN, this.GainLimit)

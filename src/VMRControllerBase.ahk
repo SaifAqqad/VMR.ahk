@@ -69,13 +69,16 @@ class VMRControllerBase {
      * @param {String} p_name - The name of the parameter.
      * @param {Any} p_value - The value of the parameter.
      * __________
-     * @returns {Boolean} - True if the parameter was set successfully.
+     * @returns {VMRAsyncOp} - An async operation that resolves to `true` if the parameter was set successfully.
      * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
      */
     SetParameter(p_name, p_value) {
-        local vmrFunc := this.StringParamChecker(p_name) ? VBVMR.SetParameterString.Bind(VBVMR) : VBVMR.SetParameterFloat.Bind(VBVMR)
+        local vmrFunc := this.StringParamChecker(p_name)
+            ? VBVMR.SetParameterString.Bind(VBVMR)
+            : VBVMR.SetParameterFloat.Bind(VBVMR)
 
-        return vmrFunc.Call(this.Id, p_name, p_value) == 0
+        local result := vmrFunc.Call(this.Id, p_name, p_value)
+        return VMRAsyncOp(() => result == 0, 50)
     }
 
     /**
