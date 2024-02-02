@@ -22,7 +22,7 @@
 #Include VMRVBAN.ahk
 
 /**
- * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
+ * A wrapper class for Voicemeeter Remote that hides the low-level API to simplify usage.  
  * Must be initialized by calling {@link @VMR.Login|`Login()`} after creating the VMR instance.
  */
 class VMR {
@@ -46,7 +46,7 @@ class VMR {
     Strip := Array()
 
     /**
-     * Write-only actions that control voicemeeter
+     * Commands that control various aspects of Voicemeeter
      * @type {VMRCommands}
      * @see {@link VMRCommands|`VMRCommands`} for a list of available commands.
      */
@@ -122,7 +122,7 @@ class VMR {
             Sleep(2000)
         }
 
-        this.Type := VMR.Types.GetType(VBVMR.GetVoicemeeterType()).Clone()
+        this.Type := VMR.Types.GetType(VBVMR.GetVoicemeeterType())
         if (!this.Type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name, p_launchVoicemeeter)
 

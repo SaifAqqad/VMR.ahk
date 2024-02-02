@@ -1,8 +1,8 @@
 #Requires AutoHotkey >=2.0
 
-#Include %A_ScriptDir%\..\src\VMR.ahk
+#Include %A_ScriptDir%\..\dist\VMR.ahk
 
-voicemeeter := VMR().login()
+voicemeeter := VMR().Login()
 
 ; Set the gain to 0 for all busses at startup
 for (bus in voicemeeter.Bus) {
@@ -18,7 +18,7 @@ mainOutput.GainLimit := 0
 auxInput := voicemeeter.Strip[3]
 
 ; Check if we're running voicemeeter potato
-if (voicemeeter.Type.Id == VMR.Types.Potato.Id) {
+if (voicemeeter.Type == VMR.Types.Potato) {
     ; Set initial Spotify volume
     spotifyVol := 0.5
     auxInput.AppGain["Spotify"] := spotifyVol
@@ -38,7 +38,7 @@ Volume_Down:: mainOutput.gain--
  * `Increment` and several other methods return a {@link VMRAsyncOp|`VMRAsyncOp`} object which allows you to pass a callback function that receives the result of the operation once it's done.    
  * 
  * Although incrementing the gain directly (like this: `mainOutput.gain++`) and then getting the new value immediately might work, more often than not, the returned value will be wrong as the parameter has not been set yet,
- * this is because the voicemeeter API is asynchronous.
+ * this happens because the voicemeeter API is asynchronous.
  * 
  * Functionally, VMRAsyncOp is similar to a javascript promise, but it actually just uses a timer to resolve the operation which then calls all registered callbacks.
  * 
@@ -55,7 +55,7 @@ Volume_Down:: mainOutput.gain--
     .Then(gain => ToolTip(gain), 1000)
     .Then(() => ToolTip())
 
-monitorSpeakers := voicemeeter.GetBusDevice("LG") ; Get the first output device with "LG" in its name using the default driver (wdm)
+monitorSpeakers := voicemeeter.GetBusDevice("LG") ; Returns the first output device with "LG" in its name using the default driver (wdm)
 microphone := voicemeeter.GetStripDevice("amazonbasics", "mme") ; Get the first input device with "amazonbasics" in its name using the mme driver
 F6:: mainOutput.device := monitorSpeakers
 F7:: voicemeeter.Strip[2].device := microphone

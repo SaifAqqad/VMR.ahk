@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
- * - Version 2.0.0-alpha-3
- * - Build timestamp 2024-01-27 12:27:49 UTC
+ * - Version 2.0.0-alpha-4
+ * - Build timestamp 2024-02-02 19:05:47 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -1425,7 +1425,7 @@ class VMRMacroButton {
 class VMRRecorder extends VMRControllerBase {
     static _stringParameters := ["load"]
     __New(p_type) {
-        super.__New("recorder", (p) => VMRUtils.IndexOf(VMRRecorder._stringParameters, p) != -1)
+        super.__New("recorder", (_, p) => VMRUtils.IndexOf(VMRRecorder._stringParameters, p) != -1)
         this.DefineProp("TypeInfo", { Get: (*) => p_type })
     }
     /**
@@ -1481,8 +1481,41 @@ class VMRRecorder extends VMRControllerBase {
     }
     Load(p_path) => this.SetParameter("load", p_path)
 }
+class VMRVBAN extends VMRControllerBase {
+    /**
+     * Controls a VBAN input stream
+     * @type {VMRControllerBase}
+     */
+    Instream[p_index] {
+        get {
+            return this._instreams.Get(p_index)
+        }
+    }
+    /**
+     * Controls a VBAN output stream
+     * @type {VMRControllerBase}
+     */
+    Outstream[p_index] {
+        get {
+            return this._outstreams.Get(p_index)
+        }
+    }
+    __New(p_type) {
+        super.__New("vban", (*) => false)
+        this.DefineProp("TypeInfo", { Get: (*) => p_type })
+        local stringParams := ["name", "ip"]
+        local streamStringParamChecker := (_, p) => VMRUtils.IndexOf(stringParams, p) != -1
+        local instreams := Array(), outstreams := Array()
+        loop p_type.VbanCount {
+            instreams.Push(VMRControllerBase("vban.instream[" A_Index - 1 "]", streamStringParamChecker))
+            outstreams.Push(VMRControllerBase("vban.outstream[" A_Index - 1 "]", streamStringParamChecker))
+        }
+        this.DefineProp("_instreams", { Get: (*) => instreams })
+        this.DefineProp("_outstreams", { Get: (*) => outstreams })
+    }
+}
 /**
- * A wrapper class for Voicemeeter Remote that abstracts away the low-level API to simplify usage.  
+ * A wrapper class for Voicemeeter Remote that hides the low-level API to simplify usage.  
  * Must be initialized by calling {@link @VMR.Login|`Login()`} after creating the VMR instance.
  */
 class VMR {
@@ -1503,7 +1536,7 @@ class VMR {
      */
     Strip := Array()
     /**
-     * Write-only actions that control voicemeeter
+     * Commands that control various aspects of Voicemeeter
      * @type {VMRCommands}
      * @see {@link VMRCommands|`VMRCommands`} for a list of available commands.
      */
@@ -1536,6 +1569,11 @@ class VMR {
      */
     Recorder := ""
     /**
+     * Controls Voicemeeter's VBAN interface
+     * @type {VMRVBAN}
+     */
+    VBAN := ""
+    /**
      * Creates a new VMR instance and initializes the {@link VBVMR|`VBVMR`} class.
      * @param {String} p_path - (Optional) The path to the Voicemeeter Remote DLL. If not specified, VBVMR will attempt to find it in the registry.
      * __________
@@ -1563,7 +1601,7 @@ class VMR {
             WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID)
             Sleep(2000)
         }
-        this.Type := VMR.Types.GetType(VBVMR.GetVoicemeeterType()).Clone()
+        this.Type := VMR.Types.GetType(VBVMR.GetVoicemeeterType())
         if (!this.Type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name, p_launchVoicemeeter)
         OnExit(this.__Delete.Bind(this))
@@ -1807,11 +1845,11 @@ class VMR {
         loop this.Type.stripCount {
             this.Strip.Push(VMRStrip(A_Index - 1, this.Type.id))
         }
-        ; TODO: Initialize vban
         if (this.Type.Id > 1)
             this.Recorder := VMRRecorder(this.Type)
         if (this.Type.Id == 3)
             this.Fx := VMRControllerBase("Fx", (*) => false)
+        this.VBAN := VMRVBAN(this.Type)
         this.UpdateDevices()
         VMRAudioIO.IS_CLASS_INIT := true
     }
