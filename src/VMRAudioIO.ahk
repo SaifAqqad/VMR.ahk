@@ -228,7 +228,7 @@ class VMRAudioIO {
 
         local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.GetParameterString.Bind(VBVMR) : VBVMR.GetParameterFloat.Bind(VBVMR)
 
-        switch p_name {
+        switch p_name, false {
             case "gain", "limit":
                 return Format("{:.2f}", vmrFunc.Call(this.Id, p_name))
             case "device":

@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
  * - Version 2.0.0-alpha-4
- * - Build timestamp 2024-02-09 06:26:40 UTC
+ * - Build timestamp 2024-02-09 18:24:59 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -928,7 +928,7 @@ class VMRAudioIO {
         if (!VMRAudioIO.IS_CLASS_INIT)
             return -1
         local vmrFunc := VMRAudioIO._IsStringParam(p_name) ? VBVMR.GetParameterString.Bind(VBVMR) : VBVMR.GetParameterFloat.Bind(VBVMR)
-        switch p_name {
+        switch p_name, false {
             case "gain", "limit":
                 return Format("{:.2f}", vmrFunc.Call(this.Id, p_name))
             case "device":
