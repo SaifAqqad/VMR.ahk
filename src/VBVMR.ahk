@@ -18,6 +18,7 @@ class VBVMR {
         GetParameterFloat: 0,
         GetParameterStringW: 0,
         GetVoicemeeterType: 0,
+        GetVoicemeeterVersion: 0,
         GetLevel: 0,
         Output_GetDeviceNumber: 0,
         Output_GetDeviceDescW: 0,
@@ -235,10 +236,10 @@ class VBVMR {
     }
 
     /**
-     * Returns the type of voicemeeter running.
+     * Returns the type of Voicemeeter running.
      * @see {@link VMR.Types|`VMR.Types`} for possible values.
      * __________
-     * @returns {Number} - The type of voicemeeter running.
+     * @returns {Number} - The type of Voicemeeter running.
      * @throws {VMRError} - If an internal error occurs.
      */
     static GetVoicemeeterType() {
@@ -252,6 +253,32 @@ class VBVMR {
             throw VMRError(result, VBVMR.GetVoicemeeterType.Name)
 
         return NumGet(vtype, 0, "Int")
+    }
+
+    /**
+     * Returns the version of Voicemeeter running.
+     * - The version is returned as a 4-part string (v1.v2.v3.v4)
+     * __________
+     * @returns {String} - The version of Voicemeeter running.
+     * @throws {VMRError} - If an internal error occurs.
+     */
+    static GetVoicemeeterVersion() {
+        local result, version := Buffer(4)
+
+        try result := DllCall(VBVMR.FUNC.GetVoicemeeterVersion, "Ptr", version, "Int")
+        catch Error as err
+            throw VMRError(err, VBVMR.GetVoicemeeterVersion.Name)
+
+        if (result < 0)
+            throw VMRError(result, VBVMR.GetVoicemeeterVersion.Name)
+
+        version := NumGet(version, 0, "Int")
+        local v1 := (version & 0xFF000000) >>> 24,
+            v2 := (version & 0x00FF0000) >>> 16,
+            v3 := (version & 0x0000FF00) >>> 8,
+            v4 := version & 0x000000FF
+
+        return Format("{:d}.{:d}.{:d}.{:d}", v1, v2, v3, v4)
     }
 
     /**

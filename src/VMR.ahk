@@ -34,6 +34,13 @@ class VMR {
     Type := ""
 
     /**
+     * The version of Voicemeeter that is currently running.
+     * @type {String} - The version string in the format `v1.v2.v3.v4` (ex: `2.1.0.5`).
+     * @see The AHK function {@link VerCompare|`VerCompare`} can be used to compare version strings.
+     */
+    Version := ""
+
+    /**
      * An array of voicemeeter buses
      * @type {Array} - An array of {@link VMRBus|`VMRBus`} objects.
      */
@@ -122,6 +129,7 @@ class VMR {
             Sleep(2000)
         }
 
+        this.Version := VBVMR.GetVoicemeeterVersion()
         this.Type := VMR.Types.GetType(VBVMR.GetVoicemeeterType())
         if (!this.Type)
             throw VMRError("Unsupported Voicemeeter type: " . VBVMR.GetVoicemeeterType(), this.Login.Name, p_launchVoicemeeter)
