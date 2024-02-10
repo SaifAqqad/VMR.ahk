@@ -69,13 +69,17 @@ class VMRAudioIO {
      * @type {VMRDevice} - The device object.
      * - When setting the device, either a device name or a device object can be passed, the latter can be retrieved using `VMRStrip`/`VMRBus` `GetDevice()` methods.
      * 
-     * @param {String} p_driver - The driver of the device (ex: `wdm`)
+     * @param {String} p_driver - (Optional) The driver of the device (ex: `wdm`)
+     * 
+     * @example
+     * vm.Bus[1].Device := VMRBus.GetDevice("Headphones") ; using a substring of the device name
+     * vm.Bus[1].Device := "Headphones (Virtual Audio Device)" ; using a device's full name
      */
     Device[p_driver?] {
         get {
-            local devices := this is VMRBus ? VMRBus.Devices : VMRStrip.Devices
+            local devices := this.Type == "Bus" ? VMRBus.Devices : VMRStrip.Devices
             ; TODO: Once Voicemeeter adds support for getting the type (driver) of the current device, we can ignore the p_driver parameter
-            return VMRAudioIO.GetDeviceMatch(this.GetParameter("device.name"), p_driver ?? unset)
+            return this._MatchDevice(this.GetParameter("device.name"), p_driver ?? unset)
         }
         set {
             local deviceName := Value, deviceDriver := p_driver ?? VMRConsts.DEFAULT_DEVICE_DRIVER
@@ -119,6 +123,12 @@ class VMRAudioIO {
     Index := 0
 
     /**
+     * The object's type (`Bus` or `Strip`)
+     * @type {String}
+     */
+    Type := ""
+
+    /**
      * Creates a new `VMRAudioIO` object.
      * @param {Number} p_index - The zero-based index of the bus/strip.
      * @param {String} p_ioType - The type of the object. (`Bus` or `Strip`)
@@ -128,6 +138,7 @@ class VMRAudioIO {
         this._isPhysical := false
         this.Id := p_ioType "[" p_index "]"
         this.Index := p_index + 1
+        this.Type := p_ioType
     }
 
     /**
@@ -372,13 +383,14 @@ class VMRAudioIO {
     }
 
     /**
-     * Returns a device object that exactly matches the specified name.
+     * @private - Internal method
+     * @description Returns a device object that exactly matches the specified name.
      * @param {String} p_name - The name of the device.
      * __________
      * @returns {VMRDevice} 
      */
-    static GetDeviceMatch(p_name, p_driver?) {
-        local devices := this is VMRBus ? VMRBus.Devices : VMRStrip.Devices
+    _MatchDevice(p_name, p_driver?) {
+        local devices := this.Type == "Bus" ? VMRBus.Devices : VMRStrip.Devices
 
         for device in devices {
             if (device.name == p_name && (!IsSet(p_driver) || device.driver = p_driver))
