@@ -55,8 +55,8 @@ Volume_Down:: mainOutput.gain--
     .Then(gain => ToolTip(gain), 1000)
     .Then(() => ToolTip())
 
-monitorSpeakers := voicemeeter.GetBusDevice("LG") ; Returns the first output device with "LG" in its name using the default driver (wdm)
-microphone := voicemeeter.GetStripDevice("amazonbasics", "mme") ; Get the first input device with "amazonbasics" in its name using the mme driver
+monitorSpeakers := VMRBus.GetDevice("LG") ; Returns the first output device with "LG" in its name using the default driver (wdm)
+microphone := VMRStrip.GetDevice("amazonbasics", "mme") ; Get the first input device with "amazonbasics" in its name using the mme driver
 F6:: mainOutput.device := monitorSpeakers
 F7:: voicemeeter.Strip[2].device := microphone
 

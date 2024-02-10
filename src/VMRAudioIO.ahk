@@ -67,7 +67,7 @@ class VMRAudioIO {
      * Gets/Sets the object's current device
      * 
      * @type {VMRDevice} - The device object.
-     * - When setting the device, a device object can be passed instead of a string (e.g. `bus.Device := { name: "Headset", driver: "wdm" }`)
+     * - When setting the device, either a device name or a device object can be passed, the latter can be retrieved using `VMRStrip`/`VMRBus` `GetDevice()` methods.
      * 
      * @param {String} p_driver - The driver of the device (ex: `wdm`)
      */
@@ -75,13 +75,12 @@ class VMRAudioIO {
         get {
             local devices := this is VMRBus ? VMRBus.Devices : VMRStrip.Devices
             ; TODO: Once Voicemeeter adds support for getting the type (driver) of the current device, we can ignore the p_driver parameter
-            return VMRAudioIO.GetDeviceMatch(this.GetParameter("device.name"), p_driver)
+            return VMRAudioIO.GetDeviceMatch(this.GetParameter("device.name"), p_driver ?? unset)
         }
         set {
             local deviceName := Value, deviceDriver := p_driver ?? VMRConsts.DEFAULT_DEVICE_DRIVER
 
             ; Allow setting the device using a device object
-            ; Device objects can be retrieved using VMR's GetBusDevice/GetStripDevice methods
             if (IsObject(Value)) {
                 deviceDriver := Value.Driver
                 deviceName := Value.Name
