@@ -10,6 +10,11 @@
  */
 class VMRBus extends VMRAudioIO {
     static LEVELS_COUNT := 0
+
+    /**
+     * An array of bus (output) devices
+     * @type {Array} - An array of {@link VMRDevice} objects.
+     */
     static Devices := Array()
 
     /**
@@ -59,4 +64,14 @@ class VMRBus extends VMRAudioIO {
             this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
+
+    /**
+     * Retrieves a bus (output) device by its name/driver.
+     * @param {String} p_name - The name of the device.
+     * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
+     * @see {@link VMRConsts.DEVICE_DRIVERS|`VMRConsts.DEVICE_DRIVERS`} for a list of valid drivers.
+     * __________
+     * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
+     */
+    static GetDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRBus.Devices, p_name, p_driver ?? unset)
 }

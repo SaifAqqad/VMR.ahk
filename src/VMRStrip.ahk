@@ -11,6 +11,11 @@
  */
 class VMRStrip extends VMRAudioIO {
     static LEVELS_COUNT := 0
+
+    /**
+     * An array of strip (input) devices
+     * @type {Array} - An array of {@link VMRDevice} objects.
+     */
     static Devices := Array()
 
     /**
@@ -65,7 +70,7 @@ class VMRStrip extends VMRAudioIO {
      */
     __New(p_index, p_vmrType) {
         super.__New(p_index, "Strip")
-        this.Name := VMRConsts.STRIP_NAMES[p_vmrType][p_index + 1]
+        this.Name := VMRConsts.STRIP_NAMES[p_vmrType][this.Index]
 
         switch p_vmrType {
             case 1:
@@ -97,4 +102,14 @@ class VMRStrip extends VMRAudioIO {
             this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
+
+    /**
+     * Retrieves a strip (input) device by its name/driver.
+     * @param {String} p_name - The name of the device.
+     * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
+     * @see {@link VMRConsts.DEVICE_DRIVERS|`VMRConsts.DEVICE_DRIVERS`} for a list of valid drivers.
+     * __________
+     * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
+     */
+    static GetDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRStrip.Devices, p_name, p_driver ?? unset)
 }

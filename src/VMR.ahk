@@ -11,6 +11,7 @@
 #Include VMRUtils.ahk
 #Include VMRError.ahk
 #Include VMRConsts.ahk
+#Include VMRDevice.ahk
 #Include VBVMR.ahk
 #Include VMRAudioIO.ahk
 #Include VMRBus.ahk
@@ -186,38 +187,6 @@ class VMR {
 
         throw VMRError("Failed to launch Voicemeeter", this.RunVoicemeeter.Name)
     }
-
-    /**
-     * Retrieves a strip (input) device by its name/driver.
-     * @param {String} p_name - The name of the device, or any substring of it.
-     * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
-     * __________
-     * @returns {VMR.DeviceObject} The device object `{name, driver}`, or an empty string `""` if no device was found.
-     */
-    GetStripDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRStrip.Devices, p_name, p_driver?)
-
-    /**
-     * Retrieves all strip devices (input devices).
-     * __________
-     * @returns {Array} An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
-     */
-    GetStripDevices() => VMRStrip.Devices
-
-    /**
-     * Retrieves a bus (output) device by its name/driver.
-     * @param {String} p_name - The name of the device, or any substring of it.
-     * @param {String} p_driver - (Optional) The driver of the device, If omitted, {@link VMRConsts.DEFAULT_DEVICE_DRIVER|`VMRConsts.DEFAULT_DEVICE_DRIVER`} will be used.
-     * __________
-     * @returns {VMR.DeviceObject} The device object `{name, driver}`, or an empty string `""` if no device was found.
-     */
-    GetBusDevice(p_name, p_driver?) => VMRAudioIO._GetDevice(VMRBus.Devices, p_name, p_driver?)
-
-    /**
-     * Retrieves all bus devices (output devices).
-     * __________
-     * @returns {Array} An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
-     */
-    GetBusDevices() => VMRBus.Devices
 
     /**
      * Registers a callback function to be called when the specified event is fired.
@@ -478,26 +447,6 @@ class VMR {
         ; Make sure all commands finish executing before logging out
         Sleep(100)
         VBVMR.Logout()
-    }
-
-    class DeviceObject {
-        __New(name, driver) {
-            this.name := name
-
-            if (IsNumber(driver)) {
-                switch driver {
-                    case 3:
-                        driver := "wdm"
-                    case 4:
-                        driver := "ks"
-                    case 5:
-                        driver := "asio"
-                    default:
-                        driver := "mme"
-                }
-            }
-            this.driver := driver
-        }
     }
 
     /**

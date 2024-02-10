@@ -2,7 +2,7 @@
 
 #Include VMRError.ahk
 #Include VMRConsts.ahk
-#Include VMR.ahk
+#Include VMRDevice.ahk
 
 /**
  * A static wrapper class for the Voicemeeter Remote DLL.
@@ -304,21 +304,22 @@ class VBVMR {
      * Returns the Descriptor of an output device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
-     * @returns {VMR.DeviceObject} - An object containing the `name` and `driver` of the device.
+     * @returns {VMRDevice} - An object containing the `Name`, `Driver` and `Hwid` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Output_GetDeviceDesc(p_index) {
         local result, name := Buffer(1024),
+            hwid := Buffer(1024),
             driver := Buffer(4)
 
-        try result := DllCall(VBVMR.FUNC.Output_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", 0, "Int")
+        try result := DllCall(VBVMR.FUNC.Output_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", hwid, "Int")
         catch Error as err
             throw VMRError(err, VBVMR.Output_GetDeviceDesc.Name, p_index)
 
         if (result < 0)
             throw VMRError(result, VBVMR.Output_GetDeviceDesc.Name, p_index)
 
-        return VMR.DeviceObject(StrGet(name, 512), NumGet(driver, 0, "UInt"))
+        return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"), StrGet(hwid, 512))
     }
 
     /**
@@ -344,21 +345,22 @@ class VBVMR {
      * Returns the Descriptor of an input device.
      * @param {Number} p_index - The index of the device (zero-based).
      * __________
-     * @returns {VMR.DeviceObject} - An object containing the `name` and `driver` of the device.
+     * @returns {VMRDevice} - An object containing the `Name`, `Driver` and `Hwid` of the device.
      * @throws {VMRError} - If an internal error occurs.
      */
     static Input_GetDeviceDesc(p_index) {
         local result, name := Buffer(1024),
+            hwid := Buffer(1024),
             driver := Buffer(4)
 
-        try result := DllCall(VBVMR.FUNC.Input_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", 0, "Int")
+        try result := DllCall(VBVMR.FUNC.Input_GetDeviceDescW, "Int", p_index, "Ptr", driver, "Ptr", name, "Ptr", hwid, "Int")
         catch Error as err
             throw VMRError(err, VBVMR.Input_GetDeviceDesc.Name, p_index)
 
         if (result < 0)
             throw VMRError(result, VBVMR.Input_GetDeviceDesc.Name, p_index)
 
-        return VMR.DeviceObject(StrGet(name, 512), NumGet(driver, 0, "UInt"))
+        return VMRDevice(StrGet(name, 512), NumGet(driver, 0, "UInt"), StrGet(hwid, 512))
     }
 
     /**

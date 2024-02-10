@@ -37,6 +37,7 @@ class VMRAudioIO {
     /**
      * Set/Get the object's EQ parameters.
      * 
+     * @type {Number} - The EQ parameter's value.
      * @param {Array} p_params - An array containing the EQ parameter name and the channel/cell numbers.
      * 
      * - Bus EQ parameters: `EQ[param] := value`
@@ -46,8 +47,6 @@ class VMRAudioIO {
      * vm.Bus[1].EQ["gain", 1, 1] := -6
      * vm.Bus[1].EQ["q", 1, 1] := 90
      * vm.Bus[1].EQ["AB"] := true
-     * __________
-     * @returns {Number} - The EQ parameter's value.
      */
     EQ[p_params*] {
         get {
@@ -61,6 +60,37 @@ class VMRAudioIO {
                 this.SetParameter("EQ.channel[" p_params[2] - 1 "].cell[" p_params[3] - 1 "]." p_params[1], Value)
             else
                 this.SetParameter("EQ." p_params[1], Value)
+        }
+    }
+
+    /**
+     * Gets/Sets the object's current device
+     * 
+     * @type {VMRDevice} - The device object.
+     * - When setting the device, a device object can be passed instead of a string (e.g. `bus.Device := { name: "Headset", driver: "wdm" }`)
+     * 
+     * @param {String} p_driver - The driver of the device (ex: `wdm`)
+     */
+    Device[p_driver?] {
+        get {
+            local devices := this is VMRBus ? VMRBus.Devices : VMRStrip.Devices
+            ; TODO: Once Voicemeeter adds support for getting the type (driver) of the current device, we can ignore the p_driver parameter
+            return VMRAudioIO.GetDeviceMatch(this.GetParameter("device.name"), p_driver)
+        }
+        set {
+            local deviceName := Value, deviceDriver := p_driver ?? VMRConsts.DEFAULT_DEVICE_DRIVER
+
+            ; Allow setting the device using a device object
+            ; Device objects can be retrieved using VMR's GetBusDevice/GetStripDevice methods
+            if (IsObject(Value)) {
+                deviceDriver := Value.Driver
+                deviceName := Value.Name
+            }
+
+            if (VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, deviceDriver) == -1)
+                throw VMRError(deviceDriver " is not a valid device driver", "Device", p_driver, Value)
+
+            this.SetParameter("device." deviceDriver, deviceName)
         }
     }
 
@@ -84,6 +114,12 @@ class VMRAudioIO {
     Id := ""
 
     /**
+     * The object's one-based index
+     * @type {Number}
+     */
+    Index := 0
+
+    /**
      * Creates a new `VMRAudioIO` object.
      * @param {Number} p_index - The zero-based index of the bus/strip.
      * @param {String} p_ioType - The type of the object. (`Bus` or `Strip`)
@@ -92,6 +128,7 @@ class VMRAudioIO {
         this._index := p_index
         this._isPhysical := false
         this.Id := p_ioType "[" p_index "]"
+        this.Index := p_index + 1
     }
 
     /**
@@ -189,25 +226,6 @@ class VMRAudioIO {
         }
         else if (p_name = "mute") {
             p_value := p_value < 0 ? !this.GetParameter("mute") : p_value
-        }
-        else if (InStr(p_name, "device")) {
-            local deviceParts := StrSplit(p_name, ".")
-
-            local deviceDriver := deviceParts.Length > 1 ? deviceParts[2] : "wdm"
-            local deviceName := p_value
-
-            ; Allow setting the device using a device object (e.g. bus.device := { name: "Headset", driver: "wdm" })
-            ; Device objects can be retrieved using VMR's GetBusDevice/GetStripDevice methods
-            if (IsObject(deviceName)) {
-                deviceDriver := deviceName.driver
-                deviceName := deviceName.name
-            }
-
-            if (VMRUtils.IndexOf(VMRConsts.DEVICE_DRIVERS, deviceDriver) == -1)
-                throw VMRError(deviceDriver " is not a valid device driver", this.SetParameter.Name, p_name, p_value)
-
-            p_name := "device." deviceDriver
-            p_value := deviceName
         }
 
         local result := vmrFunc.Call(this.Id, p_name, p_value)
@@ -333,12 +351,12 @@ class VMRAudioIO {
      * @private - Internal method
      * @description Returns a device object.
      * 
-     * @param {Array} p_devicesArr - An array of {@link VMR.DeviceObject|`VMR.DeviceObject`} objects.
+     * @param {Array} p_devicesArr - An array of {@link VMRDevice|`VMRDevice`} objects.
      * @param {String} p_name - The name of the device.
      * @param {String} p_driver - The driver of the device.
      * @see {@link VMRConsts.DEVICE_DRIVERS|`VMRConsts.DEVICE_DRIVERS`} for a list of valid drivers.
      * __________
-     * @returns {VMR.DeviceObject} - A device object, or an empty string `""` if the device was not found.
+     * @returns {VMRDevice} - A device object, or an empty string `""` if the device was not found.
      */
     static _GetDevice(p_devicesArr, p_name, p_driver?) {
         local device, index
@@ -348,6 +366,23 @@ class VMRAudioIO {
 
         for (index, device in p_devicesArr) {
             if (device.driver = p_driver && InStr(device.name, p_name))
+                return device.Clone()
+        }
+
+        return ""
+    }
+
+    /**
+     * Returns a device object that exactly matches the specified name.
+     * @param {String} p_name - The name of the device.
+     * __________
+     * @returns {VMRDevice} 
+     */
+    static GetDeviceMatch(p_name, p_driver?) {
+        local devices := this is VMRBus ? VMRBus.Devices : VMRStrip.Devices
+
+        for device in devices {
+            if (device.name == p_name && (!IsSet(p_driver) || device.driver = p_driver))
                 return device.Clone()
         }
 
