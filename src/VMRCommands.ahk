@@ -147,11 +147,14 @@ class VMRCommands {
     /**
      * Recalls a Preset Scene
      * 
-     * @param {Number} p_presetIndex - The one-based index of the preset
+     * @param {String | Number} p_preset - The name of the preset to recall or its one-based index
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    RecallPreset(p_presetIndex) {
-        return VBVMR.SetParameterFloat("Command", "Preset[" p_presetIndex - 1 "].Recall", 1) == 0
+    RecallPreset(p_preset) {
+        if(IsNumber(p_preset))
+            return VBVMR.SetParameterFloat("Command", "Preset[" p_preset - 1 "].Recall", 1) == 0
+        else
+            return VBVMR.SetParameterString("Command", "RecallPreset", p_preset) == 0
     }
 }

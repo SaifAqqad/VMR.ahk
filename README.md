@@ -9,32 +9,32 @@ VMR.ahk
 
 To use `VMR.ahk` in your script, follow one of the following methods:
 
-### A - ahkpm installation
+### A. ahkpm installation
 
-1. Install and set up [ahkpm](https://github.com/joshuacc/ahkpm), then run `ahkpm install gh:SaifAqqad/VMR.ahk`
-2. Run `ahkpm include gh:SaifAqqad/VMR.ahk -f my-script.ahk` to add an include directive in your script
-   ###### Replace *my-script.ahk* with your script's path
+1. Install and set up [ahkpm](https://github.com/joshuacc/ahkpm)
+2. Run `ahkpm install gh:SaifAqqad/VMR.ahk`
+3. Include VMR in your script by running `ahkpm include gh:SaifAqqad/VMR.ahk -f myScript.ahk`
+    ###### Replace *myScript.ahk* with your script's path
 
-### B - Manual Installation
+### B. Manual Installation
 
 1. Download the latest pre-built version from the [`dist` folder](https://raw.githubusercontent.com/SaifAqqad/VMR.ahk/master/dist/VMR.ahk) or follow the build instructions below
 2. Include it using `#Include VMR.ahk` or copy it to a [library folder](https://www.autohotkey.com/docs/v2/Scripts.htm#lib) and use `#Include <VMR>`
 
-**Note: The current version of VMR only works with AHK v2, The AHK v1 version is available on the [v1 branch](https://github.com/SaifAqqad/VMR.ahk/tree/v1)**
+> [!IMPORTANT]
+> The current version of VMR ***only*** supports AHK v2, The AHK v1 version is still available on the [v1 branch](https://github.com/SaifAqqad/VMR.ahk/tree/v1) but will not receive any updates.
 
 ## Usage
-
 - Create an instance of the VMR class and log in to the API:
   ```ahk
   voicemeeter := VMR().login()
   ```
-- The `VMR` object will have two arrays (`Bus` and `Strip`), as well as other objects, that will allow you to control voicemeeter in AHK.
+- The `VMR` object will have two arrays (`Bus` and `Strip`), as well as other properties/methods that will allow you to control voicemeeter in AHK
   ```ahk
   voicemeeter.Bus[1].mute := true
   voicemeeter.Strip[4].gain++
   ```
-
-  ##### For more info, check out the [documentation](https://saifaqqad.github.io/VMR.ahk/)
+  ##### For more info, check out the [documentation](https://saifaqqad.github.io/VMR.ahk/) and the [examples](./examples/)
 
 ## Build instructions
 
