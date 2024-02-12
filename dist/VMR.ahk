@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
- * - Version 2.0.0-alpha-5
- * - Build timestamp 2024-02-10 19:58:49 UTC
+ * - Version 2.0.0-rc
+ * - Build timestamp 2024-02-12 17:11:08 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -1390,12 +1390,15 @@ class VMRCommands {
     /**
      * Recalls a Preset Scene
      * 
-     * @param {Number} p_presetIndex - The one-based index of the preset
+     * @param {String | Number} p_preset - The name of the preset to recall or its one-based index
      * __________
      * @returns {Boolean} - true if the command was successful
      */
-    RecallPreset(p_presetIndex) {
-        return VBVMR.SetParameterFloat("Command", "Preset[" p_presetIndex - 1 "].Recall", 1) == 0
+    RecallPreset(p_preset) {
+        if (IsNumber(p_preset))
+            return VBVMR.SetParameterFloat("Command", "Preset[" p_preset - 1 "].Recall", 1) == 0
+        else
+            return VBVMR.SetParameterString("Command", "RecallPreset", p_preset) == 0
     }
 }
 class VMRControllerBase {

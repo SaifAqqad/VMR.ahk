@@ -152,7 +152,7 @@ class VMRCommands {
      * @returns {Boolean} - true if the command was successful
      */
     RecallPreset(p_preset) {
-        if(IsNumber(p_preset))
+        if (IsNumber(p_preset))
             return VBVMR.SetParameterFloat("Command", "Preset[" p_preset - 1 "].Recall", 1) == 0
         else
             return VBVMR.SetParameterString("Command", "RecallPreset", p_preset) == 0
