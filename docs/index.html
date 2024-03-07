@@ -2,82 +2,66 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>VMR.ahk Docs</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="AutoHotkey wrapper class for Voicemeeter's Remote API ">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
-  <!-- Docsify -->
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/style.min.css" type="text/css">
-  <!-- docsify-themeable styles-->
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css" title="light">
-  <link rel="stylesheet alternative" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css" title="dark">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" />
-  <style>
-    :root {
-      --search-clear-icon-color1: #4a5e69;
-    }
-
-    h4 {
-      margin-top: 1em !important;
-    }
-
-    .sidebar .search .input-wrap {
-      align-items: center;
-    }
-
-    .docs-title {
-      font-family: "Open Sans", sans-serif;
-      font-size: 1.4em;
-      font-weight: 300;
-    }
-
-    .sidebar-nav ul:not(.app-sub-sidebar)>li:not(.file)::before {
-      top: 9px;
-      left: -20px;
-      height: 8px;
-      width: 8px;
-      border-right: 2px solid #495e68;
-      border-bottom: 2px solid #495e68;
-    }
-
-    .sidebar-nav ul:not(.app-sub-sidebar)>li:not(.file) {
-      margin: var(--sidebar-nav-pagelink-padding, var(--sidebar-nav-link-padding));
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>VMR.ahk Docs</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="AutoHotkey wrapper class for Voicemeeter's Remote API ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <!-- Docsify -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/style.min.css" type="text/css">
+    <!-- docsify-themeable styles-->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css" title="light">
+    <link rel="stylesheet alternative" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css" title="dark">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/docsify-plugin-toc@1.3.2/dist/light.css">
+    <link rel="stylesheet" href="./styles.css">
 </head>
 
 <body>
-  <div id="app"></div>
-  <script>
-    window.$docsify = {
-      search: {
-        hideOtherSidebarContent: true,
-        depth: 5
-      },
-      name: '<span class="docs-title">VMR.ahk</span>',
-      repo: 'SaifAqqad/VMR.ahk',
-      themeColor: '#70C399',
-      loadSidebar: true,
-      auto2top: true,
-      subMaxLevel: 3,
-      sidebarDisplayLevel: 2,
-    }
-  </script>
-  <!-- Docsify -->
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-autohotkey.min.js"></script>
-  <!-- Plugins -->
-  <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/main.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/index.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-tabs"></script>
+    <div id="app"></div>
+    <script>
+        window.$docsify = {
+            name: '<span class="docs-title">VMR.ahk</span>',
+            repo: 'SaifAqqad/VMR.ahk',
+            themeColor: '#70C399',
+            loadSidebar: true,
+            auto2top: true,
+            subMaxLevel: 3,
+            sidebarDisplayLevel: 0,
+            search: {
+                hideOtherSidebarContent: true,
+                depth: 5
+            },
+            toc: {
+                tocMaxLevel: 5,
+                target: 'h2, h3, h4, h5, h6',
+                ignoreHeaders: ['<!-- {docsify-ignore} -->', '<!-- {docsify-ignore-all} -->']
+            },
+            darklightTheme: {
+                dark: {
+                    "color-scheme": "dark"
+                },
+                light: {
+                    "color-scheme": "light"
+                }
+            }
+        }
+    </script>
+    <!-- Docsify -->
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-autohotkey.min.js"></script>
+    <!-- Plugins -->
+    <script src="https://unpkg.com/docsify-plugin-toc@1.3.2/dist/docsify-plugin-toc.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/main.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/index.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-tabs"></script>
 </body>
 
 </html>
