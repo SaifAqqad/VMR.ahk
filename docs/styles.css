@@ -26,6 +26,15 @@ aside.toc-nav {
 
 .page_toc div[class^="lv"] a {
     font-weight: normal;
+    color: unset;
+}
+
+.page_toc div.lv4{
+    display: flex;
+}
+
+.page_toc div.lv4 a:not(:first-child) {
+    text-indent: 10px;
 }
 
 .page_toc div.active {
@@ -35,23 +44,6 @@ aside.toc-nav {
 
 .page_toc div {
     border-left: 2px solid #e8e8e845
-}
-
-.page_toc div a:not(:first-child) {
-    display: none;
-}
-
-.page_toc div a:first-child span *:not(:first-child) {
-    display: none;
-}
-
-.page_toc div a:first-child span{
-    display: flex;
-}
-
-.page_toc div a:first-child span *:first-child {
-    display: block;
-    min-width: 100%;
 }
 
 @media only screen and (max-width: 1299px) {
