@@ -66,5 +66,12 @@ class VMRRecorder extends VMRControllerBase {
             this.ArmStrip[i] := true
     }
 
+    /**
+     * Loads the specified file into the recorder.
+     * @param {String} p_path - The file's path.
+     * __________
+     * @returns {VMRAsyncOp} - An async operation that resolves to `true` if the parameter was set successfully.
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     */
     Load(p_path) => this.SetParameter("load", p_path)
 }

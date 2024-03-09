@@ -14,6 +14,7 @@ class VMRMacroButton {
 
     /**
      * Shows/Hides the Voicemeeter Macro Buttons application.
+     * @param {Boolean} p_show - Whether to show or hide the application
      */
     Show(p_show := true) {
         if (p_show) {
@@ -28,7 +29,7 @@ class VMRMacroButton {
 
     /**
      * Sets the status of a given button.
-     * @param {Number} p_logicalButton - The one-based index of the button
+     * @param {Number} p_index - The one-based index of the button
      * @param {Number} p_value - The value to set
      * - `0`: Off
      * - `1`: On
@@ -42,11 +43,11 @@ class VMRMacroButton {
      * - `1`: On
      * @throws {VMRError} - If an internal error occurs
      */
-    SetStatus(p_index, p_status, p_bitMode := 0) => VBVMR.MacroButton_SetStatus(p_index - 1, p_status, p_bitMode)
+    SetStatus(p_index, p_value, p_bitMode := 0) => VBVMR.MacroButton_SetStatus(p_index - 1, p_value, p_bitMode)
 
     /**
      * Gets the status of a given button.
-     * @param {Number} p_logicalButton - The one-based index of the button
+     * @param {Number} p_index - The one-based index of the button
      * @param {Number} p_bitMode - The type of the returned value
      * - `0`: button-state
      * - `2`: displayed-state

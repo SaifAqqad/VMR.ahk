@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
- * - Version 2.0.0-rc
- * - Build timestamp 2024-02-12 17:11:08 UTC
+ * - Version 2.0.0
+ * - Build timestamp 2024-03-09 06:00:02 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -96,8 +96,32 @@ class VMRUtils {
     }
 }
 class VMRError extends Error {
+    /**.
+     * The return code of the Voicemeeter function that failed
+     * @type {Number}
+     */
+    ReturnCode := ""
+    /**
+     * The name of the function that threw the error
+     * @type {String}
+     */
+    What := ""
+    /**
+     * An error message
+     * @type {String}
+     */
+    Message := ""
+    /**
+     * Extra information about the error
+     * @type {String}
+     */
+    Extra := ""
+    /**
+     * @param {Any} p_errorValue -  The error value
+     * @param {String} p_funcName -  The name of the function that threw the error
+     * @param {Array} p_funcParams The parameters of the function that threw the error
+     */
     __New(p_errorValue, p_funcName, p_funcParams*) {
-        this.returnCode := ""
         this.What := p_funcName
         this.Extra := p_errorValue
         this.Message := "VMR failure in " p_funcName "(" VMRUtils.Join(p_funcParams, ", ") ")"
@@ -105,7 +129,7 @@ class VMRError extends Error {
             this.Extra := "Inner error message (" p_errorValue.Message ")"
         }
         else if (IsNumber(p_errorValue)) {
-            this.returnCode := p_errorValue
+            this.ReturnCode := p_errorValue
             this.Extra := "VMR Return Code (" p_errorValue ")"
         }
     }
@@ -1495,6 +1519,7 @@ class VMRMacroButton {
     Run() => Run(VBVMR.DLL_PATH "\" VMRMacroButton.EXECUTABLE, VBVMR.DLL_PATH)
     /**
      * Shows/Hides the Voicemeeter Macro Buttons application.
+     * @param {Boolean} p_show - Whether to show or hide the application
      */
     Show(p_show := true) {
         if (p_show) {
@@ -1508,7 +1533,7 @@ class VMRMacroButton {
     }
     /**
      * Sets the status of a given button.
-     * @param {Number} p_logicalButton - The one-based index of the button
+     * @param {Number} p_index - The one-based index of the button
      * @param {Number} p_value - The value to set
      * - `0`: Off
      * - `1`: On
@@ -1522,10 +1547,10 @@ class VMRMacroButton {
      * - `1`: On
      * @throws {VMRError} - If an internal error occurs
      */
-    SetStatus(p_index, p_status, p_bitMode := 0) => VBVMR.MacroButton_SetStatus(p_index - 1, p_status, p_bitMode)
+    SetStatus(p_index, p_value, p_bitMode := 0) => VBVMR.MacroButton_SetStatus(p_index - 1, p_value, p_bitMode)
     /**
      * Gets the status of a given button.
-     * @param {Number} p_logicalButton - The one-based index of the button
+     * @param {Number} p_index - The one-based index of the button
      * @param {Number} p_bitMode - The type of the returned value
      * - `0`: button-state
      * - `2`: displayed-state
@@ -1595,6 +1620,13 @@ class VMRRecorder extends VMRControllerBase {
         for i in p_strips
             this.ArmStrip[i] := true
     }
+    /**
+     * Loads the specified file into the recorder.
+     * @param {String} p_path - The file's path.
+     * __________
+     * @returns {VMRAsyncOp} - An async operation that resolves to `true` if the parameter was set successfully.
+     * @throws {VMRError} - If invalid parameters are passed or if an internal error occurs.
+     */
     Load(p_path) => this.SetParameter("load", p_path)
 }
 class VMRVBAN extends VMRControllerBase {
