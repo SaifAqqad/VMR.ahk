@@ -43,6 +43,7 @@ class VMRAsyncOp {
 
     /**
      * Creates an empty async operation that's already been resolved.
+     * @type {VMRAsyncOp}
      */
     static Empty {
         get {

@@ -1,265 +1,300 @@
-## `VBVMR` <!-- {docsify-ignore-all} -->
+# `VBVMR`  <!-- {docsify-ignore-all} -->
 
-A static wrapper class for the Voicemeeter Remote DLL.
-
-?> The class must be initialized by calling [`Init()`](#static-init) before using any of its static methods.
+  A static wrapper class for the Voicemeeter Remote DLL.
+  
+  ?> The class must be initialized by calling [`Init()`](/classes/vbvmr?id=static-init) before using any of its static methods.
 
 ## Properties
-
-* **Static** `DLL` : `Ptr`      
+* #### **Static** `DLL` : `Ptr` :id=static-dll
     The handle to the loaded Voicemeeter DLL
-* **Static** `DLL_PATH` : `String`      
+* #### **Static** `DLL_PATH` : `String` :id=static-dll-path
     The path to the loaded Voicemeeter DLL
 
+
 ## Methods
+* ### `Init(p_path := "")` :id=static-init
+  Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
+  If the DLL is already loaded, it returns immediately.
 
-* ### **Static** `Init([p_path := ""])` :id=static-init
-  Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions. If the DLL is already loaded, it returns immediately.
+  **Parameters**:
+  - **Optional** `p_path` : `String` - The path to the Voicemeeter Remote DLL. If not specified, it will be looked up in the registry.
 
-  **Parameters:**
-    - **Optional** `p_path` : `String` - The path to the Voicemeeter Remote DLL. If not specified, it will be looked up in the registry.
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If the DLL is not found in the specified path or if voicemeeter is not installed.
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If the DLL is not found in the specified path or if Voicemeeter is not installed.
 
-  **Returns:** `N/A`
 
 ______
-* ### **Static** `Login()` :id=static-login
-  Opens a communication pipe with Voicemeeter.
+* ### `Login()` :id=static-login
+  Opens a Communication Pipe With Voicemeeter.
 
-  **Returns:** `Number`
-    - `0` : OK (no error).
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: `Number` - `0` : OK (no error).
     - `1` : OK but Voicemeeter is not launched (need to launch it manually).
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `Logout()` :id=static-logout
-  Closes the communication pipe with Voicemeeter.
+* ### `Logout()` :id=static-logout
+  Closes the Communication Pipe With Voicemeeter.
 
-  **Returns:** `Number`
-    - `0` : OK (no error).
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
+  **Returns**: `Number` - `0` : OK (no error).
+
 
 ______
-* ### **Static** `SetParameterFloat(p_prefix, p_parameter, p_value)` :id=static-setparameterfloat
+* ### `SetParameterFloat(p_prefix, p_parameter, p_value)` :id=static-setparameterfloat
   Sets the value of a float (numeric) parameter.
 
-  **Parameters:**
-    - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[0]`).
-    - `p_parameter` : `String` - The name of the parameter (ex: `gain`).
-    - `p_value` : `Number` - The value to set.
+  **Parameters**:
+  - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[0]`).
 
-  **Returns:** `Number`
-    - `0` : OK (no error).
+  - `p_parameter` : `String` - The name of the parameter (ex: `gain`).
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If the parameter is not found, or an internal error occurs.
+  - `p_value` : `Number` - The value to set.
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If the parameter is not found, or an internal error occurs.
+
+  **Returns**: `Number` - `0` : OK (no error).
+
 
 ______
-* ### **Static** `SetParameterString(p_prefix, p_parameter, p_value)` :id=static-setparameterstring
+* ### `SetParameterString(p_prefix, p_parameter, p_value)` :id=static-setparameterstring
   Sets the value of a string parameter.
 
-  **Parameters:**
-    - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
-    - `p_parameter` : `String` - The name of the parameter (ex: `name`).
-    - `p_value` : `String` - The value to set.
+  **Parameters**:
+  - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
 
-  **Returns:** `Number`
-    - `0` : OK (no error).
+  - `p_parameter` : `String` - The name of the parameter (ex: `name`).
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If the parameter is not found, or an internal error occurs.
+  - `p_value` : `String` - The value to set.
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If the parameter is not found, or an internal error occurs.
+
+  **Returns**: `Number` - `0` : OK (no error).
+
 
 ______
-* ### **Static** `GetParameterFloat(p_prefix, p_parameter)` :id=static-getparameterfloat
+* ### `GetParameterFloat(p_prefix, p_parameter)` :id=static-getparameterfloat
   Returns the value of a float (numeric) parameter.
 
-  **Parameters:**
-    - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
-    - `p_parameter` : `String` - The name of the parameter (ex: `gain`).
+  **Parameters**:
+  - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Bus[2]`).
 
-  **Returns:** `Number` - The value of the parameter.
+  - `p_parameter` : `String` - The name of the parameter (ex: `gain`).
 
-  **Throws:**
-    - [`VMRError`](/classes/vmrerror.md) - If the parameter is not found, or an internal error occurs. 
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If the parameter is not found, or an internal error occurs.
+
+  **Returns**: `Number` - The value of the parameter.
+
 
 ______
-* ### **Static** `GetParameterString(p_prefix, p_parameter)` :id=static-getparameterstring
+* ### `GetParameterString(p_prefix, p_parameter)` :id=static-getparameterstring
   Returns the value of a string parameter.
 
-  **Parameters:**
-    - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
-    - `p_parameter` : `String` - The name of the parameter (ex: `name`).
+  **Parameters**:
+  - `p_prefix` : `String` - The prefix of the parameter, usually the name of the bus/strip (ex: `Strip[1]`).
 
-  **Returns:** `String` - The value of the parameter.
+  - `p_parameter` : `String` - The name of the parameter (ex: `name`).
 
-  **Throws:**
-    - [`VMRError`](/classes/vmrerror.md) - If the parameter is not found, or an internal error occurs. 
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If the parameter is not found, or an internal error occurs.
+
+  **Returns**: `String` - The value of the parameter.
+
 
 ______
-* ### **Static** `GetLevel(p_type, p_channel)` :id=static-getlevel
+* ### `GetLevel(p_type, p_channel)` :id=static-getlevel
   Returns the level of a single bus/strip channel.
 
-  **Parameters:**
-    - `p_type` : `Number` - The type of the returned level:
-      - `0`: pre-fader
-      - `1`: post-fader
-      - `2`: post-mute
-      - `3`: output-levels
-    - `p_channel` : `Number` - The channel's zero-based index. See the method description for notes on channel indices.
+  **Parameters**:
+  - `p_type` : `Number` - The type of the returned level 
+    - `0`: pre-fader
+    - `1`: post-fader
+    - `2`: post-mute
+    - `3`: output-levels
 
-  **Returns:** `Number` - The level of the requested channel.
+  - `p_channel` : `Number` - The channel's zero-based index.
+    - Channel Indices depend on the type of voiceemeeter running.
+    - Channel Indices are incremented from the left to right (On the Voicemeeter UI), starting at `0`, Buses and Strips have separate Indices (see `p_type`).
+    - Physical (hardware) strips have 2 channels (left, right), Buses and virtual strips have 8 channels.
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If the channel index is invalid, or an internal error occurs. 
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If the channel index is invalid, or an internal error occurs.
 
-______
-* ### **Static** `GetVoicemeeterType()` :id=static-getvoicemeetertype
-  Returns the type of Voicemeeter running. See [`VMR.Types`](/classes/vmr_types.md) for possible return values. 
+  **Returns**: `Number` - The level of the requested channel.
 
-  **Returns:** `Number` - The type of Voicemeeter running.
-
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `GetVoicemeeterVersion()` :id=static-getvoicemeeterversion
-   Returns the version of Voicemeeter running as a string (v1.v2.v3.v4)
+* ### `GetVoicemeeterType()` :id=static-getvoicemeetertype
+  Returns the type of Voicemeeter running.
+  
+  
+  **See also**:
+  [`VMR.Types`](/classes/vmr?id=static-types) for possible values.
 
-  **Returns:** `String` - The version of Voicemeeter running.
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
+  **Returns**: `Number` - The type of Voicemeeter running.
 
-______
-* ### **Static** `Output_GetDeviceNumber()` :id=static-output-getdevicenumber
-  Retrieves the number of output devices available on the system.
-
-  **Returns:** `Number` - The number of output devices.
-
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `Output_GetDeviceDesc(p_index)` :id=static-output-getdevicedesc
-  Returns the descriptor of an output device.
+* ### `GetVoicemeeterVersion()` :id=static-getvoicemeeterversion
+  Returns the version of Voicemeeter running.
+  - The version is returned as a 4-part string (v1.v2.v3.v4)
 
-  **Parameters:**
-    - `p_index` : `Number` - The zero-based index of the device.
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
 
-  **Returns:** `VMRDevice` - An object containing the `Name`, `Driver`, and `Hwid` of the device.
+  **Returns**: `String` - The version of Voicemeeter running.
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
-
-______
-* ### **Static** `Input_GetDeviceNumber()` :id=static-input-getdevicenumber
-  Retrieves the number of input devices available on the system.
-
-  **Returns:** `Number` - The number of input devices.
-
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `Input_GetDeviceDesc(p_index)` :id=static-input-getdevicedesc
-  Returns the descriptor of an input device.
+* ### `Output_GetDeviceNumber()` :id=static-output_getdevicenumber
+  Returns the number of Output Devices available on the system.
 
-  **Parameters:**
-    - `p_index` : `Number` - The zero-based index of the device.
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
 
-  **Returns:** `VMRDevice` - An object containing the `Name`, `Driver`, and `Hwid` of the device.
+  **Returns**: `Number` - The number of output devices.
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `IsParametersDirty()` :id=static-isparametersdirty
+* ### `Output_GetDeviceDesc(p_index)` :id=static-output_getdevicedesc
+  Returns the Descriptor of an output device.
+
+  **Parameters**:
+  - `p_index` : `Number` - The index of the device (zero-based).
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: [`VMRDevice`](/classes/vmrdevice) - An object containing the `Name`, `Driver` and `Hwid` of the device.
+
+
+______
+* ### `Input_GetDeviceNumber()` :id=static-input_getdevicenumber
+  Returns the number of Input Devices available on the system.
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: `Number` - The number of input devices.
+
+
+______
+* ### `Input_GetDeviceDesc(p_index)` :id=static-input_getdevicedesc
+  Returns the Descriptor of an input device.
+
+  **Parameters**:
+  - `p_index` : `Number` - The index of the device (zero-based).
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: [`VMRDevice`](/classes/vmrdevice) - An object containing the `Name`, `Driver` and `Hwid` of the device.
+
+
+______
+* ### `IsParametersDirty()` :id=static-isparametersdirty
   Checks if any parameters have changed.
 
-  **Returns:** `Number`
-    - `0` : No change
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: `Number` - `0` : No change
     - `1` : Some parameters have changed
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `MacroButton_GetStatus(p_logicalButton, p_bitMode)` :id=static-macrobutton-getstatus
-  Returns the current state of a given macro button.
+* ### `MacroButton_GetStatus(p_logicalButton, p_bitMode)` :id=static-macrobutton_getstatus
+  Returns the current status of a given button.
 
-  **Parameters:**
-    - `p_logicalButton` : `Number` - The index of the button (zero-based).
-    - `p_bitMode` : `Number` - The type of the returned value.
-       - `0`: button-state
-       - `2`: displayed-state
-       - `3`: trigger-state
+  **Parameters**:
+  - `p_logicalButton` : `Number` - The index of the button (zero-based).
 
-  **Returns:** `Number` - The status of the button
+  - `p_bitMode` : `Number` - The type of the returned value.
+    - `0`: button-state
+    - `2`: displayed-state
+    - `3`: trigger-state
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: `Number` - The status of the button
     - `0`: Off
     - `1`: On
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `MacroButton_SetStatus(p_logicalButton, p_value, p_bitMode)` :id=static-macrobutton-setstatus
-  Sets the status of a given macro button.
+* ### `MacroButton_SetStatus(p_logicalButton, p_value, p_bitMode)` :id=static-macrobutton_setstatus
+  Sets the status of a given button.
 
-  **Parameters:**
-    - `p_logicalButton` : `Number` - The index of the button (zero-based).
-    - `p_value` : `Number` - The value to set (0 = Off, 1 = On)
-    - `p_bitMode` : `Number` - The type of value to set.
-       - `0`: button-state
-       - `2`: displayed-state
-       - `3`: trigger-state
+  **Parameters**:
+  - `p_logicalButton` : `Number` - The index of the button (zero-based).
 
-  **Returns:** `Number` - The new status of the button
+  - `p_value` : `Number` - The value to set.
     - `0`: Off
     - `1`: On
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
+  - `p_bitMode` : `Number` - The type of the returned value.
+    - `0`: button-state
+    - `2`: displayed-state
+    - `3`: trigger-state
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: `Number` - The status of the button
+    - `0`: Off
+    - `1`: On
+
 
 ______
-* ### **Static** `MacroButton_IsDirty()` :id=static-macrobutton-isdirty
-  Checks if any macro button states have changed.
+* ### `MacroButton_IsDirty()` :id=static-macrobutton_isdirty
+  Checks if any Macro Buttons states have changed.
 
-  **Returns:** `Number` 
-    - `0` : No change 
-    - `> 0` : Some buttons have changed
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
 
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
+  **Returns**: `Number` - `0` : No change 
+     - `> 0` : Some buttons have changed
 
-______
-* ### **Static** `GetMidiMessage()` :id=static-getmidimessage
-  Returns available MIDI messages from Voicemeeter's MIDI mapping.
-
-  **Returns:** 
-   - `Array` - `[0xF0, 0xFF, ...]` An array of hex-formatted bytes representing MIDI messages, or an empty string `""` if no messages are available.
-
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ______
-* ### **Static** `SetParameters(p_script)` :id=static-setparameters
-  Sets one or more parameters using a Voicemeeter script.
+* ### `GetMidiMessage()` :id=static-getmidimessage
+  Returns any available MIDI messages from Voicemeeter's MIDI mapping.
 
-  **Parameters:**
-    - `p_script` : `String` - The script to execute (must be less than 48kb). See the method description for notes on script formats.
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
 
-  **Returns:** `Number`
-     - `0` : OK (no error)
+  **Returns**: `Array` - `[0xF0, 0xFF, ...]` An array of hex-formatted bytes that compose one or more MIDI messages, or an empty string `""` if no messages are available.
+    - A single message is usually 2 or 3 bytes long
+    - The returned array will contain at most `1024` bytes.
+
+
+______
+* ### `SetParameters(p_script)` :id=static-setparameters
+  Sets one or more parameters using a voicemeeter script.
+
+  **Parameters**:
+  - `p_script` : `String` - The script to execute (must be less than `48kb`).
+    - Scripts can contain one or more parameter changes
+    - Changes can be seperated by a new line, `;` or `,`.
+    - Indices inside the script are zero-based.
+
+  **Throws**:
+  - [`VMRError`](/classes/vmrerror) - If an internal error occurs.
+
+  **Returns**: `Number` - `0` : OK (no error) 
      - `> 0` : Number of the line causing an error
-
-  **Throws:** 
-    - [`VMRError`](/classes/vmrerror.md) - If an internal error occurs.
 
 ## Notes
 While this class can be used to directly call the Voicemeeter Remote DLL functions, it's recommended to use the `VMR` class instead of this one, as it simplifies usage of the API.

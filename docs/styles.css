@@ -37,6 +37,23 @@ aside.toc-nav {
     border-left: 2px solid #e8e8e845
 }
 
+.page_toc div a:not(:first-child) {
+    display: none;
+}
+
+.page_toc div a:first-child span *:not(:first-child) {
+    display: none;
+}
+
+.page_toc div a:first-child span{
+    display: flex;
+}
+
+.page_toc div a:first-child span *:first-child {
+    display: block;
+    min-width: 100%;
+}
+
 @media only screen and (max-width: 1299px) {
     aside.toc-nav {
         background: var(--sidebar-background);
