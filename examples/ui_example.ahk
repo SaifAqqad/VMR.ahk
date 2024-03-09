@@ -1,109 +1,128 @@
-#Include, %A_ScriptDir%\..\dist\VMR.ahk
-SetBatchLines, 20ms
+#Requires AutoHotkey >=2.0
+#Include %A_ScriptDir%\..\dist\VMR.ahk
 
-Global vm, GUI_hwnd, is_win_pos_changing:=0
+voicemeeter := VMR().Login()
 
-vm := new VMR().login()
-showUI()
-vm.onUpdateLevels:= Func("syncLevel") ; register level callback func
-vm.onUpdateParameters:= Func("syncParameters") ; register params callback func
-OnMessage(0x46, Func("onPosChanging"))
+ui := Gui("-Resize", "Voicemeeter Remote UI")
+ui.OnEvent("Close", (*) => ExitApp())
+ui.SetFont(, "Segoe UI")
 
-showUI(){
-    Global
-    Gui, vm:New, +HwndGUI_hwnd, VoiceMeeter Remote UI
-    xPos:=10
-    Loop % vm.bus.Length() { ; add UI controls for each bus
-        ;bus title
-        yPos:=0, funcObj:=""
-        Gui, Add, Text, x%xPos% y%yPos% w100, Bus[%A_Index%]
-        
-        ;bus level
-        yPos+= 30
-        Gui, Add, Progress, x%xPos% y%yPos% w20 h200 Range-72-20 c0x70C399 Background0x2C3D4D vertical Hwndbus_%A_Index%_level
-        
-        ;bus gain
-        yPos+= 220
-        Gui, Add, Edit, w50 x%xPos% y%yPos% ReadOnly 
-        Gui, Add, UpDown,Hwndbus_%A_Index%_gain Range-60-12 x0
-        funcObj:= Func("updateParam").bind("gain", A_Index)
-        GuiControl +g, % bus_%A_Index%_gain, % FuncObj
+title := ui.Add("Text", "w500 r2", voicemeeter.Type.Name " v" voicemeeter.version)
+title.SetFont("s16 bold Q5")
+title.GetPos(, &initialYPos)
 
-        ;bus mute
-        yPos+= 30
-        Gui, Add, CheckBox, x%xPos% y%yPos% Hwndbus_%A_Index%_mute, Mute
-        funcObj:= Func("updateParam").bind("mute", A_Index)
-        GuiControl +g, % bus_%A_Index%_mute, % FuncObj
-        
-        ;bus device
-        if(vm.bus[A_Index].isPhysical()){ ; make sure the bus is a physical one (eg. 1-3 in banana)
-            yPos+= 30
-            Gui, Add, DropDownList, x%xPos% y%yPos% Hwndbus_%A_Index%_device
-            funcObj:= Func("updateParam").bind("device", A_Index)
-            GuiControl +g, % bus_%A_Index%_device, % FuncObj
-            refreshDevices(A_Index)
-        }
-
-        xPos+=150
-    }
-    syncParameters() ; get initial values for gui controls
-    Gui, Show, H350, VoiceMeeter Remote UI
+; Add strip UI controls
+xPos := 10
+initialYPos += 50
+for i, strip in voicemeeter.Strip {
+    AddControls(strip, xPos, initialYPos)
+    xPos += 150
 }
 
-; update vm bus parameters when they change on the AHK UI
-updateParam(param, index){
-    GuiControlGet, val,,% bus_%index%_%param%
-    if(param == "device"){
-        RegExMatch(val, "iO)(?<driver>\w+): (?<name>.+)", match)
-        if(match)
-            vm.bus[index].device[match.driver]:= match.name
-        else
-            vm.bus[index].device:= ""
-    }else{
-        vm.bus[index][param]:= val
-    }
-    SetTimer, syncParameters, -500 ; make sure params are in sync
+; Add bus UI controls
+xPos := 10
+initialYPos += 350
+for i, bus in voicemeeter.Bus {
+    AddControls(bus, xPos, initialYPos)
+    xPos += 150
 }
 
-; sync AHK UI controls with vm bus parameters
-syncParameters(){
-    Loop % vm.bus.Length() {
-        GuiControl,, % bus_%A_Index%_gain, % vm.bus[A_Index].gain
-        GuiControl,, % bus_%A_Index%_mute, % Format("{:i}", vm.bus[A_Index].mute) ; convert 0.0/1.0 to 0/1
-        if(vm.bus[A_Index].__isPhysical())
-            refreshDevices(A_Index)
-    }
-}
+ui.Show("AutoSize")
 
-; sync level meters with vm bus levels
-syncLevel(){
-    if(is_win_pos_changing) ;dont update levels if the window is changing its position
-        return
-    Loop % vm.bus.Length() {
-        GuiControl,, % bus_%A_Index%_level, % Max(vm.bus[A_Index].level*) ; get peak level for the bus
+/**
+ * Adds the controls for a given VMRAudioIO object
+ * 
+ * @param {VMRAudioIO} vmObj
+ * @param {Number} xPos
+ * @param {Number} yPos
+ */
+AddControls(vmObj, xPos, yPos) {
+    ; Title
+    objTitle := ui.Add("Text", "x" xPos " y" yPos " w100", vmObj.Id "`n" vmObj.Name)
+
+    ; Level Indicator
+    yPos += 30
+    levelIndicator := ui.Add("Progress", "x" xPos " y" yPos " w20 h200 Range-72-20 c0x70C399 Background0x2C3D4D vertical")
+    ; Bind voicemeeter changes to the UI
+    voicemeeter.On("levelsUpdated", (*) => levelIndicator.Value := Max(vmObj.Level*))
+
+    ; Gain Controls
+    yPos += 220
+    gainControl := ui.Add("Edit", "x" xPos " y" yPos " w50 ReadOnly")
+    gainUpDn := ui.Add("UpDown", "x" xPos " y" yPos " Range-60-12")
+    ; Initial state
+    gainUpDn.Value := vmObj.Gain
+    ; Bind UI changes to voicemeeter
+    gainUpDn.OnEvent("Change", (*) => vmObj.Gain := Number(gainUpDn.Value))
+    ; Bind voicemeeter changes to the UI
+    voicemeeter.On("ParametersChanged", (*) => gainUpDn.Value := vmObj.Gain)
+
+    ; Mute Controls
+    yPos += 30
+    objMute := ui.Add("CheckBox", "x" xPos " y" yPos, "Mute")
+    ; Initial state
+    objMute.Value := vmObj.Mute
+    ; Bind UI changes to voicemeeter
+    objMute.OnEvent("Click", (*) => vmObj.Mute := objMute.Value)
+    ; Bind voicemeeter changes to the UI
+    voicemeeter.On("ParametersChanged", (*) => objMute.Value := vmObj.Mute)
+
+    ; Device selector (only for physical strips and buses)
+    if (vmObj.IsPhysical()) {
+        yPos += 30
+        deviceDdl := ui.Add("DropDownList", "x" xPos " y" yPos " w130", [])
+        ; Initial state
+        RefreshDevices(deviceDdl, vmObj)
+        ; Bind UI changes to voicemeeter
+        deviceDdl.OnEvent("Change", (*) => vmObj.Device := GetDeviceByDisplayName(deviceDdl.Text))
+        ; Bind voicemeeter changes to the UI
+        voicemeeter.On("DevicesUpdated", (*) => RefreshDevices(deviceDdl, vmObj))
+        ; Delay setting the ddl value to avoid getting the wrong device name
+        voicemeeter.On("ParametersChanged", (*) => SetTimer(() => deviceDdl.Choose(GetDeviceDisplayName(vmObj.Device)), -1000))
     }
 }
 
-; clears the bus's drop-down and reinserts the devices
-refreshDevices(index){
-    elems:="| |" ; extra empty element for removing the device
-    preSelected:= vm.bus[index].device ; get the pre-selected device
-    for i, device in vm.getBusDevices() {
-        elems.= Format("{:U}: {}", device.driver, device.name)
-        elems.= device.name == preSelected? "||" : "|" 
+/**
+ * Refreshes the devices in the dropdown list
+ * @param {Gui.DDL} ddl
+ * @param {VMRAudioIO} ioObj
+ */
+RefreshDevices(ddl, ioObj) {
+    local device,
+        ; Get the devices array based on the object type
+        devicesArr := ioObj is VMRStrip ? VMRStrip.Devices : VMRBus.Devices,
+        deviceNames := [""] ; Add an empty item to allow removing the selected device
+
+    ; Get the display name of every device
+    for device in devicesArr {
+        deviceNames.Push(GetDeviceDisplayName(device))
     }
-    GuiControl,, % bus_%index%_device, % elems
+
+    ; Replace the items in the dropdown list
+    ddl.Delete()
+    ddl.Add(deviceNames)
+
+    ; Choose the current selected device
+    ddl.Choose(GetDeviceDisplayName(ioObj.Device))
 }
 
-vmGuiClose(){
-    ExitApp
+/**
+ * @param {VMRDevice} device
+ * @returns {String} - The display name for the given device
+ */
+GetDeviceDisplayName(device) {
+    if (!device)
+        return ""
+    return Format("{} - {}", StrUpper(device.driver), device.name)
 }
 
-onPosChanging(){
-    is_win_pos_changing:=1
-    SetTimer, onPosChanged, -50
-}
-
-onPosChanged(){
-    is_win_pos_changing:=0
+/**
+ * @param {String} displayName
+ * @returns {VMRDevice} - The device that matches the given display name
+ */
+GetDeviceByDisplayName(displayName) {
+    if (!displayName)
+        return ""
+    RegExMatch(displayName, "i)(\w+) - (.+)", &match)
+    return VMRBus.GetDevice(match[2], match[1]) || VMRStrip.GetDevice(match[2], match[1])
 }

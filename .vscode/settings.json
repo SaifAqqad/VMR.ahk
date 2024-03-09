@@ -1,0 +1,18 @@
+{
+    "AutoHotkey2.ActionWhenV1IsDetected": "Warn",
+    "AutoHotkey2.AutoLibInclude": "Local",
+    "AutoHotkey2.CompleteFunctionParens": true,
+    "AutoHotkey2.Files.ScanMaxDepth": 3,
+    "AutoHotkey2.FormatOptions": {
+        "brace_style": "One True Brace Variant",
+        "keep_array_indentation": true,
+        "keyword_start_with_uppercase": false,
+        "max_preserve_newlines": 3,
+        "preserve_newlines": true,
+        "space_after_double_colon": true,
+        "switch_case_alignment": false,
+        "symbol_with_same_case": true
+    },
+    "AutoHotkey2.Warn.CallWithoutParentheses": "On",
+    "AutoHotkey2.Warn.LocalSameAsGlobal": true,
+}
