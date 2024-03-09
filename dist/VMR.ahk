@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
  * - Version 2.0.0
- * - Build timestamp 2024-03-09 06:00:02 UTC
+ * - Build timestamp 2024-03-09 19:51:57 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -688,6 +688,7 @@ class VMRAsyncOp {
     }
     /**
      * Creates an empty async operation that's already been resolved.
+     * @type {VMRAsyncOp}
      */
     static Empty {
         get {
