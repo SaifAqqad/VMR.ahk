@@ -14,7 +14,7 @@ To use `VMR.ahk` in your script, follow one of the following methods:
     ###### Replace *my-script.ahk* with your script's path
 
 ### B - Manual Installation
-1.  Download the latest pre-built version from the [`dist` folder](https://raw.githubusercontent.com/SaifAqqad/VMR.ahk/master/dist/VMR.ahk) or follow the build instructions below
+1.  Download the latest pre-built version from the [`dist` folder](https://raw.githubusercontent.com/SaifAqqad/VMR.ahk/v1/dist/VMR.ahk) or follow the build instructions below
 
 2.  Include it using `#Include VMR.ahk` or copy it to a [library folder](https://www.autohotkey.com/docs/Functions.htm#lib) and use `#Include <VMR>`
 
@@ -33,4 +33,4 @@ To build `VMR.ahk` yourself, run the build script:
 ```powershell
 .\Build.ahk <version number>
 ```
-##### For more info, check out the [documentation](https://saifaqqad.github.io/VMR.ahk/)
+##### For more info, check out the [documentation](https://vmr-v1.vercel.app/)
