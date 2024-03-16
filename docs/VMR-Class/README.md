@@ -37,7 +37,7 @@ Runs the highest version installed , or a specific version if `type` is passed.
 * #### `updateDevices()`
 Updates the internal array of input and output devices, that's used for setting bus/strips devices
 * #### `exec(script)`
-Executes a string of voicemeeter commands, see [`script_example.ahk`](https://github.com/SaifAqqad/VMR.ahk/blob/master/examples/script_example.ahk)
+Executes a string of voicemeeter commands, see [`script_example.ahk`](https://github.com/SaifAqqad/VMR.ahk/blob/v1/examples/script_example.ahk)
 * #### `getBusDevices()`/`getStripDevices()`
 Returns an array of input/output devices, each device is an object with `name` and `driver` properties
 
@@ -60,6 +60,6 @@ called whenever voicemeeter receives a MIDI message
     voicemeeter.onUpdateLevels := Func("syncLevels")
 ```
 
-- See [ui_example.ahk](https://github.com/SaifAqqad/VMR.ahk/blob/master/examples/ui_example.ahk)
-- See [midi_message_example.ahk](https://github.com/SaifAqqad/VMR.ahk/blob/master/examples/midi_message_example.ahk)
+- See [ui_example.ahk](https://github.com/SaifAqqad/VMR.ahk/blob/v1/examples/ui_example.ahk)
+- See [midi_message_example.ahk](https://github.com/SaifAqqad/VMR.ahk/blob/v1/examples/midi_message_example.ahk)
 - [More info on function objects (AHK docs)](https://www.autohotkey.com/docs/objects/Func.htm)

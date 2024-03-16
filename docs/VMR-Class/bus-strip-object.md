@@ -88,4 +88,4 @@ for an up-to-date list of all `bus`/`strip` parameters, check out [VBVMR docs](h
 ```autohotkey
     peak_level := Max(voicemeeter.bus[1].level*)
 ```
-<sub>See [level_stabilizer_example.ahk](https://github.com/SaifAqqad/VMR.ahk/blob/master/examples/level_stabilizer_example.ahk)</sub>
+<sub>See [level_stabilizer_example.ahk](https://github.com/SaifAqqad/VMR.ahk/blob/v1/examples/level_stabilizer_example.ahk)</sub>

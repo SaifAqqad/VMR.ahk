@@ -1,7 +1,7 @@
 
 ##  Getting started <!-- {docsify-ignore} -->
 To use `VMR.ahk` in your script, follow these steps:
-1.  Download the latest pre-built version from the [`dist` folder](https://raw.githubusercontent.com/SaifAqqad/VMR.ahk/master/dist/VMR.ahk) or follow the build instructions below
+1.  Download the latest pre-built version from the [`dist` folder](https://raw.githubusercontent.com/SaifAqqad/VMR.ahk/v1/dist/VMR.ahk) or follow the build instructions below
 
 2.  Include it using `#Include VMR.ahk` or copy it to a [library folder](https://www.autohotkey.com/docs/Functions.htm#lib) and use `#Include <VMR>`
 
