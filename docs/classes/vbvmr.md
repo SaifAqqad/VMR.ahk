@@ -1,8 +1,8 @@
 # `VBVMR`  <!-- {docsify-ignore-all} -->
 
   A static wrapper class for the Voicemeeter Remote DLL.
-  
-  ?> The class must be initialized by calling [`Init()`](/classes/vbvmr?id=static-init) before using any of its static methods.
+
+?> The class must be initialized by calling [`Init()`](/classes/vbvmr?id=static-init) before using any of its static methods.
 
 ## Properties
 * #### **Static** `DLL` : `Ptr` :id=static-dll

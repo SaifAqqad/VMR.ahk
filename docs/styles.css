@@ -24,6 +24,10 @@ aside.toc-nav {
     max-height: 80vh;
 }
 
+.page_toc {
+    overflow: hidden;
+}
+
 .page_toc div[class^="lv"] a {
     font-weight: normal;
     color: unset;

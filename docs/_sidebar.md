@@ -1,10 +1,6 @@
 * [Home](/ 'VMR.ahk Docs')
-<!-- TODO: -->
-<!-- * Examples
-    - [Bus/Strip](/examples/bus-strip.md 'Bus/Strip control examples')
-    - [Recorder](/VMR-Class/recorder-object.md 'Recorder examples')
-    - [Commands](/VMR-Class/command-object.md 'Commands examples')
-    - [Macro Buttons](/VMR-Class/macrobutton-object.md 'Macro Buttons examples') -->
+* Examples
+    - [Bus/Strip](/examples/busstrip.md 'Bus/Strip control examples')
 * Classes
     - [`VMR`](/classes/vmr.md 'VMR Class')
     - [`VMRBus`](/classes/vmrbus.md 'VMRBus Class')
@@ -17,6 +13,7 @@
     - [`VMRMacroButton`](/classes/vmrmacrobutton.md 'VMRMacroButton Class')
     - [`VMRVBAN`](/classes/vmrvban.md 'VMRVBAN Class')
     - [`VMRControllerBase`](/classes/vmrcontrollerbase.md 'VMRControllerBase Class')
+    - [`VMR.Types`](/classes/vmrtypes.md 'VMR.Types Class')
     - [`VMRError`](/classes/vmrerror.md 'VMRError Class')
     - [`VMRUtils`](/classes/vmrutils.md 'VMRUtils Class')
     - [`VBVMR`](/classes/vbvmr.md 'VBVMR Class')

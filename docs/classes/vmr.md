@@ -6,7 +6,7 @@
   Creates a new VMR instance and initializes the [`VBVMR`](/classes/vbvmr) class.
 
   **Parameters**:
-  - **Optional** `p_path` : `String` - The path to the Voicemeeter Remote DLL. If not specified, VBVMR will attempt to find it in the registry.
+  - **Optional** `p_path` : `String` - The path to the Voicemeeter Remote DLL. If not specified, [`VBVMR`](/classes/vbvmr) will attempt to find it in the registry.
 
   **Throws**:
   - [`VMRError`](/classes/vmrerror) - If the DLL is not found in the specified path or if voicemeeter is not installed.
@@ -17,7 +17,7 @@
   The type of Voicemeeter that is currently running.
   
   **See also**:
-  [`VMR.Types`](/classes/vmr?id=static-types) for a list of available types.
+  [`VMR.Types`](/classes/vmrtypes) for a list of available types.
 * #### `Version` : `String` :id=version
   The version of Voicemeeter that is currently running.
   The AHK function [`VerCompare`](https://www.autohotkey.com/docs/v2/lib/VerCompare.htm) can be used to compare version strings.
@@ -33,7 +33,7 @@
 * #### `Fx` : [`VMRControllerBase`](/classes/vmrcontrollerbase) :id=fx
   Controls Voicemeeter Potato's FX settings
 
-  ?> This property is only available when running Voicemeeter Potato (`VMR.Type == VMR.Types.Potato`).
+  ?> This property is only available when running Voicemeeter Potato (`vm.Type == VMR.Types.Potato`).
 * #### `Patch` : [`VMRControllerBase`](/classes/vmrcontrollerbase) :id=patch
   Controls Voicemeeter's Patch parameters
 * #### `Option` : [`VMRControllerBase`](/classes/vmrcontrollerbase) :id=option
@@ -42,7 +42,8 @@
   Controls Voicemeeter's Macro Buttons app
 * #### `Recorder` : [`VMRRecorder`](/classes/vmrrecorder) :id=recorder
   Controls Voicemeeter's Recorder
-  ?> This property is only available when running Voicemeeter Banana or Potato (`VMR.Type.Id == 2 || VMR.Type.Id == 3`).
+
+  ?> This property is only available when running Voicemeeter Banana or Potato (`vm.Type == VMR.Types.Banana || VMR.Type == VMR.Types.Potato`).
 
 ## Methods
 * ### `Login(p_launchVoicemeeter := true)` :id=login
