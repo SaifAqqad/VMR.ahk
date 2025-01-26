@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
- * - Version 2.0.0
- * - Build timestamp 2024-03-09 19:51:57 UTC
+ * - Version 2.0.1
+ * - Build timestamp 2025-01-26 18:41:33 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -257,7 +257,7 @@ class VBVMR {
         SetParameters: 0,
         SetParametersW: 0
     }
-    static DLL := "", DLL_PATH := ""
+    static DLL := "", DLL_PATH := "", LOGGED_IN := false
     /**
      * Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
      * If the DLL is already loaded, it returns immediately.
@@ -303,12 +303,15 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static Login() {
-        local result
+        local result := 0
+        if (VBVMR.LOGGED_IN)
+            return result
         try result := DllCall(VBVMR.FUNC.Login)
         catch Error as err
             throw VMRError(err, VBVMR.Login.Name)
         if (result < 0)
             throw VMRError(result, VBVMR.Login.Name)
+        VBVMR.LOGGED_IN := true
         return result
     }
     /**
@@ -319,12 +322,15 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static Logout() {
-        local result
+        local result := 0
+        if (!VBVMR.LOGGED_IN)
+            return result
         try result := DllCall(VBVMR.FUNC.Logout)
         catch Error as err
             throw VMRError(err, VBVMR.Logout.Name)
         if (result < 0)
             throw VMRError(result, VBVMR.Logout.Name)
+        VBVMR.LOGGED_IN := false
         return result
     }
     /**
@@ -536,7 +542,9 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static IsParametersDirty() {
-        local result
+        local result := 0
+        if (!VBVMR.LOGGED_IN)
+            return result
         try result := DllCall(VBVMR.FUNC.IsParametersDirty)
         catch Error as err
             throw VMRError(err, VBVMR.IsParametersDirty.Name)
@@ -600,7 +608,9 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static MacroButton_IsDirty() {
-        local result
+        local result := 0
+        if (!VBVMR.LOGGED_IN)
+            return result
         try result := DllCall(VBVMR.FUNC.MacroButton_IsDirty)
         catch Error as err
             throw VMRError(err, VBVMR.MacroButton_IsDirty.Name)
@@ -617,8 +627,10 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static GetMidiMessage() {
-        local result, data := Buffer(1024),
+        local result := "", data := Buffer(1024),
             messages := []
+        if (!VBVMR.LOGGED_IN)
+            return result
         try result := DllCall(VBVMR.FUNC.GetMidiMessage, "Ptr", data, "Int", 1024)
         catch Error as err
             throw VMRError(err, VBVMR.GetMidiMessage.Name)
@@ -1751,7 +1763,7 @@ class VMR {
     Login(p_launchVoicemeeter := true) {
         local loginStatus := VBVMR.Login()
         ; Check if we should launch the Voicemeeter UI
-        if (loginStatus != 0 && p_launchVoicemeeter) {
+        if (loginStatus == 1 && p_launchVoicemeeter) {
             local vmPID := this.RunVoicemeeter()
             WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID)
             Sleep(2000)

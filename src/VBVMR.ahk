@@ -32,7 +32,7 @@ class VBVMR {
         SetParameters: 0,
         SetParametersW: 0
     }
-    static DLL := "", DLL_PATH := ""
+    static DLL := "", DLL_PATH := "", LOGGED_IN := false
 
     /**
      * Initializes the VBVMR class by loading the Voicemeeter Remote DLL and getting the addresses of all needed functions.
@@ -86,7 +86,10 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static Login() {
-        local result
+        local result := 0
+
+        if (VBVMR.LOGGED_IN)
+            return result
 
         try result := DllCall(VBVMR.FUNC.Login)
         catch Error as err
@@ -95,6 +98,7 @@ class VBVMR {
         if (result < 0)
             throw VMRError(result, VBVMR.Login.Name)
 
+        VBVMR.LOGGED_IN := true
         return result
     }
 
@@ -106,7 +110,10 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static Logout() {
-        local result
+        local result := 0
+
+        if (!VBVMR.LOGGED_IN)
+            return result
 
         try result := DllCall(VBVMR.FUNC.Logout)
         catch Error as err
@@ -115,6 +122,7 @@ class VBVMR {
         if (result < 0)
             throw VMRError(result, VBVMR.Logout.Name)
 
+        VBVMR.LOGGED_IN := false
         return result
     }
 
@@ -372,7 +380,10 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static IsParametersDirty() {
-        local result
+        local result := 0
+
+        if (!VBVMR.LOGGED_IN)
+            return result
 
         try result := DllCall(VBVMR.FUNC.IsParametersDirty)
         catch Error as err
@@ -448,7 +459,10 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static MacroButton_IsDirty() {
-        local result
+        local result := 0
+
+        if (!VBVMR.LOGGED_IN)
+            return result
 
         try result := DllCall(VBVMR.FUNC.MacroButton_IsDirty)
         catch Error as err
@@ -469,8 +483,11 @@ class VBVMR {
      * @throws {VMRError} - If an internal error occurs.
      */
     static GetMidiMessage() {
-        local result, data := Buffer(1024),
+        local result := "", data := Buffer(1024),
             messages := []
+
+        if (!VBVMR.LOGGED_IN)
+            return result
 
         try result := DllCall(VBVMR.FUNC.GetMidiMessage, "Ptr", data, "Int", 1024)
         catch Error as err

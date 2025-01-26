@@ -124,7 +124,7 @@ class VMR {
         local loginStatus := VBVMR.Login()
 
         ; Check if we should launch the Voicemeeter UI
-        if (loginStatus != 0 && p_launchVoicemeeter) {
+        if (loginStatus == 1 && p_launchVoicemeeter) {
             local vmPID := this.RunVoicemeeter()
             WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID)
             Sleep(2000)
