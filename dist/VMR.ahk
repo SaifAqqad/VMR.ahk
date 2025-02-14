@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
- * - Version 2.0.1
- * - Build timestamp 2025-01-26 18:41:33 UTC
+ * - Version 2.0.2
+ * - Build timestamp 2025-02-14 20:34:30 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -1186,7 +1186,8 @@ class VMRBus extends VMRAudioIO {
     _UpdateLevels() {
         loop this._channelCount {
             local vmrIndex := this._levelIndex + A_Index - 1
-            local level := Round(20 * Log(VBVMR.GetLevel(3, vmrIndex)))
+            local rawLevel := VBVMR.GetLevel(3, vmrIndex)
+            local level := rawLevel > 0 ? Round(20 * Log(rawLevel)) : rawLevel
             this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
@@ -1282,7 +1283,8 @@ class VMRStrip extends VMRAudioIO {
     _UpdateLevels() {
         loop this._channelCount {
             local vmrIndex := this._levelIndex + A_Index - 1
-            local level := Round(20 * Log(VBVMR.GetLevel(1, vmrIndex)))
+            local rawLevel := VBVMR.GetLevel(1, vmrIndex)
+            local level := rawLevel > 0 ? Round(20 * Log(rawLevel)) : rawLevel
             this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
