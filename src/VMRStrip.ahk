@@ -99,7 +99,7 @@ class VMRStrip extends VMRAudioIO {
         loop this._channelCount {
             local vmrIndex := this._levelIndex + A_Index - 1
             local rawLevel := VBVMR.GetLevel(1, vmrIndex)
-            local level := rawLevel > 0 ? Round(20 * Log(rawLevel)) : -999
+            local level := rawLevel > 0 ? Round(20 * Log(rawLevel)) : rawLevel
             this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
