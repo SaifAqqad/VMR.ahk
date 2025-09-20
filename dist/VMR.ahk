@@ -1,7 +1,7 @@
 /**
  * VMR.ahk - A wrapper for Voicemeeter's Remote API
- * - Version 2.0.2
- * - Build timestamp 2025-02-14 20:34:30 UTC
+ * - Version 2.0.3
+ * - Build timestamp 2025-09-20 06:23:09 UTC
  * - Repository: {@link https://github.com/SaifAqqad/VMR.ahk GitHub}
  * - Documentation: {@link https://saifaqqad.github.io/VMR.ahk VMR Docs}
  */
@@ -42,7 +42,7 @@ class VMRUtils {
      * __________
      * @returns {Number} The value with the bounds applied.
      */
-    static EnsureBetween(p_value, p_min, p_max) => Round(Max(p_min, Min(p_max, p_value)), 2)
+    static EnsureBetween(p_value, p_min, p_max) => Round(Max(p_min, Min(p_max, p_value)), 2) + 0
     /**
      * Returns the index of the first occurrence of a value in an array, or -1 if it's not found.
      * 
@@ -1186,8 +1186,13 @@ class VMRBus extends VMRAudioIO {
     _UpdateLevels() {
         loop this._channelCount {
             local vmrIndex := this._levelIndex + A_Index - 1
-            local rawLevel := VBVMR.GetLevel(3, vmrIndex)
-            local level := rawLevel > 0 ? Round(20 * Log(rawLevel)) : rawLevel
+            local level := VBVMR.GetLevel(3, vmrIndex)
+            if (level == 0) {
+                level := -999
+            }
+            else if (level > 0) {
+                level := Round(20 * Log(level))
+            }
             this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
@@ -1283,8 +1288,13 @@ class VMRStrip extends VMRAudioIO {
     _UpdateLevels() {
         loop this._channelCount {
             local vmrIndex := this._levelIndex + A_Index - 1
-            local rawLevel := VBVMR.GetLevel(1, vmrIndex)
-            local level := rawLevel > 0 ? Round(20 * Log(rawLevel)) : rawLevel
+            local level := VBVMR.GetLevel(1, vmrIndex)
+            if (level == 0) {
+                level := -999
+            }
+            else if (level > 0) {
+                level := Round(20 * Log(level))
+            }
             this.Level[A_Index] := VMRUtils.EnsureBetween(level, -999, 999)
         }
     }
@@ -1766,8 +1776,10 @@ class VMR {
         local loginStatus := VBVMR.Login()
         ; Check if we should launch the Voicemeeter UI
         if (loginStatus == 1 && p_launchVoicemeeter) {
-            local vmPID := this.RunVoicemeeter()
-            WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID)
+            local vmPID := this.RunVoicemeeter(), _detectHiddenWindows := A_DetectHiddenWindows
+            DetectHiddenWindows(true)
+            WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID, , 5)
+            DetectHiddenWindows(_detectHiddenWindows)
             Sleep(2000)
         }
         this.Version := VBVMR.GetVoicemeeterVersion()
@@ -2036,8 +2048,8 @@ class VMR {
      */
     class Types {
         static Count := 3
-        static Standard := VMR.Types(1, "Voicemeeter", "voicemeeter.exe", 2, 3, 4)
-        static Banana := VMR.Types(2, "Voicemeeter Banana", "voicemeeterpro.exe", 5, 5, 8)
+        static Standard := VMR.Types(1, "Voicemeeter", "voicemeeter" (A_Is64bitOS ? "_x64" : "") ".exe", 2, 3, 4)
+        static Banana := VMR.Types(2, "Voicemeeter Banana", "voicemeeterpro" (A_Is64bitOS ? "_x64" : "") ".exe", 5, 5, 8)
         static Potato := VMR.Types(3, "Voicemeeter Potato", "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe", 8, 8, 8)
         __New(id, name, executable, busCount, stripCount, vbanCount) {
             this.Id := id
