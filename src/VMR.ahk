@@ -125,8 +125,10 @@ class VMR {
 
         ; Check if we should launch the Voicemeeter UI
         if (loginStatus == 1 && p_launchVoicemeeter) {
-            local vmPID := this.RunVoicemeeter()
-            WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID)
+            local vmPID := this.RunVoicemeeter(), _detectHiddenWindows := A_DetectHiddenWindows
+            DetectHiddenWindows(true)
+            WinWait("ahk_class VBCABLE0Voicemeeter0MainWindow0 ahk_pid" vmPID, , 5)
+            DetectHiddenWindows(_detectHiddenWindows)
             Sleep(2000)
         }
 
