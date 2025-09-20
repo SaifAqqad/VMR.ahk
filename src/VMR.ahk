@@ -454,8 +454,8 @@ class VMR {
      */
     class Types {
         static Count := 3
-        static Standard := VMR.Types(1, "Voicemeeter", "voicemeeter.exe", 2, 3, 4)
-        static Banana := VMR.Types(2, "Voicemeeter Banana", "voicemeeterpro.exe", 5, 5, 8)
+        static Standard := VMR.Types(1, "Voicemeeter", "voicemeeter" (A_Is64bitOS ? "_x64" : "") ".exe", 2, 3, 4)
+        static Banana := VMR.Types(2, "Voicemeeter Banana", "voicemeeterpro" (A_Is64bitOS ? "_x64" : "") ".exe", 5, 5, 8)
         static Potato := VMR.Types(3, "Voicemeeter Potato", "voicemeeter8" (A_Is64bitOS ? "x64" : "") ".exe", 8, 8, 8)
 
         __New(id, name, executable, busCount, stripCount, vbanCount) {
