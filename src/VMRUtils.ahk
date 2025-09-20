@@ -39,7 +39,7 @@ class VMRUtils {
      * __________
      * @returns {Number} The value with the bounds applied.
      */
-    static EnsureBetween(p_value, p_min, p_max) => Round(Max(p_min, Min(p_max, p_value)), 2)
+    static EnsureBetween(p_value, p_min, p_max) => Round(Max(p_min, Min(p_max, p_value)), 2) + 0
 
     /**
      * Returns the index of the first occurrence of a value in an array, or -1 if it's not found.
